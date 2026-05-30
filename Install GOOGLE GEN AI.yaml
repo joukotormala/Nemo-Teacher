@@ -1,0 +1,14 @@
+NEXT_PUBLIC_SUPABASE_URL=https://ihuchnabexntvpwnpown.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_yfQ4Vk4YSQfHG0ZNFVDnPA_0ub1d6fb
+ABACUSAI_API_KEY=s2_b990103be8664b169d0cb6658172355b
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=aisingapore/Gemma-SEA-LION-v4-4B-VL
+CLOUD_LLM_MODEL=meta/llama-3.3-70b-instruct
+GEMINI_API_KEY=AQ.Ab8RN6Ld9sM70VjVjsFczTwd6vjtk3qrSnd72DDpAfidwgQBUg
+NVIDIA_API_KEY=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
+
+
+
+cd nextjs_space
+npm install @google/generative-ai
+

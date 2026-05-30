@@ -1,0 +1,139 @@
+@import 'katex/dist/katex.min.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 260 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 260 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 10% 10%;
+
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 187 92% 41%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 260 10% 96%;
+    --muted-foreground: 260 5% 45%;
+
+    --accent: 187 92% 95%;
+    --accent-foreground: 187 92% 30%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 260 10% 91%;
+    --input: 260 10% 91%;
+    --ring: 262 83% 58%;
+
+    --radius: 0.625rem;
+    --radius-sm: calc(0.625rem - 4px);
+    --radius-lg: calc(0.625rem + 4px);
+    --radius-full: 9999px;
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    --spacing-3xl: 64px;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+
+    --duration-fast: 150ms;
+    --duration-normal: 250ms;
+    --duration-slow: 350ms;
+
+    --chart-1: 262 83% 58%;
+    --chart-2: 187 92% 41%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 330 81% 60%;
+    --chart-5: 160 60% 45%;
+  }
+
+  .dark {
+    --background: 260 15% 6%;
+    --foreground: 0 0% 95%;
+
+    --card: 260 15% 9%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 260 15% 9%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 263 70% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 187 80% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 260 10% 15%;
+    --muted-foreground: 260 5% 55%;
+
+    --accent: 260 15% 18%;
+    --accent-foreground: 262 70% 70%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 260 10% 18%;
+    --input: 260 10% 18%;
+    --ring: 263 70% 55%;
+
+    --chart-1: 263 70% 55%;
+    --chart-2: 187 80% 45%;
+    --chart-3: 38 92% 55%;
+    --chart-4: 330 75% 55%;
+    --chart-5: 160 55% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  [data-hydration-error] {
+    display: none !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Chat markdown rendering */
+.chat-markdown {
+  line-height: 1.65;
+  word-break: break-word;
+}
+.chat-markdown > *:first-child {
+  margin-top: 0;
+}
+.chat-markdown > *:last-child {
+  margin-bottom: 0;
+}
