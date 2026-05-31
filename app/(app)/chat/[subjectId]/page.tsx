@@ -506,15 +506,15 @@ const STOP_WORDS = new Set([
     // Check if a static illustration exists for this word in our reorganized folders
     let imageUrl = '';
     if (cleanWord === 'brain') {
-      imageUrl = '/illustrations/science/brain.png';
+      imageUrl = '/illustrations/science/biology/brain.png';
     } else if (cleanWord === 'lungs') {
-      imageUrl = '/illustrations/science/lungs.png';
+      imageUrl = '/illustrations/science/biology/lungs.png';
     } else if (cleanWord === 'circulatory' || cleanWord === 'circulatory_system' || cleanWord === 'circulation') {
-      imageUrl = '/illustrations/science/circulatory.png';
+      imageUrl = '/illustrations/science/biology/circulatory.png';
     } else if (cleanWord === 'stomach' || cleanWord === 'stomache' || cleanWord === 'digestive' || cleanWord === 'digestive_system') {
-      imageUrl = '/illustrations/science/stomach.png';
+      imageUrl = '/illustrations/science/biology/stomach.png';
     } else if (cleanWord === 'heart') {
-      imageUrl = '/illustrations/science/heart.png';
+      imageUrl = '/illustrations/science/biology/heart.png';
     }
 
     if (imageUrl) {

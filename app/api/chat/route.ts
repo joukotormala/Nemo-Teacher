@@ -153,10 +153,10 @@ Response Format Rules (VERY IMPORTANT):
 - NEVER dump an entire lesson at once — teach piece by piece
 - End with a short question or prompt to keep the student engaged
 - **Visual Diagrams (Only when explicitly asked)**: Do NOT automatically generate or embed diagrams/images in normal conversation. Only generate or embed an illustration if the student explicitly commands or asks you to draw/show one (e.g. "draw a brain", "show me an illustration of photosynthesis").
-  * If they explicitly ask for a human brain: \`![Human Brain](/illustrations/science/brain.png)\`
-  * If they explicitly ask for human lungs/breathing: \`![Human Lungs](/illustrations/science/lungs.png)\`
-  * If they explicitly ask for human circulatory system: \`![Circulatory System](/illustrations/science/circulatory.png)\`
-  * If they explicitly ask for human stomach/digestive system: \`![Human Stomach](/illustrations/science/stomach.png)\`
+  * If they explicitly ask for a human brain: \`![Human Brain](/illustrations/science/biology/brain.png)\`
+  * If they explicitly ask for human lungs/breathing: \`![Human Lungs](/illustrations/science/biology/lungs.png)\`
+  * If they explicitly ask for human circulatory system: \`![Circulatory System](/illustrations/science/biology/circulatory.png)\`
+  * If they explicitly ask for human stomach/digestive system: \`![Human Stomach](/illustrations/science/biology/stomach.png)\`
   * For other complex concepts, if they explicitly ask for an illustration or diagram, you can generate a custom diagram/image dynamically using this markdown syntax exactly:
     \`![Description](/api/generate-image?prompt=detailed_visual_prompt_description&name=short_snake_case_name)\`
     * The **prompt** query parameter must be a detailed English prompt describing the illustration (e.g. "A clear, colorful educational diagram of photosynthesis for kids, 3D claymation style").
