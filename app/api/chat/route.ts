@@ -13,7 +13,7 @@ const QWEN_MODEL = 'qwen/qwen3-next-80b-a3b-instruct';
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
 
 function getEndpointConfig(modelChoice?: string): { url: string; model: string; headers: Record<string, string> } | null {
-  const choice = modelChoice || 'cloud'; // Llama 3.3 is now default!
+  const choice = modelChoice || 'llama-8b'; // Llama 3.1 8B is now default!
 
   if (choice === 'nvidia') {
     return {

@@ -53,7 +53,7 @@ export default function ChatPage() {
   const [greetingLoading, setGreetingLoading] = useState(false);
   const [topicSuggestions, setTopicSuggestions] = useState<string[]>([]);
   const [modelName, setModelName] = useState('Nemo AI');
-  const [activeModel, setActiveModel] = useState('cloud');
+  const [activeModel, setActiveModel] = useState('llama-8b');
   const [showHistory, setShowHistory] = useState(false);
   const [pastConversations, setPastConversations] = useState<SavedConversation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -144,7 +144,7 @@ export default function ChatPage() {
     if (greetingDoneRef.current || !subject || !activeStudent) return;
     greetingDoneRef.current = true;
 
-    const savedModel = (typeof window !== 'undefined' ? localStorage.getItem('nemo_preferred_model') : null) || 'cloud';
+    const savedModel = (typeof window !== 'undefined' ? localStorage.getItem('nemo_preferred_model') : null) || 'llama-8b';
     setActiveModel(savedModel);
 
     // Update local model name placeholder instantly

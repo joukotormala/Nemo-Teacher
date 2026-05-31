@@ -25,7 +25,7 @@ export default function SettingsPage() {
   const { t, locale, setLocale } = useLanguage();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const [preferredModel, setPreferredModel] = useState('cloud');
+  const [preferredModel, setPreferredModel] = useState('llama-8b');
 
   // Add new child states
   const [newStudentNameThai, setNewStudentNameThai] = useState('');
@@ -68,7 +68,7 @@ export default function SettingsPage() {
           current_grade: newGradeLevel,
           school_name: newSchoolName.trim() || null,
           language_preference: 'thai',
-          preferred_ai_model: 'cloud',
+          preferred_ai_model: 'llama-8b',
         })
         .select('id')
         .single();
@@ -164,7 +164,7 @@ export default function SettingsPage() {
       const dbModel = activeStudent.preferred_ai_model === 'sea-lion-8b' ? 'sea-lion' : activeStudent.preferred_ai_model;
       setPreferredModel(dbModel);
     } else if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('nemo_preferred_model') || 'cloud';
+      const saved = localStorage.getItem('nemo_preferred_model') || 'llama-8b';
       setPreferredModel(saved);
     }
   }, [activeStudent]);

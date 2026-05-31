@@ -189,7 +189,7 @@ export default function OnboardingPage() {
             current_grade: gradeLevel,
             language_preference: languagePref,
             school_name: schoolName.trim() || null,
-            preferred_ai_model: 'cloud',
+            preferred_ai_model: 'llama-8b',
           });
 
         if (studentError) throw studentError;
