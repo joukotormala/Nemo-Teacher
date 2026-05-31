@@ -233,6 +233,64 @@ export default function ChatPage() {
   }, []);
 
   const sendMessageCore = useCallback(async (trimmed: string) => {
+    // Check if user is triggering an illustration command
+    const drawRegex = /^\/(draw|image|illustration|rita|bild|วาด|รูป)\s+(.+)$/i;
+    if (drawRegex.test(trimmed)) {
+      const match = trimmed.match(drawRegex);
+      if (match) {
+        const rawPrompt = match[2].trim();
+        const safeName = rawPrompt.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase() || `img_${Math.random().toString(36).substring(7)}`;
+        const visualPrompt = encodeURIComponent(`A clear, colorful educational illustration of "${rawPrompt}" for kids, 3D claymation style, isolated on a light gray background`);
+        const imageUrl = `/api/generate-image?prompt=${visualPrompt}&name=${safeName}`;
+        
+        const userMsg: ChatMessage = { role: 'user', content: trimmed };
+        let introText = `Here is the illustration for "${rawPrompt}":`;
+        if (locale === 'th') {
+          introText = `นี่คือภาพประกอบสำหรับ "${rawPrompt}":`;
+        } else if (locale === 'sv') {
+          introText = `Här är illustrationen för "${rawPrompt}":`;
+        }
+        const assistantMsg: ChatMessage = {
+          role: 'assistant',
+          content: `${introText}\n\n![${rawPrompt}](${imageUrl})`
+        };
+        
+        const newMessages = [...(messages ?? []), userMsg, assistantMsg];
+        setMessages(newMessages);
+        setInput('');
+        
+        // Save to Supabase DB
+        if (activeStudent?.id && subjectDbId) {
+          try {
+            if (conversationId) {
+              await supabase
+                .from('conversations')
+                .update({ messages: newMessages, message_count: newMessages.length, updated_at: new Date().toISOString() })
+                .eq('id', conversationId);
+            } else {
+              const { data } = await supabase
+                .from('conversations')
+                .insert({
+                  student_id: activeStudent.id,
+                  subject_id: subjectDbId,
+                  messages: newMessages,
+                  message_count: newMessages.length,
+                  title: trimmed.substring(0, 100) || 'Chat',
+                  ai_model_used: activeModel,
+                })
+                .select('id')
+                .single();
+              if (data?.id) setConversationId(data.id);
+            }
+            fetchPastConversations();
+          } catch (err) {
+            console.error('Failed to save command conversation:', err);
+          }
+        }
+        return;
+      }
+    }
+
     const userMsg: ChatMessage = { role: 'user', content: trimmed };
     const newMessages = [...(messages ?? []), userMsg];
     setMessages(newMessages);
@@ -447,7 +505,8 @@ const STOP_WORDS = new Set([
 
     const isComposite = cleanWord.includes(' ') || cleanWord.includes('-');
     const isStopWord = STOP_WORDS.has(cleanWord);
-    const shouldIllustrate = !isStopWord && !isComposite && cleanWord.length > 2;
+    // Illustrations disabled for clicked words per user request
+    const shouldIllustrate = false;
 
     // Determine the image URL (checking static illustrations first)
     let imageUrl = '';
