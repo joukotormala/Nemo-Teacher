@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 import { useLanguage } from '@/lib/contexts/language-context';
 
+import { Locale } from '@/lib/translations';
+
 interface ParentProfile {
   id: string;
   name_thai: string;
@@ -43,6 +45,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   switchActiveStudent: (studentId: string) => void;
+  changeLanguage: (locale: Locale) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -59,6 +62,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   refreshProfile: async () => {},
   switchActiveStudent: () => {},
+  changeLanguage: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -215,6 +219,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setActiveStudent(null);
   }, []);
 
+  const changeLanguage = useCallback(async (newLocale: Locale) => {
+    setLocale(newLocale);
+    
+    if (user?.id) {
+      const dbLang = newLocale === 'en' ? 'english' : newLocale === 'sv' ? 'swedish' : 'thai';
+      
+      try {
+        if (activeStudent) {
+          const { error } = await supabase
+            .from('students')
+            .update({ language_preference: dbLang })
+            .eq('id', activeStudent.id);
+          if (!error) {
+            setActiveStudent(prev => prev ? { ...prev, language_preference: dbLang } : null);
+            setStudents(prev => prev.map(s => s.id === activeStudent.id ? { ...s, language_preference: dbLang } : s));
+          }
+        }
+        
+        if (parent) {
+          const { error } = await supabase
+            .from('parents')
+            .update({ language_preference: dbLang })
+            .eq('id', parent.id);
+          if (!error) {
+            setParent(prev => prev ? { ...prev, language_preference: dbLang } : null);
+          }
+        }
+      } catch (err) {
+        console.error('Error updating language preference:', err);
+      }
+    }
+  }, [user, activeStudent, parent, setLocale]);
+
   // Sync DB language preference to client locale on profile load/switch
   useEffect(() => {
     if (activeStudent?.language_preference) {
@@ -231,35 +268,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, [activeStudent?.id, activeStudent?.language_preference, parent?.id, parent?.language_preference, locale, setLocale]);
-
-  // Sync client locale changes back to DB language preference
-  useEffect(() => {
-    if (!user) return;
-    
-    const dbLang = locale === 'en' ? 'english' : locale === 'sv' ? 'swedish' : 'thai';
-
-    const updateDbPreference = async () => {
-      if (activeStudent && activeStudent.language_preference !== dbLang) {
-        const { error } = await supabase
-          .from('students')
-          .update({ language_preference: dbLang })
-          .eq('id', activeStudent.id);
-        if (!error) {
-          refreshProfile();
-        }
-      } else if (!activeStudent && parent && parent.language_preference !== dbLang) {
-        const { error } = await supabase
-          .from('parents')
-          .update({ language_preference: dbLang })
-          .eq('id', parent.id);
-        if (!error) {
-          refreshProfile();
-        }
-      }
-    };
-
-    updateDbPreference();
-  }, [locale, activeStudent?.id, parent?.id, user?.id, refreshProfile]);
 
   // Sync DB preferred AI model to client localStorage on profile load/switch
   useEffect(() => {
@@ -282,7 +290,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{
       user, session, parent, students, activeStudent, loading, profileComplete,
       signIn, signUp, signInWithGoogle,
-      signOut: signOutFn, refreshProfile, switchActiveStudent,
+      signOut: signOutFn, refreshProfile, switchActiveStudent, changeLanguage,
     }}>
       {children}
     </AuthContext.Provider>

@@ -21,8 +21,8 @@ const GRADE_OPTIONS = [
 ] as const;
 
 export default function SettingsPage() {
-  const { user, parent, activeStudent, refreshProfile } = useAuth();
-  const { t, locale, setLocale } = useLanguage();
+  const { user, parent, activeStudent, refreshProfile, changeLanguage } = useAuth();
+  const { t, locale } = useLanguage();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [preferredModel, setPreferredModel] = useState('llama-8b');
@@ -608,21 +608,21 @@ export default function SettingsPage() {
           <div className="flex gap-3">
             <Button
               variant={locale === 'th' ? 'default' : 'outline'}
-              onClick={() => setLocale('th')}
+              onClick={() => changeLanguage('th')}
               className="flex-1"
             >
               🇹🇭 ภาษาไทย
             </Button>
             <Button
               variant={locale === 'en' ? 'default' : 'outline'}
-              onClick={() => setLocale('en')}
+              onClick={() => changeLanguage('en')}
               className="flex-1"
             >
               🇬🇧 English
             </Button>
             <Button
               variant={locale === 'sv' ? 'default' : 'outline'}
-              onClick={() => setLocale('sv')}
+              onClick={() => changeLanguage('sv')}
               className="flex-1"
             >
               🇸🇪 Svenska

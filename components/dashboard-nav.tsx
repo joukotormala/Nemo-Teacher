@@ -10,8 +10,8 @@ import { GraduationCap, LayoutDashboard, BarChart3, Settings, LogOut, Globe } fr
 import { toast } from 'sonner';
 
 export function DashboardNav() {
-  const { signOut, students, activeStudent, switchActiveStudent, user } = useAuth();
-  const { t, locale, setLocale } = useLanguage();
+  const { signOut, students, activeStudent, switchActiveStudent, user, changeLanguage } = useAuth();
+  const { t, locale } = useLanguage();
   const pathname = usePathname();
 
   const handleLogout = async () => {
@@ -68,7 +68,7 @@ export function DashboardNav() {
           {/* Language Switcher */}
           <div className="flex items-center gap-0.5 bg-muted/40 p-1 rounded-xl border border-border/30">
             <button
-              onClick={() => setLocale('th')}
+              onClick={() => changeLanguage('th')}
               className={`px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-fast ${
                 locale === 'th'
                   ? 'bg-background text-foreground shadow-sm'
@@ -78,7 +78,7 @@ export function DashboardNav() {
               TH
             </button>
             <button
-              onClick={() => setLocale('en')}
+              onClick={() => changeLanguage('en')}
               className={`px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-fast ${
                 locale === 'en'
                   ? 'bg-background text-foreground shadow-sm'
@@ -88,7 +88,7 @@ export function DashboardNav() {
               EN
             </button>
             <button
-              onClick={() => setLocale('sv')}
+              onClick={() => changeLanguage('sv')}
               className={`px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-fast ${
                 locale === 'sv'
                   ? 'bg-background text-foreground shadow-sm'
