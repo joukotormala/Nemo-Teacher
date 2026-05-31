@@ -1,6 +1,5 @@
 NEXT_PUBLIC_SUPABASE_URL=https://ihuchnabexntvpwnpown.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_yfQ4Vk4YSQfHG0ZNFVDnPA_0ub1d6fb
-ABACUSAI_API_KEY=s2_b990103be8664b169d0cb6658172355b
 OLLAMA_URL=http://localhost:11434
 OLLAMA_MODEL=aisingapore/Gemma-SEA-LION-v4-4B-VL
 CLOUD_LLM_MODEL=meta/llama-3.3-70b-instruct

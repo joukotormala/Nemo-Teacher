@@ -503,75 +503,66 @@ const STOP_WORDS = new Set([
     const cleanWord = word.trim().replace(/[.,/#!$%^&*;:{}=\-_`~()?"'']/g, "").replace(/\s+/g, " ").toLowerCase();
     if (!cleanWord) return;
 
-    const isComposite = cleanWord.includes(' ') || cleanWord.includes('-');
-    const isStopWord = STOP_WORDS.has(cleanWord);
-    // Illustrations disabled for clicked words per user request
-    const shouldIllustrate = false;
-
-    // Determine the image URL (checking static illustrations first)
+    // Check if a static illustration exists for this word in our reorganized folders
     let imageUrl = '';
-    
-    if (shouldIllustrate) {
-      if (cleanWord === 'brain') {
-        imageUrl = '/illustrations/biology/brain.png';
-      } else if (cleanWord === 'lungs') {
-        imageUrl = '/illustrations/biology/lungs.png';
-      } else if (cleanWord === 'circulatory' || cleanWord === 'circulatory_system' || cleanWord === 'circulation') {
-        imageUrl = '/illustrations/biology/circulatory.png';
-      } else if (cleanWord === 'stomach' || cleanWord === 'stomache' || cleanWord === 'digestive' || cleanWord === 'digestive_system') {
-        imageUrl = '/illustrations/biology/stomach.png';
-      } else if (cleanWord === 'heart') {
-        imageUrl = '/illustrations/heart.png';
-      } else {
-        // Dynamic generation via /api/generate-image
-        // Clean word to pass as safe name parameter
-        const safeName = cleanWord.replace(/[^a-zA-Z0-9_-]/g, '_');
-        const visualPrompt = encodeURIComponent(`A clear, colorful educational illustration of "${cleanWord}" for kids, 3D claymation style, isolated on a light gray background`);
-        imageUrl = `/api/generate-image?prompt=${visualPrompt}&name=${safeName}`;
-      }
+    if (cleanWord === 'brain') {
+      imageUrl = '/illustrations/science/brain.png';
+    } else if (cleanWord === 'lungs') {
+      imageUrl = '/illustrations/science/lungs.png';
+    } else if (cleanWord === 'circulatory' || cleanWord === 'circulatory_system' || cleanWord === 'circulation') {
+      imageUrl = '/illustrations/science/circulatory.png';
+    } else if (cleanWord === 'stomach' || cleanWord === 'stomache' || cleanWord === 'digestive' || cleanWord === 'digestive_system') {
+      imageUrl = '/illustrations/science/stomach.png';
+    } else if (cleanWord === 'heart') {
+      imageUrl = '/illustrations/science/heart.png';
     }
 
-    setWordStudy({
-      word: cleanWord,
-      imageUrl,
-      loading: true,
-      imageLoading: shouldIllustrate
-    });
-
-    // Fetch definition from Free Dictionary API in the background
-    fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`)
-      .then(res => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then(data => {
-        const meaning = data[0]?.meanings[0];
-        const definition = meaning?.definitions[0]?.definition;
-        const partOfSpeech = meaning?.partOfSpeech;
-        const phonetic = data[0]?.phonetics?.find((p: any) => p.text)?.text || data[0]?.phonetic;
-        
-        setWordStudy(prev => {
-          if (!prev || prev.word !== cleanWord) return prev;
-          return {
-            ...prev,
-            definition,
-            partOfSpeech,
-            phonetic,
-            loading: false
-          };
-        });
-      })
-      .catch(() => {
-        setWordStudy(prev => {
-          if (!prev || prev.word !== cleanWord) return prev;
-          return {
-            ...prev,
-            loading: false
-          };
-        });
+    if (imageUrl) {
+      // Show the modal since an illustration exists
+      setWordStudy({
+        word: cleanWord,
+        imageUrl,
+        loading: true,
+        imageLoading: true
       });
 
-  }, [isStreaming]);
+      // Fetch definition from Free Dictionary API in the background
+      fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`)
+        .then(res => {
+          if (!res.ok) throw new Error();
+          return res.json();
+        })
+        .then(data => {
+          const meaning = data[0]?.meanings[0];
+          const definition = meaning?.definitions[0]?.definition;
+          const partOfSpeech = meaning?.partOfSpeech;
+          const phonetic = data[0]?.phonetics?.find((p: any) => p.text)?.text || data[0]?.phonetic;
+          
+          setWordStudy(prev => {
+            if (!prev || prev.word !== cleanWord) return prev;
+            return {
+              ...prev,
+              definition,
+              partOfSpeech,
+              phonetic,
+              loading: false
+            };
+          });
+        })
+        .catch(() => {
+          setWordStudy(prev => {
+            if (!prev || prev.word !== cleanWord) return prev;
+            return {
+              ...prev,
+              loading: false
+            };
+          });
+        });
+    } else {
+      // No illustration exists - bypass modal and go straight to Nemo explanation
+      sendMessageCore(cleanWord);
+    }
+  }, [isStreaming, sendMessageCore]);
 
   const handleModelChange = (modelId: string) => {
     setActiveModel(modelId);
