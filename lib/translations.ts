@@ -24,6 +24,11 @@ export const translations: Record<string, Record<Locale, string>> = {
   'auth.welcome': { th: 'ยินดีต้อนรับกลับมา', en: 'Welcome back', sv: 'Välkommen tillbaka' },
   'auth.createAccount': { th: 'สร้างบัญชีใหม่', en: 'Create your account', sv: 'Skapa ditt konto' },
   'auth.or': { th: 'หรือ', en: 'or', sv: 'eller' },
+  'auth.forgotPassword': { th: 'ลืมรหัสผ่าน?', en: 'Forgot password?', sv: 'Glömt lösenordet?' },
+  'auth.sendResetLink': { th: 'ส่งลิงก์รีเซ็ต', en: 'Send Reset Link', sv: 'Skicka återställningslänk' },
+  'auth.backToLogin': { th: 'กลับไปหน้าเข้าสู่ระบบ', en: 'Back to Log In', sv: 'Tillbaka till inloggning' },
+  'auth.resetSentSuccess': { th: 'ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว!', en: 'Password reset link sent to your email!', sv: 'Återställningslänk har skickats till din e-post!' },
+  'auth.enterEmailReset': { th: 'กรอกอีเมลของคุณเพื่อรับลิงก์รีเซ็ตรหัสผ่าน', en: 'Enter your email to receive a password reset link', sv: 'Ange din e-postadress för att få en återställningslänk' },
 
   // Dashboard
   'dashboard.welcome': { th: 'สวัสดี', en: 'Hello', sv: 'Hej' },
