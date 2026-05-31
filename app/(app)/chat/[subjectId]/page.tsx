@@ -158,6 +158,8 @@ export default function ChatPage() {
 
     const quickGreeting = locale === 'th'
       ? `สวัสดีครับ ${studentName}! 😊 ยินดีต้อนรับสู่วิชา${subjectName} พิมพ์คำถามของคุณได้เลยครับ!`
+      : locale === 'sv'
+      ? `Hej ${studentName}! 😊 Välkommen till ${subjectName}. Skriv din fråga nedan för att komma igång!`
       : `Hi ${studentName}! 😊 Welcome to ${subjectName}. Type your question below to get started!`;
     setMessages([{ role: 'assistant', content: quickGreeting }]);
 
@@ -398,6 +400,8 @@ export default function ChatPage() {
     setShowHistory(false);
     const quickGreeting = locale === 'th'
       ? `สวัสดีครับ ${studentName}! 😊 ยินดีต้อนรับสู่วิชา${subjectName} พิมพ์คำถามของคุณได้เลยครับ!`
+      : locale === 'sv'
+      ? `Hej ${studentName}! 😊 Välkommen till ${subjectName}. Skriv din fråga nedan för att komma igång!`
       : `Hi ${studentName}! 😊 Welcome to ${subjectName}. Type your question below to get started!`;
     setMessages([{ role: 'assistant', content: quickGreeting }]);
     if (subject?.suggestions?.length) {
@@ -538,6 +542,8 @@ const STOP_WORDS = new Set([
     toast.success(
       locale === 'th'
         ? `เปลี่ยนเป็นโมเดล ${displayName} แล้ว`
+        : locale === 'sv'
+        ? `Ändrade till ${displayName}`
         : `Switched to ${displayName}`
     );
   };
@@ -564,33 +570,72 @@ const STOP_WORDS = new Set([
     // Generate contextual quick replies
     const replies: string[] = [];
     const lower = content.toLowerCase();
-    const isThai = locale === 'th';
 
     // Yes/No pattern
-    if (/ready|พร้อม|ไหม|มั้ย|shall we|want to|do you want|ต้องการ|อยาก/.test(lower)) {
-      replies.push(isThai ? 'พร้อมเลยครับ! ✅' : 'Yes, let\'s go! ✅');
-      replies.push(isThai ? 'ขอคำใบ้หน่อยครับ 💡' : 'Give me a hint 💡');
+    if (/ready|พร้อม|ไหม|มั้ย|shall we|want to|do you want|ต้องการ|อยาก|redo|är du klar|vill du/.test(lower)) {
+      if (locale === 'th') {
+        replies.push('พร้อมเลยครับ! ✅');
+        replies.push('ขอคำใบ้หน่อยครับ 💡');
+      } else if (locale === 'sv') {
+        replies.push('Ja, låt oss köra! ✅');
+        replies.push('Ge mig en ledtråd 💡');
+      } else {
+        replies.push('Yes, let\'s go! ✅');
+        replies.push('Give me a hint 💡');
+      }
     }
     // Continue/next step pattern
-    if (/next|ต่อ|continue|step|ขั้นตอน|ไปต่อ/.test(lower)) {
-      replies.push(isThai ? 'ไปต่อเลย! ▶️' : 'Continue! ▶️');
-      replies.push(isThai ? 'อธิบายเพิ่มหน่อย 🔍' : 'Explain more 🔍');
+    if (/next|ต่อ|continue|step|ขั้นตอน|ไปต่อ|nästa|fortsätt|steg/.test(lower)) {
+      if (locale === 'th') {
+        replies.push('ไปต่อเลย! ▶️');
+        replies.push('อธิบายเพิ่มหน่อย 🔍');
+      } else if (locale === 'sv') {
+        replies.push('Fortsätt! ▶️');
+        replies.push('Förklara mer 🔍');
+      } else {
+        replies.push('Continue! ▶️');
+        replies.push('Explain more 🔍');
+      }
     }
     // Understanding check pattern
-    if (/understand|เข้าใจ|clear|ชัด|make sense|รู้เรื่อง/.test(lower)) {
-      replies.push(isThai ? 'เข้าใจแล้วครับ! 👍' : 'Yes, I understand! 👍');
-      replies.push(isThai ? 'ยังไม่เข้าใจ อธิบายอีกทีได้ไหม 🤔' : 'Not yet, explain again? 🤔');
+    if (/understand|เข้าใจ|clear|ชัด|make sense|รู้เรื่อง|förstår|tydligt|rimligt/.test(lower)) {
+      if (locale === 'th') {
+        replies.push('เข้าใจแล้วครับ! 👍');
+        replies.push('ยังไม่เข้าใจ อธิบายอีกทีได้ไหม 🤔');
+      } else if (locale === 'sv') {
+        replies.push('Ja, jag förstår! 👍');
+        replies.push('Inte än, förklara igen? 🤔');
+      } else {
+        replies.push('Yes, I understand! 👍');
+        replies.push('Not yet, explain again? 🤔');
+      }
     }
     // Try it pattern
-    if (/try|ลอง|attempt|give it|solve|แก้|คำนวณ|calculate/.test(lower)) {
-      replies.push(isThai ? 'ลองทำดูครับ! ✏️' : 'Let me try! ✏️');
-      replies.push(isThai ? 'ช่วยอธิบายก่อนได้ไหม 📖' : 'Help me understand first 📖');
+    if (/try|ลอง|attempt|give it|solve|แก้|คำนวณ|calculate|försök|testa|lösa/.test(lower)) {
+      if (locale === 'th') {
+        replies.push('ลองทำดูครับ! ✏️');
+        replies.push('ช่วยอธิบายก่อนได้ไหม 📖');
+      } else if (locale === 'sv') {
+        replies.push('Låt mig försöka! ✏️');
+        replies.push('Hjälp mig att förstå först 📖');
+      } else {
+        replies.push('Let me try! ✏️');
+        replies.push('Help me understand first 📖');
+      }
     }
 
     // Default if question detected but no specific pattern
     if (replies.length === 0) {
-      replies.push(isThai ? 'ใช่ครับ ✅' : 'Yes ✅');
-      replies.push(isThai ? 'ไม่แน่ใจ อธิบายเพิ่มหน่อย 🤔' : 'Not sure, explain more 🤔');
+      if (locale === 'th') {
+        replies.push('ใช่ครับ ✅');
+        replies.push('ไม่แน่ใจ อธิบายเพิ่มหน่อย 🤔');
+      } else if (locale === 'sv') {
+        replies.push('Ja ✅');
+        replies.push('Inte säker, förklara mer 🤔');
+      } else {
+        replies.push('Yes ✅');
+        replies.push('Not sure, explain more 🤔');
+      }
     }
 
     setQuickReplies(replies);
@@ -609,13 +654,13 @@ const STOP_WORDS = new Set([
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
-      if (diffMins < 1) return locale === 'th' ? 'เมื่อสักครู่' : 'Just now';
-      if (diffMins < 60) return locale === 'th' ? `${diffMins} นาทีที่แล้ว` : `${diffMins}m ago`;
+      if (diffMins < 1) return locale === 'th' ? 'เมื่อสักครู่' : locale === 'sv' ? 'Just nu' : 'Just now';
+      if (diffMins < 60) return locale === 'th' ? `${diffMins} นาทีที่แล้ว` : locale === 'sv' ? `${diffMins}m sedan` : `${diffMins}m ago`;
       const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return locale === 'th' ? `${diffHours} ชม.ที่แล้ว` : `${diffHours}h ago`;
+      if (diffHours < 24) return locale === 'th' ? `${diffHours} ชม.ที่แล้ว` : locale === 'sv' ? `${diffHours}t sedan` : `${diffHours}h ago`;
       const diffDays = Math.floor(diffHours / 24);
-      if (diffDays < 7) return locale === 'th' ? `${diffDays} วันที่แล้ว` : `${diffDays}d ago`;
-      return date.toLocaleDateString(locale === 'th' ? 'th-TH' : 'en-US', { month: 'short', day: 'numeric' });
+      if (diffDays < 7) return locale === 'th' ? `${diffDays} วันที่แล้ว` : locale === 'sv' ? `${diffDays}d sedan` : `${diffDays}d ago`;
+      return date.toLocaleDateString(locale === 'th' ? 'th-TH' : locale === 'sv' ? 'sv-SE' : 'en-US', { month: 'short', day: 'numeric' });
     } catch {
       return '';
     }

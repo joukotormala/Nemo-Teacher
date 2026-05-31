@@ -111,7 +111,9 @@ export async function POST(request: NextRequest) {
     }
 
     const subjectName = subject ?? 'general';
-    const lang = locale === 'en' ? 'English' : 'Thai';
+    let lang = 'Thai';
+    if (locale === 'en') lang = 'English';
+    else if (locale === 'sv') lang = 'Swedish';
     const grade = gradeLevel ? ` (Grade ${gradeLevel})` : '';
     const name = studentName ?? 'student';
 

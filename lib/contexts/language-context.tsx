@@ -22,7 +22,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
     const saved = localStorage?.getItem?.('nemo-locale') as Locale | null;
-    if (saved === 'th' || saved === 'en') {
+    if (saved === 'th' || saved === 'en' || saved === 'sv') {
       setLocaleState(saved);
     }
   }, []);

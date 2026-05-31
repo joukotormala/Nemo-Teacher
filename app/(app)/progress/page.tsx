@@ -84,7 +84,11 @@ export default function ProgressPage() {
           {t('progress.title')}
         </h1>
         <p className="text-muted-foreground mb-8">
-          {locale === 'th' ? 'ติดตามความก้าวหน้าและสถิติการเรียนรู้' : 'Track your learning progress and stats'}
+          {locale === 'th'
+            ? 'ติดตามความก้าวหน้าและสถิติการเรียนรู้'
+            : locale === 'sv'
+            ? 'Följ dina framsteg och inlärningsstatistik'
+            : 'Track your learning progress and stats'}
         </p>
       </motion.div>
 
@@ -145,7 +149,9 @@ export default function ProgressPage() {
                 ? (subjectInfo?.name_th ?? session?.subject_id ?? '')
                 : (subjectInfo?.name_en ?? session?.subject_id ?? '');
               const dateStr = session?.started_at
-                ? new Date(session.started_at).toLocaleDateString(locale === 'th' ? 'th-TH' : 'en-US', {
+                ? new Date(session.started_at).toLocaleDateString(
+                    locale === 'th' ? 'th-TH' : locale === 'sv' ? 'sv-SE' : 'en-US',
+                    {
                     month: 'short',
                     day: 'numeric',
                     hour: '2-digit',

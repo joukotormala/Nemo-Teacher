@@ -38,6 +38,7 @@ const GRADE_OPTIONS = [
 const LANGUAGE_OPTIONS = [
   { value: 'thai', labelKey: 'onboarding.langThai' },
   { value: 'english', labelKey: 'onboarding.langEnglish' },
+  { value: 'swedish', labelKey: 'onboarding.langSwedish' },
   { value: 'bilingual', labelKey: 'onboarding.langBilingual' },
 ] as const;
 
@@ -214,6 +215,8 @@ export default function OnboardingPage() {
         setLocale('en');
       } else if (languagePref === 'thai') {
         setLocale('th');
+      } else if (languagePref === 'swedish') {
+        setLocale('sv');
       }
 
       await refreshProfile();
@@ -257,11 +260,15 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
         <button
-          onClick={() => setLocale(locale === 'th' ? 'en' : 'th')}
+          onClick={() => {
+            if (locale === 'th') setLocale('en');
+            else if (locale === 'en') setLocale('sv');
+            else setLocale('th');
+          }}
           className="fixed top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur border border-border shadow-sm text-sm font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors"
         >
           <Globe className="w-4 h-4" />
-          {locale === 'th' ? 'EN' : 'TH'}
+          {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'TH'}
         </button>
 
         <motion.div
@@ -349,11 +356,15 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
       <button
-        onClick={() => setLocale(locale === 'th' ? 'en' : 'th')}
+        onClick={() => {
+          if (locale === 'th') setLocale('en');
+          else if (locale === 'en') setLocale('sv');
+          else setLocale('th');
+        }}
         className="fixed top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur border border-border shadow-sm text-sm font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors"
       >
         <Globe className="w-4 h-4" />
-        {locale === 'th' ? 'EN' : 'TH'}
+        {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'TH'}
       </button>
 
       <motion.div

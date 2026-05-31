@@ -17,7 +17,13 @@ export function DashboardNav() {
   const handleLogout = async () => {
     try {
       await signOut();
-      toast.success(locale === 'th' ? 'ออกจากระบบสำเร็จ' : 'Logged out successfully');
+      toast.success(
+        locale === 'th'
+          ? 'ออกจากระบบสำเร็จ'
+          : locale === 'sv'
+          ? 'Utloggad framgångsrikt'
+          : 'Logged out successfully'
+      );
     } catch {}
   };
 
@@ -61,18 +67,22 @@ export function DashboardNav() {
         <div className="flex items-center gap-3">
           {/* Language Switcher */}
           <button
-            onClick={() => setLocale(locale === 'th' ? 'en' : 'th')}
+            onClick={() => {
+              if (locale === 'th') setLocale('en');
+              else if (locale === 'en') setLocale('sv');
+              else setLocale('th');
+            }}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-lg bg-muted/50 border border-border/30"
           >
             <Globe className="w-3.5 h-3.5" />
-            {locale === 'th' ? 'EN' : 'ไทย'}
+            {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'TH'}
           </button>
 
           {/* Child Switcher Dropdown */}
           {students.length > 0 && activeStudent ? (
             <div className="relative flex items-center bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-xl px-2.5 py-1 text-primary transition-all shadow-sm">
               <span className="text-xs font-semibold mr-1.5 hidden md:inline text-primary/70">
-                {locale === 'th' ? 'ผู้เรียน:' : 'Student:'}
+                {locale === 'th' ? 'ผู้เรียน:' : locale === 'sv' ? 'Elev:' : 'Student:'}
               </span>
               <select
                 value={activeStudent.id}
@@ -81,6 +91,8 @@ export function DashboardNav() {
                   toast.success(
                     locale === 'th'
                       ? 'สลับโปรไฟล์ผู้เรียนสำเร็จ'
+                      : locale === 'sv'
+                      ? 'Elevprofil ändrad framgångsrikt'
                       : 'Switched student profile successfully'
                   );
                 }}

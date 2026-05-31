@@ -97,11 +97,15 @@ export default function LoginPage() {
         >
           <div className="flex justify-end mb-6">
             <button
-              onClick={() => setLocale(locale === 'th' ? 'en' : 'th')}
+              onClick={() => {
+                if (locale === 'th') setLocale('en');
+                else if (locale === 'en') setLocale('sv');
+                else setLocale('th');
+              }}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full bg-muted/50"
             >
               <Globe className="w-4 h-4" />
-              {locale === 'th' ? 'EN' : 'ไทย'}
+              {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'ไทย'}
             </button>
           </div>
 

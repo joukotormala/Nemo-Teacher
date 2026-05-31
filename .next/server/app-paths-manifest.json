@@ -1,7 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/api/generate-image/route": "app/api/generate-image/route.js",
-  "/api/chat/route": "app/api/chat/route.js",
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
-  "/(app)/chat/[subjectId]/page": "app/(app)/chat/[subjectId]/page.js"
-}

@@ -611,6 +611,13 @@ export default function SettingsPage() {
             >
               🇬🇧 English
             </Button>
+            <Button
+              variant={locale === 'sv' ? 'default' : 'outline'}
+              onClick={() => setLocale('sv')}
+              className="flex-1"
+            >
+              🇸🇪 Svenska
+            </Button>
           </div>
         </motion.div>
 
