@@ -66,17 +66,38 @@ export function DashboardNav() {
 
         <div className="flex items-center gap-3">
           {/* Language Switcher */}
-          <button
-            onClick={() => {
-              if (locale === 'th') setLocale('en');
-              else if (locale === 'en') setLocale('sv');
-              else setLocale('th');
-            }}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-lg bg-muted/50 border border-border/30"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'TH'}
-          </button>
+          <div className="flex items-center gap-0.5 bg-muted/40 p-1 rounded-xl border border-border/30">
+            <button
+              onClick={() => setLocale('th')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-fast ${
+                locale === 'th'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              TH
+            </button>
+            <button
+              onClick={() => setLocale('en')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-fast ${
+                locale === 'en'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLocale('sv')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider transition-all duration-fast ${
+                locale === 'sv'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              SV
+            </button>
+          </div>
 
           {/* Child Switcher Dropdown */}
           {students.length > 0 && activeStudent ? (

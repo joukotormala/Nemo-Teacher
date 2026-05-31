@@ -119,17 +119,38 @@ export default function LoginPage() {
           className="w-full max-w-md"
         >
           <div className="flex justify-end mb-6">
-            <button
-              onClick={() => {
-                if (locale === 'th') setLocale('en');
-                else if (locale === 'en') setLocale('sv');
-                else setLocale('th');
-              }}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full bg-muted/50"
-            >
-              <Globe className="w-4 h-4" />
-              {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'ไทย'}
-            </button>
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-full border border-border/30 w-fit">
+              <button
+                onClick={() => setLocale('th')}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                  locale === 'th'
+                    ? 'bg-background text-foreground shadow-sm font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                ไทย
+              </button>
+              <button
+                onClick={() => setLocale('en')}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                  locale === 'en'
+                    ? 'bg-background text-foreground shadow-sm font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setLocale('sv')}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                  locale === 'sv'
+                    ? 'bg-background text-foreground shadow-sm font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Svenska
+              </button>
+            </div>
           </div>
 
           <div className="lg:hidden text-center mb-8">

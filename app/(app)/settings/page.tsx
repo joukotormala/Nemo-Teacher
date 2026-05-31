@@ -215,6 +215,8 @@ export default function SettingsPage() {
 
     setSaving(true);
     try {
+      const dbLang = locale === 'en' ? 'english' : locale === 'sv' ? 'swedish' : 'thai';
+
       // Update parent
       const { error: parentErr } = await supabase
         .from('parents')
@@ -222,6 +224,7 @@ export default function SettingsPage() {
           name_thai: parentNameThai.trim(),
           name_english: parentNameEnglish.trim() || null,
           phone: parentPhone.trim(),
+          language_preference: dbLang,
         })
         .eq('id', parent.id);
 
@@ -237,6 +240,7 @@ export default function SettingsPage() {
           nickname_english: nicknameEnglish.trim() || null,
           current_grade: gradeLevel || null,
           school_name: schoolName.trim() || null,
+          language_preference: dbLang,
         })
         .eq('id', activeStudent.id);
 

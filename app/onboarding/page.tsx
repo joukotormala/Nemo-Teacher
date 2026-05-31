@@ -259,17 +259,38 @@ export default function OnboardingPage() {
   if (!role) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
-        <button
-          onClick={() => {
-            if (locale === 'th') setLocale('en');
-            else if (locale === 'en') setLocale('sv');
-            else setLocale('th');
-          }}
-          className="fixed top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur border border-border shadow-sm text-sm font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors"
-        >
-          <Globe className="w-4 h-4" />
-          {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'TH'}
-        </button>
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-border shadow-sm p-1 rounded-full">
+          <button
+            onClick={() => setLocale('th')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              locale === 'th'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            TH
+          </button>
+          <button
+            onClick={() => setLocale('en')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              locale === 'en'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLocale('sv')}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              locale === 'sv'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            SV
+          </button>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -355,17 +376,38 @@ export default function OnboardingPage() {
   // ========== PROFILE FORM SCREEN ==========
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
-      <button
-        onClick={() => {
-          if (locale === 'th') setLocale('en');
-          else if (locale === 'en') setLocale('sv');
-          else setLocale('th');
-        }}
-        className="fixed top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur border border-border shadow-sm text-sm font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors"
-      >
-        <Globe className="w-4 h-4" />
-        {locale === 'th' ? 'EN' : locale === 'en' ? 'SV' : 'TH'}
-      </button>
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-border shadow-sm p-1 rounded-full">
+        <button
+          onClick={() => setLocale('th')}
+          className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+            locale === 'th'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          TH
+        </button>
+        <button
+          onClick={() => setLocale('en')}
+          className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+            locale === 'en'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          EN
+        </button>
+        <button
+          onClick={() => setLocale('sv')}
+          className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+            locale === 'sv'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          SV
+        </button>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

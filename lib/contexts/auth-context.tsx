@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
+import { useLanguage } from '@/lib/contexts/language-context';
 
 interface ParentProfile {
   id: string;
@@ -61,6 +62,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { locale, setLocale } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [parent, setParent] = useState<ParentProfile | null>(null);
@@ -212,6 +214,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStudents([]);
     setActiveStudent(null);
   }, []);
+
+  // Sync DB language preference to client locale on profile load/switch
+  useEffect(() => {
+    if (activeStudent?.language_preference) {
+      const pref = activeStudent.language_preference.toLowerCase();
+      const targetLocale = pref === 'english' || pref === 'en' ? 'en' : pref === 'swedish' || pref === 'sv' ? 'sv' : 'th';
+      if (locale !== targetLocale) {
+        setLocale(targetLocale);
+      }
+    } else if (parent?.language_preference) {
+      const pref = parent.language_preference.toLowerCase();
+      const targetLocale = pref === 'english' || pref === 'en' ? 'en' : pref === 'swedish' || pref === 'sv' ? 'sv' : 'th';
+      if (locale !== targetLocale) {
+        setLocale(targetLocale);
+      }
+    }
+  }, [activeStudent?.id, activeStudent?.language_preference, parent?.id, parent?.language_preference, locale, setLocale]);
+
+  // Sync client locale changes back to DB language preference
+  useEffect(() => {
+    if (!user) return;
+    
+    const dbLang = locale === 'en' ? 'english' : locale === 'sv' ? 'swedish' : 'thai';
+
+    const updateDbPreference = async () => {
+      if (activeStudent && activeStudent.language_preference !== dbLang) {
+        const { error } = await supabase
+          .from('students')
+          .update({ language_preference: dbLang })
+          .eq('id', activeStudent.id);
+        if (!error) {
+          refreshProfile();
+        }
+      } else if (!activeStudent && parent && parent.language_preference !== dbLang) {
+        const { error } = await supabase
+          .from('parents')
+          .update({ language_preference: dbLang })
+          .eq('id', parent.id);
+        if (!error) {
+          refreshProfile();
+        }
+      }
+    };
+
+    updateDbPreference();
+  }, [locale, activeStudent?.id, parent?.id, user?.id, refreshProfile]);
 
   // Profile is complete when both parent AND at least one student record exist
   const profileComplete = !!(parent?.id && students.length > 0);
