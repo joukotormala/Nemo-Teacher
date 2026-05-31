@@ -68,6 +68,7 @@ export default function SettingsPage() {
           current_grade: newGradeLevel,
           school_name: newSchoolName.trim() || null,
           language_preference: 'thai',
+          preferred_ai_model: 'cloud',
         })
         .select('id')
         .single();
@@ -157,13 +158,16 @@ export default function SettingsPage() {
     }
   };
 
-  // Populate preferred model from localStorage
+  // Populate preferred model from activeStudent or localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (activeStudent?.preferred_ai_model) {
+      const dbModel = activeStudent.preferred_ai_model === 'sea-lion-8b' ? 'sea-lion' : activeStudent.preferred_ai_model;
+      setPreferredModel(dbModel);
+    } else if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('nemo_preferred_model') || 'cloud';
       setPreferredModel(saved);
     }
-  }, []);
+  }, [activeStudent]);
 
   // Parent fields
   const [parentNameThai, setParentNameThai] = useState('');
@@ -241,6 +245,7 @@ export default function SettingsPage() {
           current_grade: gradeLevel || null,
           school_name: schoolName.trim() || null,
           language_preference: dbLang,
+          preferred_ai_model: preferredModel,
         })
         .eq('id', activeStudent.id);
 

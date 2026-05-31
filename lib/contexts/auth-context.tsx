@@ -261,6 +261,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateDbPreference();
   }, [locale, activeStudent?.id, parent?.id, user?.id, refreshProfile]);
 
+  // Sync DB preferred AI model to client localStorage on profile load/switch
+  useEffect(() => {
+    if (activeStudent?.preferred_ai_model) {
+      // Normalize 'sea-lion-8b' to 'sea-lion' to match front-end IDs
+      const model = activeStudent.preferred_ai_model === 'sea-lion-8b' ? 'sea-lion' : activeStudent.preferred_ai_model;
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('nemo_preferred_model');
+        if (saved !== model) {
+          localStorage.setItem('nemo_preferred_model', model);
+        }
+      }
+    }
+  }, [activeStudent?.id, activeStudent?.preferred_ai_model]);
+
   // Profile is complete when both parent AND at least one student record exist
   const profileComplete = !!(parent?.id && students.length > 0);
 
