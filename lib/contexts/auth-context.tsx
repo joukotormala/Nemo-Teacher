@@ -139,6 +139,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id, fetchProfile]);
 
   useEffect(() => {
+    let didFinish = false;
+
     const initAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -147,14 +149,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (currentSession?.user?.id) {
           await fetchProfile(currentSession.user.id);
         }
-      } catch {
-        // Auth not available
+      } catch (err) {
+        console.error('Auth init error:', err);
       } finally {
+        didFinish = true;
         setLoading(false);
       }
     };
 
     initAuth();
+
+    // Safety: if auth takes more than 8s, stop the spinner anyway
+    const timeout = setTimeout(() => {
+      if (!didFinish) {
+        console.warn('[Auth] Init timed out — showing login');
+        setLoading(false);
+      }
+    }, 8000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession ?? null);
@@ -169,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      clearTimeout(timeout);
       subscription?.unsubscribe?.();
     };
   }, [fetchProfile]);
