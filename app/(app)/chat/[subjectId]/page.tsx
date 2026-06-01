@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { getSubjectBySlug } from '@/lib/subjects';
@@ -96,14 +96,11 @@ const ILLUSTRATION_MAP: Record<string, string> = {
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { activeStudent, user } = useAuth();
   const { t, locale } = useLanguage();
 
   const subjectSlug = (params?.subjectId as string) ?? '';
   const subject = getSubjectBySlug(subjectSlug);
-  // Topic pre-selected from the subject picker on the dashboard
-  const preselectedTopic = searchParams?.get('topic') ?? null;
   const SubjectIcon = subject?.icon;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -269,14 +266,17 @@ export default function ChatPage() {
           setTopicSuggestions(suggestions);
         }
 
-        // Auto-send preselected topic from the dashboard picker
-        if (preselectedTopic) {
+        // Auto-send preselected topic from the dashboard picker (read from URL)
+        const urlTopic = typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('topic')
+          : null;
+        if (urlTopic) {
           const suggestion = subject?.suggestions?.find(
-            s => s.label_en === preselectedTopic || s.label_th === preselectedTopic
+            s => s.label_en === urlTopic || s.label_th === urlTopic
           );
           const prompt = suggestion
             ? (locale === 'th' ? suggestion.prompt_th : suggestion.prompt_en)
-            : preselectedTopic;
+            : urlTopic;
           setTopicSuggestions([]);
           setTimeout(() => { sendMessageCore(prompt); }, 300);
         }
