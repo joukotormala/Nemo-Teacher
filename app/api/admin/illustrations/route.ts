@@ -2,8 +2,6 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 import { NextRequest } from 'next/server';
-import path from 'path';
-import fs from 'fs';
 import { cookies } from 'next/headers';
 import * as jose from 'jose';
 
@@ -62,21 +60,39 @@ export async function POST(request: NextRequest) {
     const cleanConcept = concept.trim().replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
     const cleanFolder = (folder || 'generated').trim().replace(/[^a-zA-Z0-9_/-]/g, '_').toLowerCase();
 
-    const publicDir = path.join(process.cwd(), 'public');
-    const targetDir = path.join(publicDir, 'illustrations', cleanFolder);
-    const filePath = path.join(targetDir, `${cleanConcept}.jpg`);
-    const publicPath = `/illustrations/${cleanFolder}/${cleanConcept}.jpg`;
-
-    console.log(`[Admin illustrations] Generating "${concept}" → ${publicPath}`);
+    const storagePath = `${cleanFolder}/${cleanConcept}.jpg`;
+    console.log(`[Admin illustrations] Generating "${concept}" → ${storagePath}`);
 
     const buffer = await generateImage(prompt);
     if (!buffer) {
       return Response.json({ error: 'Image generation timed out or failed. Pollinations.ai may be busy — please try again.' }, { status: 502 });
     }
 
-    fs.mkdirSync(targetDir, { recursive: true });
-    fs.writeFileSync(filePath, buffer);
-    console.log(`[Admin illustrations] Saved: ${filePath}`);
+    // Upload to Supabase Storage (works on Vercel — no filesystem writes needed)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+    const uploadRes = await fetch(
+      `${supabaseUrl}/storage/v1/object/illustrations/${storagePath}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${serviceKey}`,
+          'Content-Type': 'image/jpeg',
+          'x-upsert': 'true',
+        },
+        body: buffer,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      const errText = await uploadRes.text();
+      console.error('[Admin illustrations] Supabase upload error:', errText);
+      return Response.json({ error: `Storage upload failed: ${errText}` }, { status: 500 });
+    }
+
+    const publicPath = `${supabaseUrl}/storage/v1/object/public/illustrations/${storagePath}`;
+    console.log(`[Admin illustrations] Saved to Supabase: ${publicPath}`);
 
     const mapEntry = `'${cleanConcept}': '${publicPath}',`;
     return Response.json({ success: true, path: publicPath, mapEntry });
@@ -86,36 +102,51 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// List all existing illustration files
+// List all existing illustration files from Supabase Storage
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const publicDir = path.join(process.cwd(), 'public', 'illustrations');
-    const results: { path: string; name: string; folder: string }[] = [];
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-    function walk(dir: string, relative: string) {
-      if (!fs.existsSync(dir)) return;
-      for (const entry of fs.readdirSync(dir)) {
-        if (entry.startsWith('.')) continue;
-        const full = path.join(dir, entry);
-        const rel = relative ? `${relative}/${entry}` : entry;
-        if (fs.statSync(full).isDirectory()) {
-          walk(full, rel);
-        } else if (/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(entry)) {
+    // Recursively list all files in the illustrations bucket
+    async function listFolder(prefix: string): Promise<{ path: string; name: string; folder: string }[]> {
+      const res = await fetch(`${supabaseUrl}/storage/v1/object/list/illustrations`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prefix, limit: 1000, offset: 0 }),
+      });
+      if (!res.ok) return [];
+      const items: any[] = await res.json();
+      const results: { path: string; name: string; folder: string }[] = [];
+
+      for (const item of items) {
+        if (item.id === null) {
+          // It's a "folder" — recurse into it
+          const subPrefix = prefix ? `${prefix}${item.name}/` : `${item.name}/`;
+          const sub = await listFolder(subPrefix);
+          results.push(...sub);
+        } else if (/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(item.name)) {
+          const fullPath = prefix ? `${prefix}${item.name}` : item.name;
+          const folderName = prefix ? prefix.replace(/\/$/, '') : 'root';
           results.push({
-            path: `/illustrations/${rel}`,
-            name: entry.replace(/\.[^.]+$/, ''),
-            folder: relative || 'root',
+            path: `${supabaseUrl}/storage/v1/object/public/illustrations/${fullPath}`,
+            name: item.name.replace(/\.[^.]+$/, ''),
+            folder: folderName,
           });
         }
       }
+      return results;
     }
 
-    walk(publicDir, '');
-    return Response.json({ illustrations: results });
+    const illustrations = await listFolder('');
+    return Response.json({ illustrations });
   } catch (error: any) {
     return Response.json({ error: error.message }, { status: 500 });
   }
