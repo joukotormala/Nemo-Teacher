@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import type { SubjectInfo } from '@/lib/subjects';
@@ -16,6 +16,9 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
   const { locale, t } = useLanguage();
   const router = useRouter();
   const [showPicker, setShowPicker] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const Icon = subject?.icon;
   const name = locale === 'th' ? (subject?.name_th ?? '') : (subject?.name_en ?? '');
@@ -45,16 +48,11 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: (index ?? 0) * 0.08 }}
+      <div
+        onClick={handleCardClick}
+        className={`group relative rounded-xl p-6 ${subject?.bgColor ?? 'bg-muted'} hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden animate-fade-in-up`}
+        style={{ boxShadow: 'var(--shadow-md)', animationDelay: `${(index ?? 0) * 80}ms` }}
       >
-        <div
-          onClick={handleCardClick}
-          className={`group relative rounded-xl p-6 ${subject?.bgColor ?? 'bg-muted'} hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden`}
-          style={{ boxShadow: 'var(--shadow-md)' }}
-        >
           {/* Subtle background overlay of the icon */}
           <div className="absolute -top-4 -right-4 w-28 h-28 opacity-10 transform rotate-12 transition-transform duration-300 group-hover:scale-110">
             {Icon ? <Icon className="w-full h-full" style={{ color: subject?.color ?? '#8B5CF6' }} /> : null}
@@ -87,11 +85,11 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
             {t('dashboard.startLearning')}
             <ArrowRight className="w-4 h-4" />
           </div>
-        </div>
-      </motion.div>
+      </div>
 
-      {/* Topic Picker Modal */}
-      <AnimatePresence>
+      {/* Topic Picker Modal — only rendered client-side to avoid SSR hydration mismatch */}
+      {mounted && (
+        <AnimatePresence>
         {showPicker && (
           <>
             {/* Backdrop */}
@@ -209,7 +207,8 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
+      )}
     </>
   );
 }
