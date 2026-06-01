@@ -2,7 +2,7 @@ import { DM_Sans, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
-export const dynamic = 'force-dynamic';
+
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' });
 const jakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-display' });
@@ -42,9 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <head>
-        <script src="https://apps.abacus.ai/chatllm/appllm-lib.js" />
-      </head>
+
       <body
         className={`${dmSans.variable} ${jakartaSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >

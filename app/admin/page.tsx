@@ -5,7 +5,8 @@ import {
   Users, Lock, Shield, QrCode, Eye, EyeOff, Check, 
   AlertCircle, ArrowRight, Search, MessageSquare, 
   Calendar, Clock, Download, LogOut, RefreshCw, 
-  UserCheck, Smile, BookOpen, ChevronRight, X
+  UserCheck, Smile, BookOpen, ChevronRight, X,
+  ImagePlus, Sparkles, FolderOpen, Copy, CheckCheck, Loader2
 } from 'lucide-react';
 
 interface ParentData {
@@ -84,12 +85,70 @@ export default function AdminPage() {
   const [kidsList, setKidsList] = useState<KidData[]>([]);
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [dataError, setDataError] = useState('');
-  const [activeTab, setActiveTab] = useState<'parents' | 'kids'>('parents');
+  const [activeTab, setActiveTab] = useState<'parents' | 'kids' | 'illustrations'>('parents');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Selected user details modal
   const [selectedParent, setSelectedParent] = useState<ParentData | null>(null);
   const [selectedKid, setSelectedKid] = useState<KidData | null>(null);
+
+  // Illustrations tab state
+  const [illustrations, setIllustrations] = useState<{ path: string; name: string; folder: string }[]>([]);
+  const [illLoading, setIllLoading] = useState(false);
+  const [illGenConcept, setIllGenConcept] = useState('');
+  const [illGenFolder, setIllGenFolder] = useState('generated');
+  const [illGenPrompt, setIllGenPrompt] = useState('');
+  const [illGenerating, setIllGenerating] = useState(false);
+  const [illResult, setIllResult] = useState<{ path: string; mapEntry: string } | null>(null);
+  const [illError, setIllError] = useState('');
+  const [illCopied, setIllCopied] = useState(false);
+  const [illElapsed, setIllElapsed] = useState(0);
+
+  // Tick elapsed seconds while generating
+  useEffect(() => {
+    if (!illGenerating) { setIllElapsed(0); return; }
+    setIllElapsed(0);
+    const interval = setInterval(() => setIllElapsed(s => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, [illGenerating]);
+
+
+  const fetchIllustrations = async () => {
+    setIllLoading(true);
+    try {
+      const res = await fetch('/api/admin/illustrations');
+      if (res.ok) {
+        const data = await res.json();
+        setIllustrations(data.illustrations ?? []);
+      }
+    } catch {}
+    finally { setIllLoading(false); }
+  };
+
+  const generateIllustration = async () => {
+    if (!illGenConcept.trim() || !illGenPrompt.trim()) return;
+    setIllGenerating(true);
+    setIllResult(null);
+    setIllError('');
+    try {
+      const res = await fetch('/api/admin/illustrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ concept: illGenConcept, folder: illGenFolder, prompt: illGenPrompt }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setIllError(data.error ?? 'Generation failed');
+      } else {
+        setIllResult({ path: data.path, mapEntry: data.mapEntry });
+        fetchIllustrations();
+      }
+    } catch (e: any) {
+      setIllError(e.message ?? 'Network error');
+    } finally {
+      setIllGenerating(false);
+    }
+  };
 
   // 1. Check if user is already logged in on mount
   useEffect(() => {
@@ -612,6 +671,17 @@ export default function AdminPage() {
               <Smile className="w-3.5 h-3.5" />
               <span>Kids ({filteredKids.length})</span>
             </button>
+            <button
+              onClick={() => { setActiveTab('illustrations'); setSearchQuery(''); fetchIllustrations(); }}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${
+                activeTab === 'illustrations' 
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md' 
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <ImagePlus className="w-3.5 h-3.5" />
+              <span>Illustrations</span>
+            </button>
           </div>
 
           {/* Search filter input */}
@@ -636,15 +706,17 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* Export Action Button */}
+          {/* Export Action Button — only relevant for parents/kids tabs */}
+          {activeTab !== 'illustrations' && (
           <button
-            onClick={() => exportToCSV(activeTab)}
+            onClick={() => exportToCSV(activeTab as 'parents' | 'kids')}
             disabled={activeTab === 'parents' ? parentsList.length === 0 : kidsList.length === 0}
             className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 border border-zinc-800 hover:border-zinc-700 bg-slate-950 hover:bg-zinc-900 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white transition duration-200 disabled:opacity-50"
           >
             <Download className="w-3.5 h-3.5 text-zinc-400" />
             <span>Export to CSV</span>
           </button>
+          )}
         </section>
 
         {/* --- SECTION 3: Aggregated lists table --- */}
@@ -762,7 +834,7 @@ export default function AdminPage() {
                           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-800 text-zinc-300 border border-zinc-700">
                             Grade {kid.current_grade}
                           </span>
-                          <div className="text-[10px] text-zinc-500 font-mono">{kid.preferred_ai_model || 'Gemma 4B'}</div>
+                          <div className="text-[10px] text-zinc-500 font-mono">{kid.preferred_ai_model || 'Llama 3.1 8B'}</div>
                         </td>
                         <td className="px-6 py-4 text-xs font-mono text-zinc-400">
                           {kid.parent ? (
@@ -804,6 +876,161 @@ export default function AdminPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* RENDER TAB 3: Illustrations */}
+          {activeTab === 'illustrations' && (
+            <div className="p-6 space-y-6">
+
+              {/* Generator form */}
+              <div className="bg-slate-950/60 border border-zinc-800 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                  <h3 className="text-sm font-bold text-white">Generate New Illustration</h3>
+                  <span className="text-[10px] text-zinc-500 ml-1">powered by Pollinations FLUX · free · no API key needed</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Concept / Filename</label>
+                    <input
+                      type="text"
+                      value={illGenConcept}
+                      onChange={e => setIllGenConcept(e.target.value)}
+                      disabled={illGenerating}
+                      placeholder="e.g. skeleton"
+                      className="w-full px-3 py-2 text-xs border border-zinc-700 rounded-xl bg-slate-950 text-zinc-200 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Folder</label>
+                    <select
+                      value={illGenFolder}
+                      onChange={e => setIllGenFolder(e.target.value)}
+                      disabled={illGenerating}
+                      className="w-full px-3 py-2 text-xs border border-zinc-700 rounded-xl bg-slate-950 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                    >
+                      <option value="generated">generated</option>
+                      <option value="science/biology">science/biology</option>
+                      <option value="science/physics">science/physics</option>
+                      <option value="science/chemistry">science/chemistry</option>
+                      <option value="science/ecosystems">science/ecosystems</option>
+                      <option value="science/experiments">science/experiments</option>
+                      <option value="science/space&earth">science/space&earth</option>
+                      <option value="math">math</option>
+                      <option value="lab_tech">lab_tech</option>
+                      <option value="reading">reading</option>
+                      <option value="english">english</option>
+                      <option value="thai">thai</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Image Prompt</label>
+                    <input
+                      type="text"
+                      value={illGenPrompt}
+                      onChange={e => setIllGenPrompt(e.target.value)}
+                      disabled={illGenerating}
+                      placeholder="e.g. A clear labeled diagram of the human skeletal system..."
+                      className="w-full px-3 py-2 text-xs border border-zinc-700 rounded-xl bg-slate-950 text-zinc-200 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={generateIllustration}
+                  disabled={illGenerating || !illGenConcept.trim() || !illGenPrompt.trim()}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {illGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  {illGenerating ? `Generating image — ${illElapsed}s elapsed…` : 'Generate & Save Illustration'}
+                </button>
+
+                {/* Live progress bar shown while generating */}
+                {illGenerating && (
+                  <div className="space-y-1.5">
+                    <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 ease-linear"
+                        style={{ width: `${Math.min(95, (illElapsed / 30) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-zinc-500">
+                      {illElapsed < 5 ? 'Connecting to image generator…' :
+                       illElapsed < 12 ? 'Generating your illustration with FLUX AI…' :
+                       illElapsed < 25 ? 'Almost there, rendering details…' :
+                       'Finalising and saving image…'}
+                    </p>
+                  </div>
+                )}
+
+                {illError && (
+                  <div className="flex items-center gap-2 text-rose-400 text-xs bg-rose-950/30 border border-rose-900/40 px-3 py-2 rounded-xl">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    {illError}
+                  </div>
+                )}
+
+                {illResult && (
+                  <div className="bg-emerald-950/30 border border-emerald-900/40 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                      <Check className="w-4 h-4" />
+                      Illustration saved! Add this to ILLUSTRATION_MAP in page.tsx:
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-slate-900 text-indigo-300 text-xs font-mono px-3 py-2 rounded-xl border border-zinc-800 select-all">
+                        {illResult.mapEntry}
+                      </code>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(illResult.mapEntry); setIllCopied(true); setTimeout(() => setIllCopied(false), 2000); }}
+                        className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
+                        title="Copy"
+                      >
+                        {illCopied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+                      </button>
+                    </div>
+                    <img src={illResult.path} alt="Generated" className="rounded-xl max-h-48 object-contain border border-zinc-800" />
+                  </div>
+                )}
+              </div>
+
+              {/* Existing illustrations grid */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4 text-zinc-400" />
+                    <h3 className="text-sm font-bold text-white">Existing Illustrations ({illustrations.length})</h3>
+                  </div>
+                  <button onClick={fetchIllustrations} disabled={illLoading} className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition">
+                    <RefreshCw className={`w-3 h-3 ${illLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </button>
+                </div>
+                {illLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {illustrations.map(ill => (
+                      <div key={ill.path} className="group bg-slate-900/60 border border-zinc-800 rounded-xl overflow-hidden hover:border-indigo-500/50 transition-all">
+                        <div className="aspect-square bg-zinc-950 flex items-center justify-center overflow-hidden">
+                          <img
+                            src={ill.path}
+                            alt={ill.name}
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="p-2">
+                          <p className="text-[10px] font-bold text-zinc-300 truncate">{ill.name}</p>
+                          <p className="text-[9px] text-zinc-600 truncate">{ill.folder}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
         </section>
@@ -961,7 +1188,7 @@ export default function AdminPage() {
               <div className="bg-slate-950/40 p-4 rounded-2xl border border-zinc-850 text-xs space-y-2">
                 <div className="flex justify-between">
                   <span className="text-zinc-500">AI Tutor model preference</span>
-                  <span className="font-semibold text-zinc-300">{selectedKid.preferred_ai_model || 'Gemma 4B (Ollama)'}</span>
+                  <span className="font-semibold text-zinc-300">{selectedKid.preferred_ai_model || 'Llama 3.1 8B'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">Language configuration</span>

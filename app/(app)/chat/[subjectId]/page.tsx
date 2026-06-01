@@ -35,6 +35,64 @@ interface SavedConversation {
   messages: ChatMessage[];
 }
 
+// Module-level constant — created once, never recreated on renders
+const ILLUSTRATION_MAP: Record<string, string> = {
+  // Biology
+  'brain':                '/illustrations/science/biology/brain.png',
+  'lungs':                '/illustrations/science/biology/lungs.png',
+  'lung':                 '/illustrations/science/biology/lungs.png',
+  'circulatory':          '/illustrations/science/biology/circulatory.png',
+  'circulatory system':   '/illustrations/science/biology/circulatory.png',
+  'circulation':          '/illustrations/science/biology/circulatory.png',
+  'heart':                '/illustrations/science/biology/heart.png',
+  'stomach':              '/illustrations/science/biology/stomach.png',
+  'stomache':             '/illustrations/science/biology/stomach.png',
+  'digestive':            '/illustrations/science/biology/stomach.png',
+  'digestive system':     '/illustrations/science/biology/stomach.png',
+  'kidneys':              '/illustrations/science/biology/kidneys.jpg',
+  'kidney':               '/illustrations/science/biology/kidneys.jpg',
+  'liver':                '/illustrations/science/biology/liver.jpg',
+  'stem':                 '/illustrations/science/biology/stem.jpg',
+  'stem cell':            '/illustrations/science/biology/stem.jpg',
+  'stem cells':           '/illustrations/science/biology/stem.jpg',
+  'urinary':              '/illustrations/science/biology/urinary.jpg',
+  'urinary system':       '/illustrations/science/biology/urinary.jpg',
+  'bladder':              '/illustrations/science/biology/urinary.jpg',
+  'organs':               '/illustrations/science/biology/Organs.jpeg',
+  'organ':                '/illustrations/science/biology/Organs.jpeg',
+  'human body':           '/illustrations/science/biology/Organs.jpeg',
+  'body':                 '/illustrations/science/biology/Organs.jpeg',
+  'cells':                '/illustrations/science/biology/cells.jpg',
+  'cell':                 '/illustrations/science/biology/cells.jpg',
+  // Physics
+  'force':                '/illustrations/science/physics/force.jpg',
+  'forces':               '/illustrations/science/physics/forces.jpg',
+  'friction':             '/illustrations/science/physics/forces.jpg',
+  'gravity':              '/illustrations/science/physics/force.jpg',
+  'newton':               '/illustrations/science/physics/force.jpg',
+  // Space & Earth
+  'planet earth':         '/illustrations/generated/planet_earth.jpg',
+  'planet':               '/illustrations/generated/planet_earth.jpg',
+  'earth':                '/illustrations/generated/planet_earth.jpg',
+  'globe':                '/illustrations/generated/planet_earth.jpg',
+  'world':                '/illustrations/generated/planet_earth.jpg',
+  'mars':                 '/illustrations/science/space_earth/mars.jpg',
+  // Math
+  'angle':                '/illustrations/math/angle.jpg',
+  'angles':               '/illustrations/math/angle.jpg',
+  'triangle':             '/illustrations/math/angle.jpg',
+  // Lab Technology
+  'microscope':           '/illustrations/lab_tech/microscope.jpg',
+  'centrifuge':           '/illustrations/lab_tech/centrifuge.jpg',
+  'bunsen':               '/illustrations/lab_tech/bunsen.jpg',
+  'bunsen burner':        '/illustrations/lab_tech/bunsen.jpg',
+  'burner':               '/illustrations/lab_tech/burner.jpg',
+  'lab equipment':        '/illustrations/lab_tech/microscope.jpg',
+  'laboratory equipment': '/illustrations/lab_tech/microscope.jpg',
+  // Generated
+  'robot':                '/illustrations/generated/orange_robot.jpg',
+};
+
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -503,19 +561,8 @@ const STOP_WORDS = new Set([
     const cleanWord = word.trim().replace(/[.,/#!$%^&*;:{}=\-_`~()?"'']/g, "").replace(/\s+/g, " ").toLowerCase();
     if (!cleanWord) return;
 
-    // Check if a static illustration exists for this word in our reorganized folders
-    let imageUrl = '';
-    if (cleanWord === 'brain') {
-      imageUrl = '/illustrations/science/biology/brain.png';
-    } else if (cleanWord === 'lungs') {
-      imageUrl = '/illustrations/science/biology/lungs.png';
-    } else if (cleanWord === 'circulatory' || cleanWord === 'circulatory_system' || cleanWord === 'circulation') {
-      imageUrl = '/illustrations/science/biology/circulatory.png';
-    } else if (cleanWord === 'stomach' || cleanWord === 'stomache' || cleanWord === 'digestive' || cleanWord === 'digestive_system') {
-      imageUrl = '/illustrations/science/biology/stomach.png';
-    } else if (cleanWord === 'heart') {
-      imageUrl = '/illustrations/science/biology/heart.png';
-    }
+    // Look up in the complete illustration map
+    let imageUrl = ILLUSTRATION_MAP[cleanWord] || '';
 
     if (imageUrl) {
       // Show the modal since an illustration exists

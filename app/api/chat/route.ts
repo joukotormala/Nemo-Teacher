@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest } from 'next/server';
 
-// Configuration: if OLLAMA_URL is set, use local Ollama; otherwise use Abacus AI
+// Configuration: if OLLAMA_URL is set, use local Ollama; otherwise use NVIDIA API
 const OLLAMA_URL = process.env.OLLAMA_URL; // e.g. http://localhost:11434
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'aisingapore/Gemma-SEA-LION-v4-4B-VL';
 const LLAMA_MODEL = process.env.CLOUD_LLM_MODEL || 'meta/llama-3.3-70b-instruct';
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     const config = getEndpointConfig(model);
     if (!config) {
-      return new Response(JSON.stringify({ error: 'No LLM API configured. Set ABACUSAI_API_KEY or OLLAMA_URL in .env' }), {
+      return new Response(JSON.stringify({ error: 'No LLM API configured. Set NVIDIA_API_KEY or OLLAMA_URL in .env' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -153,15 +153,29 @@ Response Format Rules (VERY IMPORTANT):
 - NEVER dump an entire lesson at once — teach piece by piece
 - End with a short question or prompt to keep the student engaged
 - **Visual Diagrams (Only when explicitly asked)**: Do NOT automatically generate or embed diagrams/images in normal conversation. Only generate or embed an illustration if the student explicitly commands or asks you to draw/show one (e.g. "draw a brain", "show me an illustration of photosynthesis").
-  * If they explicitly ask for a human brain: \`![Human Brain](/illustrations/science/biology/brain.png)\`
-  * If they explicitly ask for human lungs/breathing: \`![Human Lungs](/illustrations/science/biology/lungs.png)\`
-  * If they explicitly ask for human circulatory system: \`![Circulatory System](/illustrations/science/biology/circulatory.png)\`
-  * If they explicitly ask for human stomach/digestive system: \`![Human Stomach](/illustrations/science/biology/stomach.png)\`
-  * For other complex concepts, if they explicitly ask for an illustration or diagram, you can generate a custom diagram/image dynamically using this markdown syntax exactly:
-    \`![Description](/api/generate-image?prompt=detailed_visual_prompt_description&name=short_snake_case_name)\`
-    * The **prompt** query parameter must be a detailed English prompt describing the illustration (e.g. "A clear, colorful educational diagram of photosynthesis for kids, 3D claymation style").
-    * The **name** query parameter must be a short, unique snake_case name (e.g. "photosynthesis_diagram") to cache the image.
-    Always use this exact syntax. The backend will automatically generate and cache it.
+  * Biology — use these static images when explicitly asked:
+    * Brain: ![Human Brain](/illustrations/science/biology/brain.png)
+    * Lungs / breathing: ![Human Lungs](/illustrations/science/biology/lungs.png)
+    * Heart: ![Heart](/illustrations/science/biology/heart.png)
+    * Circulatory system / circulation: ![Circulatory System](/illustrations/science/biology/circulatory.png)
+    * Stomach / digestive system: ![Human Stomach](/illustrations/science/biology/stomach.png)
+    * Kidneys / kidney: ![Kidneys](/illustrations/science/biology/kidneys.jpg)
+    * Liver: ![Liver](/illustrations/science/biology/liver.jpg)
+    * Stem cells: ![Stem Cells](/illustrations/science/biology/stem.jpg)
+    * Urinary system / bladder: ![Urinary System](/illustrations/science/biology/urinary.jpg)
+    * Organs / human body: ![Human Organs](/illustrations/science/biology/Organs.jpeg)
+  * Physics — use these static images when explicitly asked:
+    * Force / gravity / Newton: ![Force](/illustrations/science/physics/force.jpg)
+    * Forces / friction: ![Forces](/illustrations/science/physics/forces.jpg)
+  * Math — use these static images when explicitly asked:
+    * Angle / angles / triangle: ![Angle](/illustrations/math/angle.jpg)
+  * Lab Technology — use these static images when explicitly asked:
+    * Microscope / lab equipment: ![Microscope](/illustrations/lab_tech/microscope.jpg)
+    * Centrifuge: ![Centrifuge](/illustrations/lab_tech/centrifuge.jpg)
+    * Bunsen burner: ![Bunsen Burner](/illustrations/lab_tech/bunsen.jpg)
+    * Burner: ![Burner](/illustrations/lab_tech/burner.jpg)
+  * For other complex concepts, if they explicitly ask for an illustration or diagram, generate one dynamically:
+    ![Description](/api/generate-image?prompt=detailed_visual_prompt_description&name=short_snake_case_name)
 
 
 Teaching Style:
