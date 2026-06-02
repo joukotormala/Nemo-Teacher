@@ -382,11 +382,18 @@ export default function OnboardingPage() {
             {locale === 'th' ? 'เนโมพร้อมช่วยคุณเรียนรู้แล้ว! 🎓' : 'Nemo is ready to help you learn! 🎓'}
           </p>
           <button
-            onClick={async () => { await signOut(); router.replace('/login'); }}
-            className="mt-3 mx-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => {
+              // Force-clear everything — works even if Supabase API is down
+              if (typeof window !== 'undefined') {
+                localStorage.clear();
+                sessionStorage.clear();
+              }
+              window.location.href = '/login';
+            }}
+            className="mt-4 mx-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white text-sm font-semibold shadow-lg shadow-purple-500/20 hover:from-purple-700 hover:to-cyan-700 transition-all"
           >
-            <LogOut className="w-3 h-3" />
-            {locale === 'th' ? 'ออกจากระบบ / ใช้บัญชีอื่น' : 'Sign out / Use different account'}
+            <LogOut className="w-4 h-4" />
+            {locale === 'th' ? 'ไปหน้าเข้าสู่ระบบ' : 'Go to Login'}
           </button>
         </motion.div>
       </div>
