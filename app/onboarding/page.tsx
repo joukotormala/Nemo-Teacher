@@ -23,6 +23,7 @@ import {
   Phone,
   ArrowLeft,
   UserPlus,
+  Mail,
 } from 'lucide-react';
 
 type UserRole = 'parent' | 'student' | null;
@@ -136,91 +137,101 @@ export default function OnboardingPage() {
 
     setSaving(true);
     try {
-      let parentId = parent?.id;
+      // Timeout guard — never hang longer than 15s
+      const savePromise = (async () => {
+        let parentId = parent?.id;
 
-      // For student self-registration, create a minimal parent record (linked to themselves)
-      const isStudentSelf = role === 'student';
-      const pNameThai = isStudentSelf ? studentNameThai.trim() : parentNameThai.trim();
-      const pNameEn = isStudentSelf ? (studentNameEnglish.trim() || null) : (parentNameEnglish.trim() || null);
-      // Phone is UNIQUE + NOT NULL in DB — use a placeholder for students without phone
-      const pPhone = phone.trim() || `student-${user!.id.substring(0, 8)}`;
+        // For student self-registration, create a minimal parent record (linked to themselves)
+        const isStudentSelf = role === 'student';
+        const pNameThai = isStudentSelf ? studentNameThai.trim() : parentNameThai.trim();
+        const pNameEn = isStudentSelf ? (studentNameEnglish.trim() || null) : (parentNameEnglish.trim() || null);
+        // Phone is UNIQUE + NOT NULL in DB — use a placeholder for students without phone
+        const pPhone = phone.trim() || `student-${user!.id.substring(0, 8)}`;
 
-      if (!parentId) {
-        const { data: newParent, error: parentError } = await supabase
-          .from('parents')
-          .insert({
-            auth_user_id: user!.id,
-            name_thai: pNameThai,
-            name_english: pNameEn,
-            phone: pPhone,
-            email: user!.email!,
-            language_preference: languagePref,
-          })
-          .select('id')
-          .single();
+        if (!parentId) {
+          const { data: newParent, error: parentError } = await supabase
+            .from('parents')
+            .insert({
+              auth_user_id: user!.id,
+              name_thai: pNameThai,
+              name_english: pNameEn,
+              phone: pPhone,
+              email: user!.email!,
+              language_preference: languagePref,
+            })
+            .select('id')
+            .single();
 
-        if (parentError) throw parentError;
-        parentId = newParent.id;
-      } else {
-        const { error: parentError } = await supabase
-          .from('parents')
-          .update({
-            name_thai: pNameThai,
-            name_english: pNameEn,
-            phone: pPhone,
-            language_preference: languagePref,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', parentId);
+          if (parentError) throw parentError;
+          parentId = newParent.id;
+        } else {
+          const { error: parentError } = await supabase
+            .from('parents')
+            .update({
+              name_thai: pNameThai,
+              name_english: pNameEn,
+              phone: pPhone,
+              language_preference: languagePref,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', parentId);
 
-        if (parentError) throw parentError;
-      }
+          if (parentError) throw parentError;
+        }
 
-      if (!activeStudent?.id) {
-        const { error: studentError } = await supabase
-          .from('students')
-          .insert({
-            parent_id: parentId,
-            name_thai: studentNameThai.trim(),
-            name_english: studentNameEnglish.trim() || null,
-            nickname_thai: nicknameThai.trim() || null,
-            nickname_english: nicknameEnglish.trim() || null,
-            birth_date: birthDate,
-            current_grade: gradeLevel,
-            language_preference: languagePref,
-            school_name: schoolName.trim() || null,
-            preferred_ai_model: 'llama-8b',
-          });
+        if (!activeStudent?.id) {
+          const { error: studentError } = await supabase
+            .from('students')
+            .insert({
+              parent_id: parentId,
+              name_thai: studentNameThai.trim(),
+              name_english: studentNameEnglish.trim() || null,
+              nickname_thai: nicknameThai.trim() || null,
+              nickname_english: nicknameEnglish.trim() || null,
+              birth_date: birthDate,
+              current_grade: gradeLevel,
+              language_preference: languagePref,
+              school_name: schoolName.trim() || null,
+              preferred_ai_model: 'llama-8b',
+            });
 
-        if (studentError) throw studentError;
-      } else {
-        const { error: studentError } = await supabase
-          .from('students')
-          .update({
-            name_thai: studentNameThai.trim(),
-            name_english: studentNameEnglish.trim() || null,
-            nickname_thai: nicknameThai.trim() || null,
-            nickname_english: nicknameEnglish.trim() || null,
-            birth_date: birthDate,
-            current_grade: gradeLevel,
-            language_preference: languagePref,
-            school_name: schoolName.trim() || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', activeStudent.id);
+          if (studentError) throw studentError;
+        } else {
+          const { error: studentError } = await supabase
+            .from('students')
+            .update({
+              name_thai: studentNameThai.trim(),
+              name_english: studentNameEnglish.trim() || null,
+              nickname_thai: nicknameThai.trim() || null,
+              nickname_english: nicknameEnglish.trim() || null,
+              birth_date: birthDate,
+              current_grade: gradeLevel,
+              language_preference: languagePref,
+              school_name: schoolName.trim() || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', activeStudent.id);
 
-        if (studentError) throw studentError;
-      }
+          if (studentError) throw studentError;
+        }
 
-      if (languagePref === 'english') {
-        setLocale('en');
-      } else if (languagePref === 'thai') {
-        setLocale('th');
-      } else if (languagePref === 'swedish') {
-        setLocale('sv');
-      }
+        if (languagePref === 'english') {
+          setLocale('en');
+        } else if (languagePref === 'thai') {
+          setLocale('th');
+        } else if (languagePref === 'swedish') {
+          setLocale('sv');
+        }
 
-      await refreshProfile();
+        await refreshProfile();
+      })();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Save timed out — please check your internet connection and try again.')), 15000)
+      );
+
+      await Promise.race([savePromise, timeoutPromise]);
+
       toast.success(locale === 'th' ? 'บันทึกข้อมูลสำเร็จ!' : 'Profile saved successfully!');
       router.replace('/dashboard');
     } catch (err: any) {
@@ -482,6 +493,19 @@ export default function OnboardingPage() {
 
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-2 text-sm font-medium">
+                    <Mail className="w-4 h-4 text-purple-500" />
+                    {locale === 'th' ? 'อีเมล' : 'Email'}
+                  </Label>
+                  <Input
+                    type="email"
+                    value={user?.email ?? ''}
+                    readOnly
+                    className="h-11 rounded-xl bg-gray-100 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-muted-foreground cursor-not-allowed"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-2 text-sm font-medium">
                     <Phone className="w-4 h-4 text-purple-500" />
                     {t('onboarding.contactPhone')} <span className="text-red-500">*</span>
                   </Label>
@@ -603,21 +627,35 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              {/* Phone for student self-registration (optional) */}
+              {/* Email + Phone for student self-registration */}
               {role === 'student' ? (
-                <div className="space-y-1.5">
-                  <Label className="flex items-center gap-2 text-sm font-medium">
-                    <Phone className="w-4 h-4 text-cyan-500" />
-                    {t('onboarding.yourPhone')}
-                  </Label>
-                  <Input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder={t('onboarding.phonePlaceholder')}
-                    className="h-11 rounded-xl bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-cyan-500/20"
-                  />
-                </div>
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
+                      <Mail className="w-4 h-4 text-cyan-500" />
+                      {locale === 'th' ? 'อีเมล' : 'Email'}
+                    </Label>
+                    <Input
+                      type="email"
+                      value={user?.email ?? ''}
+                      readOnly
+                      className="h-11 rounded-xl bg-gray-100 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-muted-foreground cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
+                      <Phone className="w-4 h-4 text-cyan-500" />
+                      {t('onboarding.yourPhone')}
+                    </Label>
+                    <Input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder={t('onboarding.phonePlaceholder')}
+                      className="h-11 rounded-xl bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-cyan-500/20"
+                    />
+                  </div>
+                </>
               ) : null}
             </div>
 
