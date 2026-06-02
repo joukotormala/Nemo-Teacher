@@ -223,12 +223,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOutFn = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // API may fail if key is invalid — that's OK
+    }
+    // Always clear local state + storage so user isn't trapped
     setUser(null);
     setSession(null);
     setParent(null);
     setStudents([]);
     setActiveStudent(null);
+    if (typeof window !== 'undefined') {
+      // Clear all Supabase auth keys from localStorage
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.startsWith('supabase')) {
+          localStorage.removeItem(key);
+        }
+      });
+      localStorage.removeItem('nemo_active_student_id');
+      localStorage.removeItem('nemo_preferred_model');
+    }
   }, []);
 
   const changeLanguage = useCallback(async (newLocale: Locale) => {
