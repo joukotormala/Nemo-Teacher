@@ -146,7 +146,7 @@ export default function OnboardingPage() {
 
     setSaving(true);
     try {
-      // Timeout guard — never hang longer than 15s
+      // Timeout guard — only wraps the DB writes, not the profile refresh
       const savePromise = (async () => {
         let parentId = parent?.id;
 
@@ -171,7 +171,10 @@ export default function OnboardingPage() {
             .select('id')
             .single();
 
-          if (parentError) throw parentError;
+          if (parentError) {
+            console.error('Parent insert error:', parentError);
+            throw parentError;
+          }
           parentId = newParent.id;
         } else {
           const { error: parentError } = await supabase
@@ -181,11 +184,13 @@ export default function OnboardingPage() {
               name_english: pNameEn,
               phone: pPhone,
               language_preference: languagePref,
-              updated_at: new Date().toISOString(),
             })
             .eq('id', parentId);
 
-          if (parentError) throw parentError;
+          if (parentError) {
+            console.error('Parent update error:', parentError);
+            throw parentError;
+          }
         }
 
         if (!activeStudent?.id) {
@@ -204,7 +209,10 @@ export default function OnboardingPage() {
               preferred_ai_model: 'llama-8b',
             });
 
-          if (studentError) throw studentError;
+          if (studentError) {
+            console.error('Student insert error:', studentError);
+            throw studentError;
+          }
         } else {
           const { error: studentError } = await supabase
             .from('students')
@@ -217,33 +225,38 @@ export default function OnboardingPage() {
               current_grade: gradeLevel,
               language_preference: languagePref,
               school_name: schoolName.trim() || null,
-              updated_at: new Date().toISOString(),
             })
             .eq('id', activeStudent.id);
 
-          if (studentError) throw studentError;
+          if (studentError) {
+            console.error('Student update error:', studentError);
+            throw studentError;
+          }
         }
 
-        if (languagePref === 'english') {
-          setLocale('en');
-        } else if (languagePref === 'thai') {
-          setLocale('th');
-        } else if (languagePref === 'swedish') {
-          setLocale('sv');
-        }
-
-        await refreshProfile();
+        // Set locale immediately without waiting for DB
+        if (languagePref === 'english') setLocale('en');
+        else if (languagePref === 'thai') setLocale('th');
+        else if (languagePref === 'swedish') setLocale('sv');
       })();
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Save timed out — please check your internet connection and try again.')), 15000)
+        setTimeout(() => reject(new Error('Save timed out — please check your internet connection and try again.')), 12000)
       );
 
       await Promise.race([savePromise, timeoutPromise]);
 
+      // Refresh profile AFTER the timed section — a slow reload won't make it look stuck
+      try {
+        await refreshProfile();
+      } catch {
+        // Non-fatal — user can still proceed
+      }
+
       toast.success(locale === 'th' ? 'บันทึกข้อมูลสำเร็จ!' : 'Profile saved successfully!');
-      // Instead of going straight to dashboard, show Meet Nemo step
+      // Show Meet Nemo step
       setShowMeetNemo(true);
+
     } catch (err: any) {
       console.error('Onboarding error:', err);
       const msg = err?.message ?? '';
