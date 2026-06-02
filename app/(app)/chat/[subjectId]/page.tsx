@@ -1120,7 +1120,10 @@ const STOP_WORDS = new Set([
                 {locale === 'th' ? 'กำลังอ่านออกเสียง...' : 'Reading aloud...'}
               </div>
               <button
-                onClick={() => { window.speechSynthesis?.cancel(); setSpeakingIdx(null); }}
+                onClick={() => {
+                  if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
+                  setSpeakingIdx(null);
+                }}
                 className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 transition-all font-semibold text-xs"
               >
                 <VolumeX className="w-3.5 h-3.5" />
