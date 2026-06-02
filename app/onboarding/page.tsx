@@ -68,6 +68,14 @@ export default function OnboardingPage() {
 
   const [saving, setSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showMeetNemo, setShowMeetNemo] = useState(false);
+  const [savedStudentId, setSavedStudentId] = useState<string | null>(null);
+
+  // Meet Nemo quick memory state
+  const [nemoInterests, setNemoInterests] = useState<string[]>([]);
+  const [nemoLearningStyle, setNemoLearningStyle] = useState('');
+  const [nemoFavourites, setNemoFavourites] = useState('');
+  const [savingMemory, setSavingMemory] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -234,7 +242,8 @@ export default function OnboardingPage() {
       await Promise.race([savePromise, timeoutPromise]);
 
       toast.success(locale === 'th' ? 'บันทึกข้อมูลสำเร็จ!' : 'Profile saved successfully!');
-      router.replace('/dashboard');
+      // Instead of going straight to dashboard, show Meet Nemo step
+      setShowMeetNemo(true);
     } catch (err: any) {
       console.error('Onboarding error:', err);
       const msg = err?.message ?? '';
@@ -264,6 +273,127 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // ========== MEET NEMO SCREEN ==========
+  if (showMeetNemo) {
+    const QUICK_INTERESTS = ['⚽ Football','🎮 Gaming','🎵 Music','🎨 Art','📚 Reading','🔬 Science','🏊 Swimming','🐾 Animals','🎣 Fishing','⛏️ Minecraft','🚗 Cars','✏️ Drawing'];
+    const QUICK_STYLES = [
+      { v: 'visual', e: '🖼️', l: locale === 'th' ? 'ดูรูปและวิดีโอ' : 'Pictures & Videos' },
+      { v: 'hands-on', e: '🔧', l: locale === 'th' ? 'ลองทำเอง' : 'Doing it myself' },
+      { v: 'reading', e: '📖', l: locale === 'th' ? 'อ่านหนังสือ' : 'Reading' },
+      { v: 'listening', e: '🎧', l: locale === 'th' ? 'ฟัง' : 'Listening' },
+    ];
+    const saveMemory = async () => {
+      setSavingMemory(true);
+      try {
+        const studentId = activeStudent?.id;
+        if (studentId) {
+          await supabase.from('students').update({
+            nemo_memory: {
+              interests: nemoInterests,
+              learning_style: nemoLearningStyle,
+              favourites: nemoFavourites,
+              fun_facts: [],
+              strengths: [],
+              struggles: [],
+              languages_spoken: [],
+              completed_topics: {},
+              last_lesson_summary: '',
+            }
+          }).eq('id', studentId);
+          await refreshProfile();
+        }
+      } catch { /* ignore */ } finally {
+        setSavingMemory(false);
+        router.replace('/dashboard');
+      }
+    };
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md space-y-5">
+          {/* Nemo header */}
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-4 border-purple-400 shadow-xl shadow-purple-500/30">
+              <img src="/nemo_avatar.jpg" alt="Nemo" className="w-full h-full object-cover" />
+            </div>
+            <h2 className="font-display font-bold text-2xl">
+              {locale === 'th' ? '👋 สวัสดี! ฉันชื่อเนโม' : '👋 Hi! I\'m Nemo'}
+            </h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              {locale === 'th' ? 'บอกฉันเกี่ยวกับตัวคุณ เพื่อที่ฉันจะสอนได้ดีขึ้น!' : 'Tell me about yourself so I can teach you better!'}
+            </p>
+          </div>
+
+          {/* Interests */}
+          <div className="bg-card rounded-2xl p-4 border border-border/50 shadow-sm space-y-3">
+            <p className="font-semibold text-sm flex items-center gap-2">⭐ {locale === 'th' ? 'คุณชอบทำอะไร?' : 'What do you love?'}</p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_INTERESTS.map(i => {
+                const val = i.split(' ').slice(1).join(' ');
+                const active = nemoInterests.includes(val);
+                return (
+                  <button
+                    key={val}
+                    onClick={() => setNemoInterests(prev => active ? prev.filter(x => x !== val) : [...prev, val])}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${active ? 'bg-purple-500 text-white border-purple-500 shadow-md' : 'bg-muted/50 border-border hover:bg-muted'}`}
+                  >
+                    {i}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Learning style */}
+          <div className="bg-card rounded-2xl p-4 border border-border/50 shadow-sm space-y-3">
+            <p className="font-semibold text-sm flex items-center gap-2">🧠 {locale === 'th' ? 'คุณชอบเรียนแบบไหน?' : 'How do you like to learn?'}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {QUICK_STYLES.map(s => (
+                <button
+                  key={s.v}
+                  onClick={() => setNemoLearningStyle(s.v)}
+                  className={`p-3 rounded-xl text-left border transition-all ${nemoLearningStyle === s.v ? 'bg-cyan-500 text-white border-cyan-500 shadow-md' : 'bg-muted/50 border-border hover:bg-muted'}`}
+                >
+                  <span className="text-xl">{s.e}</span>
+                  <p className="text-sm font-medium mt-1">{s.l}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Favourite thing */}
+          <div className="bg-card rounded-2xl p-4 border border-border/50 shadow-sm space-y-3">
+            <p className="font-semibold text-sm flex items-center gap-2">💬 {locale === 'th' ? 'บอกอะไรสนุกๆ เกี่ยวกับตัวเอง' : 'Tell Nemo something fun about you!'}</p>
+            <textarea
+              value={nemoFavourites}
+              onChange={e => setNemoFavourites(e.target.value)}
+              placeholder={locale === 'th' ? 'เช่น มีสุนัขชื่อมอคค่า, ชอบเกม Minecraft...' : 'e.g. I have a dog named Max, I love Minecraft...'}
+              rows={2}
+              className="w-full text-sm px-3 py-2 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.replace('/dashboard')}
+              className="flex-none px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground border border-border hover:bg-muted transition-all"
+            >
+              {locale === 'th' ? 'ข้าม' : 'Skip'}
+            </button>
+            <button
+              onClick={saveMemory}
+              disabled={savingMemory}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold text-sm shadow-lg shadow-purple-500/20 hover:from-purple-700 hover:to-cyan-700 transition-all flex items-center justify-center gap-2"
+            >
+              {savingMemory ? <Loader2 className="w-4 h-4 animate-spin" /> : '🧠'}
+              {locale === 'th' ? 'บันทึกและเริ่มเรียน!' : 'Save & Start Learning!'}
+            </button>
+          </div>
+        </motion.div>
       </div>
     );
   }

@@ -395,6 +395,7 @@ export default function ChatPage() {
             gradeLevel: activeStudent?.current_grade,
             isGreeting: true,
             model: savedModel,
+            studentMemory: activeStudent?.nemo_memory ?? null,
           }),
         });
 
@@ -541,6 +542,7 @@ export default function ChatPage() {
           studentName,
           gradeLevel: activeStudent?.current_grade,
           model: activeModel,
+          studentMemory: activeStudent?.nemo_memory ?? null,
         }),
       });
 

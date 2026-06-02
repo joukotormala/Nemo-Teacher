@@ -93,7 +93,7 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, subject, locale, studentName, gradeLevel, isGreeting, model } = body ?? {};
+    const { messages, subject, locale, studentName, gradeLevel, isGreeting, model, studentMemory } = body ?? {};
 
     if (!messages || !Array.isArray(messages) || (messages?.length ?? 0) === 0) {
       return new Response(JSON.stringify({ error: 'Messages are required' }), {
@@ -117,11 +117,33 @@ export async function POST(request: NextRequest) {
     const grade = gradeLevel ? ` (Grade ${gradeLevel})` : '';
     const name = studentName ?? 'student';
 
+    // Build USER.md-style memory block if available
+    const mem = studentMemory ?? {};
+    const memoryBlock = (mem && Object.keys(mem).length > 0) ? `
+## What Nemo Knows About This Student
+- **Interests & Hobbies:** ${(mem.interests?.length ? mem.interests.join(', ') : (studentMemory?.interests_text || 'not specified'))}
+- **Learning Style:** ${mem.learning_style || 'not specified'}
+- **Personality:** ${mem.personality || 'not specified'}
+- **Strengths:** ${mem.strengths?.length ? mem.strengths.join(', ') : 'not specified'}
+- **Struggles:** ${mem.struggles?.length ? mem.struggles.join(', ') : 'not specified'}
+- **Languages Spoken:** ${mem.languages_spoken?.length ? mem.languages_spoken.join(', ') : lang}
+- **Fun Facts:** ${mem.fun_facts?.length ? mem.fun_facts.join('; ') : 'none yet'}
+- **Favourite things:** ${mem.favourites || 'not specified'}
+${mem.completed_topics?.[subject] ? `- **Already covered in ${subjectName}:** ${mem.completed_topics[subject].join(', ')}` : ''}
+${mem.last_lesson_summary ? `- **Last lesson:** ${mem.last_lesson_summary}` : ''}
+
+Use this information to:
+- Address the student by their preferred name
+- Reference their interests when giving analogies (e.g. use football/game examples for a student who loves football)
+- Adjust difficulty to their level
+- Avoid topics already mastered unless reviewing
+` : '';
+
     let systemPrompt: string;
 
     if (isGreeting) {
       systemPrompt = `You are "Nemo" (เนโม), a friendly AI tutor. Generate a SHORT welcoming message and topic suggestions.
-
+${memoryBlock}
 Context:
 - Subject: ${subjectName}
 - Student name: ${name}
@@ -133,11 +155,11 @@ You MUST respond with ONLY valid JSON, no other text. Use this exact format:
 
 The suggestions must be 3-5 specific topics appropriate for the student's grade level in ${subjectName}.
 Write suggestions in ${lang}.
-Keep the greeting SHORT (under 40 words).
+Keep the greeting SHORT (under 40 words). Personalise it if you know the student's interests.
 Do NOT include any text outside the JSON object.`;
     } else {
       systemPrompt = `You are "Nemo" (เนโม), a friendly and encouraging AI tutor. You help students learn and understand concepts clearly.
-
+${memoryBlock}
 Context:
 - Subject: ${subjectName}
 - Student: ${name}${grade}

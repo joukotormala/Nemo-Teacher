@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, LayoutDashboard, BarChart3, Settings, LogOut, Globe } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, BarChart3, Settings, LogOut, Globe, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DashboardNav() {
@@ -30,6 +30,7 @@ export function DashboardNav() {
   const navItems = [
     { href: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
     { href: '/progress', label: t('nav.progress'), icon: BarChart3 },
+    { href: '/memory', label: locale === 'th' ? 'หน่วยความจำ' : locale === 'sv' ? 'Minne' : 'Memory', icon: Brain },
     { href: '/settings', label: t('nav.settings'), icon: Settings },
   ];
 

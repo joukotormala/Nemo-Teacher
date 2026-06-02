@@ -29,6 +29,10 @@ interface StudentProfile {
   language_preference: string;
   preferred_ai_model: string;
   avatar_url: string | null;
+  nemo_memory: Record<string, any> | null;
+  interests: string[] | null;
+  learning_style: string | null;
+  personality_notes: string | null;
 }
 
 interface AuthContextType {
@@ -104,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Step 2: Find student record by parent_id
       const { data: studentData, error: studentError } = await supabase
         .from('students')
-        .select('id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, avatar_url')
+        .select('id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, avatar_url, nemo_memory, interests, learning_style, personality_notes')
         .eq('parent_id', parentData.id);
 
       if (studentError) {
