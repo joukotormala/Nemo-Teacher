@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Send, Loader2, Bot, UserCircle, Plus, Cpu,
   MessageSquare, Clock, ChevronRight, History, X,
-  Volume2, VolumeX, Mic, MicOff,
+  Volume2, VolumeX, Mic, MicOff, Search, Globe, ExternalLink, ImageOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessageContent } from '@/components/chat-message';
@@ -138,6 +138,17 @@ export default function ChatPage() {
   // --- Speech-to-Text (STT) state ---
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+
+  // --- Web Search state ---
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResult, setSearchResult] = useState<{
+    query: string;
+    summary: string;
+    sources: { title: string; url: string; snippet: string }[];
+    images: { url: string; title: string; source: string }[];
+  } | null>(null);
 
   // Get the speech language code from locale
   const getSpeechLang = useCallback(() => {
@@ -282,6 +293,37 @@ export default function ChatPage() {
       setIsListening(false);
     }
   }, [isListening, getSpeechLang, locale]);
+
+  // --- Web Search handler ---
+  const handleSearch = useCallback(async (query?: string) => {
+    const q = (query ?? searchQuery).trim();
+    if (!q) return;
+    setSearchLoading(true);
+    setSearchResult(null);
+    setShowSearch(true);
+    try {
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, locale }),
+      });
+      const data = await res.json();
+      setSearchResult(data);
+      // Inject search result as a system context message so Nemo knows about it
+      if (data?.summary) {
+        const contextMsg: ChatMessage = {
+          role: 'user',
+          content: `[Web search result for "${q}"]: ${data.summary}${data.sources?.length ? `\n\nSources: ${data.sources.map((s: any) => s.url).join(', ')}` : ''}\n\nPlease summarise this for me in a student-friendly way.`,
+        };
+        // Show a brief toast
+        toast.success(locale === 'th' ? `🔍 ค้นพบข้อมูล: "${q}"` : `🔍 Found results for: "${q}"`, { duration: 2000 });
+      }
+    } catch (err) {
+      toast.error(locale === 'th' ? 'ค้นหาล้มเหลว' : 'Search failed');
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [searchQuery, locale]);
 
   const subjectName = locale === 'th' ? (subject?.name_th ?? '') : (subject?.name_en ?? '');
   const studentName = activeStudent?.nickname_thai ?? activeStudent?.nickname_english ?? activeStudent?.name_english ?? activeStudent?.name_thai ?? '';
@@ -1323,6 +1365,19 @@ const STOP_WORDS = new Set([
                   }}
                 />
               </div>
+              {/* 🔍 Search button */}
+              <button
+                onClick={() => setShowSearch(s => !s)}
+                type="button"
+                className={`h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all border ${
+                  showSearch
+                    ? 'bg-green-500 text-white border-green-500 shadow-md'
+                    : 'bg-gradient-to-br from-green-500 to-emerald-500 text-white border-green-400 hover:from-green-600 hover:to-emerald-600 shadow-md shadow-green-500/20'
+                }`}
+                title={locale === 'th' ? 'ค้นหาจากอินเทอร์เน็ต' : 'Search the web'}
+              >
+                <Search className="w-5 h-5" />
+              </button>
               <button
                 onClick={toggleListening}
                 type="button"
@@ -1347,6 +1402,153 @@ const STOP_WORDS = new Set([
             </div>
           </div>
         </div>
+
+        {/* 🔍 Web Search Panel */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowSearch(false)}
+            >
+              <motion.div
+                initial={{ y: 60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 60, opacity: 0 }}
+                transition={{ type: 'spring', damping: 28, stiffness: 380 }}
+                className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto shadow-2xl"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Search header */}
+                <div className="sticky top-0 bg-card/95 backdrop-blur-md border-b border-border/50 p-4 rounded-t-3xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Globe className="w-5 h-5 text-green-500" />
+                    <h3 className="font-display font-bold text-base">
+                      {locale === 'th' ? '🔍 ค้นหาจากอินเทอร์เน็ต' : '🔍 Search the Web'}
+                    </h3>
+                    <button onClick={() => setShowSearch(false)} className="ml-auto text-muted-foreground hover:text-foreground">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      autoFocus
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSearch(); }}
+                      placeholder={locale === 'th' ? 'พิมพ์คำค้นหา...' : 'Type to search...'}
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-green-500/30"
+                    />
+                    <button
+                      onClick={() => handleSearch()}
+                      disabled={searchLoading || !searchQuery.trim()}
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-semibold disabled:opacity-50 shadow-md hover:from-green-600 hover:to-emerald-600 transition-all"
+                    >
+                      {searchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Results */}
+                <div className="p-4 space-y-4">
+                  {searchLoading && (
+                    <div className="flex flex-col items-center py-8 gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <Globe className="w-5 h-5 text-green-500 animate-spin" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {locale === 'th' ? 'กำลังค้นหา...' : 'Searching the web...'}
+                      </p>
+                    </div>
+                  )}
+
+                  {searchResult && !searchLoading && (
+                    <>
+                      {/* Summary */}
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-2xl p-4 border border-green-100 dark:border-green-900">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Globe className="w-4 h-4 text-green-600" />
+                          <span className="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">Web Summary</span>
+                        </div>
+                        <p className="text-sm leading-relaxed">{searchResult.summary}</p>
+                      </div>
+
+                      {/* Images */}
+                      {searchResult.images?.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">📷 Images</p>
+                          <div className="flex gap-2 overflow-x-auto pb-2">
+                            {searchResult.images.map((img, i) => (
+                              <div key={i} className="flex-shrink-0 w-32 h-32 rounded-xl overflow-hidden border border-border bg-muted relative group">
+                                <img
+                                  src={img.url}
+                                  alt={img.title}
+                                  className="w-full h-full object-cover"
+                                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                                <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1.5 py-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {img.title}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sources */}
+                      {searchResult.sources?.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">🔗 Sources</p>
+                          <div className="space-y-2">
+                            {searchResult.sources.map((src, i) => (
+                              <a
+                                key={i}
+                                href={src.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-start gap-2 p-3 rounded-xl bg-muted/50 hover:bg-muted border border-border/50 hover:border-border transition-all group"
+                              >
+                                <Globe className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-foreground group-hover:text-primary truncate">{src.title}</p>
+                                  <p className="text-[10px] text-muted-foreground truncate">{src.url}</p>
+                                </div>
+                                <ExternalLink className="w-3 h-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Ask Nemo button */}
+                      <button
+                        onClick={() => {
+                          const q = searchResult.query;
+                          const summary = searchResult.summary;
+                          setInput(`I searched for "${q}" and found: ${summary.slice(0, 200)}... Can you explain this to me?`);
+                          setShowSearch(false);
+                          setTimeout(() => inputRef.current?.focus(), 100);
+                        }}
+                        className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white text-sm font-bold shadow-md hover:from-purple-700 hover:to-cyan-700 transition-all flex items-center justify-center gap-2"
+                      >
+                        🤖 {locale === 'th' ? 'ให้เนโมอธิบายให้ฟัง!' : 'Ask Nemo to explain this!'}
+                      </button>
+                    </>
+                  )}
+
+                  {!searchResult && !searchLoading && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">{locale === 'th' ? 'พิมพ์คำค้นหาด้านบน' : 'Type a search query above'}</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Word Study Modal */}
         <AnimatePresence>
