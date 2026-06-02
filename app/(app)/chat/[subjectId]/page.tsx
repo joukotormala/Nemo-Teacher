@@ -1111,6 +1111,24 @@ const STOP_WORDS = new Set([
 
         {/* Messages area */}
         <div className="flex-1 flex flex-col overflow-hidden">
+
+          {/* TTS Now-Speaking bar */}
+          {speakingIdx !== null && (
+            <div className="flex items-center justify-between gap-3 px-4 py-2 bg-purple-600 text-white text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <Volume2 className="w-4 h-4 animate-pulse" />
+                {locale === 'th' ? 'กำลังอ่านออกเสียง...' : 'Reading aloud...'}
+              </div>
+              <button
+                onClick={() => { window.speechSynthesis?.cancel(); setSpeakingIdx(null); }}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 transition-all font-semibold text-xs"
+              >
+                <VolumeX className="w-3.5 h-3.5" />
+                {locale === 'th' ? 'หยุด' : 'Stop'}
+              </button>
+            </div>
+          )}
+
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className="max-w-[900px] mx-auto space-y-4">
               <AnimatePresence>
