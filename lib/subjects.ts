@@ -1,4 +1,4 @@
-import { Calculator, FlaskConical, BookOpen, Languages, BookText, Microscope } from 'lucide-react';
+import { Calculator, FlaskConical, BookOpen, Languages, BookText, Microscope, Atom, Dna, Globe, Clock, Zap } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface SubjectSuggestion {
@@ -9,7 +9,7 @@ export interface SubjectSuggestion {
 }
 
 export interface SubjectInfo {
-  id: string; // local slug id
+  id: string;
   slug: string;
   code: string; // matches DB subjects.code
   name_th: string;
@@ -20,7 +20,7 @@ export interface SubjectInfo {
   bgColor: string;
   description_th: string;
   description_en: string;
-  minGradeIndex: number; // index in GRADE_ORDER
+  minGradeIndex: number;
   maxGradeIndex: number;
   dbId?: string; // UUID from database, populated at runtime
   suggestions: SubjectSuggestion[];
@@ -59,10 +59,11 @@ export const subjects: SubjectInfo[] = [
       { label_th: 'เลขคณิต', label_en: 'Arithmetic', prompt_th: 'สอนเรื่องเศษส่วน ทศนิยม และเปอร์เซ็นต์', prompt_en: 'Teach me about fractions, decimals, and percentages' },
       { label_th: 'พีชคณิต', label_en: 'Algebra', prompt_th: 'สอนเรื่องการแก้สมการและการแยกตัวประกอบ', prompt_en: 'Teach me about simplifying expressions, solving equations, and factorising' },
       { label_th: 'เรขาคณิต', label_en: 'Geometry', prompt_th: 'สอนเรื่องมุม สามเหลี่ยม วงกลม พื้นที่ และเส้นรอบรูป', prompt_en: 'Teach me about angles, triangles, circles, area, and perimeter' },
-      { label_th: 'กราฟ', label_en: 'Graphs', prompt_th: 'สอนเรื่องการพล็อตจุด อ่านกราฟ และความชัน', prompt_en: 'Teach me about plotting points, reading graphs, and gradients' },
-      { label_th: 'ทักษะจำนวน', label_en: 'Number Skills', prompt_th: 'สอนเรื่องจำนวนเฉพาะ ตัวประกอบ ตัวคูณร่วม อัตราส่วน และสัดส่วน', prompt_en: 'Teach me about primes, factors, multiples, ratio, and proportion' },
-      { label_th: 'สถิติ', label_en: 'Statistics', prompt_th: 'สอนเรื่องค่าเฉลี่ย มัธยฐาน ฐานนิยม พิสัย และการอ่านข้อมูล', prompt_en: 'Teach me about mean, median, mode, range, and data interpretation' },
+      { label_th: 'แคลคูลัส', label_en: 'Calculus', prompt_th: 'สอนเรื่องลิมิต อนุพันธ์ และอินทิกรัลเบื้องต้น', prompt_en: 'Teach me about limits, derivatives, and basic integration' },
+      { label_th: 'สถิติและความน่าจะเป็น', label_en: 'Statistics & Probability', prompt_th: 'สอนเรื่องสถิติ ความน่าจะเป็น และการกระจายของข้อมูล', prompt_en: 'Teach me about statistics, probability, and data distributions' },
+      { label_th: 'กราฟและฟังก์ชัน', label_en: 'Graphs & Functions', prompt_th: 'สอนเรื่องฟังก์ชัน กราฟ และการแปลงกราฟ', prompt_en: 'Teach me about functions, graphs, and transformations' },
       { label_th: 'โจทย์ปัญหา', label_en: 'Word Problems', prompt_th: 'ช่วยฝึกแปลงโจทย์ปัญหาเป็นสมการแล้วแก้ปัญหา', prompt_en: 'Help me practice turning word problems into equations and solving them' },
+      { label_th: 'เตรียม O-NET / A-Level', label_en: 'Exam Practice', prompt_th: 'ช่วยฝึกโจทย์คณิตศาสตร์สำหรับสอบ O-NET หรือ A-Level', prompt_en: 'Practice math problems for O-NET or A-Level exams' },
     ],
   },
   {
@@ -84,8 +85,78 @@ export const subjects: SubjectInfo[] = [
       { label_th: 'เคมี', label_en: 'Chemistry', prompt_th: 'สอนเรื่องธาตุ สารประกอบ และปฏิกิริยาเคมี', prompt_en: 'Teach me about elements, compounds, and chemical reactions' },
       { label_th: 'ฟิสิกส์', label_en: 'Physics', prompt_th: 'สอนเรื่องแรง การเคลื่อนที่ และพลังงาน', prompt_en: 'Teach me about forces, motion, and energy' },
       { label_th: 'ระบบนิเวศ', label_en: 'Ecosystems', prompt_th: 'สอนเรื่องห่วงโซ่อาหาร ระบบนิเวศ และสิ่งแวดล้อม', prompt_en: 'Teach me about food chains, ecosystems, and the environment' },
-      { label_th: 'อวกาศ', label_en: 'Space & Earth', prompt_th: 'สอนเรื่องระบบสุริยะ ดวงดาว และโลกของเรา', prompt_en: 'Teach me about the solar system, stars, and our planet' },
+      { label_th: 'อวกาศและโลก', label_en: 'Space & Earth', prompt_th: 'สอนเรื่องระบบสุริยะ ดวงดาว และโลกของเรา', prompt_en: 'Teach me about the solar system, stars, and our planet' },
       { label_th: 'การทดลอง', label_en: 'Experiments', prompt_th: 'แนะนำการทดลองวิทยาศาสตร์ง่ายๆ ที่ทำได้ที่บ้าน', prompt_en: 'Suggest simple science experiments I can do at home' },
+    ],
+  },
+  {
+    id: 'physics',
+    slug: 'physics',
+    code: 'physics',
+    name_th: 'ฟิสิกส์',
+    name_en: 'Physics',
+    icon: Zap,
+    illustrationUrl: '/illustrations/science_kid.png',
+    color: '#F97316',
+    bgColor: 'bg-orange-50 dark:bg-orange-950/30',
+    description_th: 'เรียนรู้แรง การเคลื่อนที่ พลังงาน คลื่น และไฟฟ้า',
+    description_en: 'Forces, motion, energy, waves, and electricity',
+    minGradeIndex: 10, // secondary_4 (M4)
+    maxGradeIndex: 17,
+    suggestions: [
+      { label_th: 'การเคลื่อนที่', label_en: 'Kinematics', prompt_th: 'สอนเรื่องการเคลื่อนที่ ความเร็ว ความเร่ง และสมการการเคลื่อนที่', prompt_en: 'Teach me about kinematics: velocity, acceleration, and equations of motion' },
+      { label_th: 'แรงและกฎของนิวตัน', label_en: 'Forces & Newton\'s Laws', prompt_th: 'สอนกฎของนิวตันทั้ง 3 ข้อ พร้อมตัวอย่าง', prompt_en: 'Teach me Newton\'s 3 laws of motion with examples' },
+      { label_th: 'พลังงานและงาน', label_en: 'Energy & Work', prompt_th: 'สอนเรื่องงาน พลังงาน และการอนุรักษ์พลังงาน', prompt_en: 'Teach me about work, energy, and conservation of energy' },
+      { label_th: 'คลื่นและเสียง', label_en: 'Waves & Sound', prompt_th: 'สอนเรื่องคลื่น เสียง และการสะท้อน', prompt_en: 'Teach me about waves, sound, and reflection' },
+      { label_th: 'แสงและทัศนศาสตร์', label_en: 'Light & Optics', prompt_th: 'สอนเรื่องแสง การหักเห กระจก และเลนส์', prompt_en: 'Teach me about light, refraction, mirrors, and lenses' },
+      { label_th: 'ไฟฟ้าและสนามแม่เหล็ก', label_en: 'Electricity & Magnetism', prompt_th: 'สอนเรื่องกระแสไฟฟ้า วงจร และสนามแม่เหล็ก', prompt_en: 'Teach me about electric current, circuits, and magnetic fields' },
+      { label_th: 'เตรียม A-Level ฟิสิกส์', label_en: 'A-Level Physics Practice', prompt_th: 'ช่วยฝึกโจทย์ฟิสิกส์ระดับ A-Level / PAT', prompt_en: 'Practice A-Level or PAT Physics problems' },
+    ],
+  },
+  {
+    id: 'chemistry',
+    slug: 'chemistry',
+    code: 'chemistry',
+    name_th: 'เคมี',
+    name_en: 'Chemistry',
+    icon: Atom,
+    illustrationUrl: '/illustrations/science_kid.png',
+    color: '#10B981',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+    description_th: 'สารและโครงสร้าง ปฏิกิริยาเคมี อินทรีย์เคมี',
+    description_en: 'Matter, reactions, organic and inorganic chemistry',
+    minGradeIndex: 10, // M4
+    maxGradeIndex: 17,
+    suggestions: [
+      { label_th: 'โครงสร้างอะตอม', label_en: 'Atomic Structure', prompt_th: 'สอนเรื่องโครงสร้างอะตอม ตารางธาตุ และพันธะเคมี', prompt_en: 'Teach me about atomic structure, the periodic table, and chemical bonding' },
+      { label_th: 'ปริมาณสัมพันธ์', label_en: 'Stoichiometry', prompt_th: 'สอนเรื่องสมการเคมี โมล และปริมาณสัมพันธ์', prompt_en: 'Teach me about balancing equations, moles, and stoichiometry' },
+      { label_th: 'ปฏิกิริยาเคมี', label_en: 'Chemical Reactions', prompt_th: 'สอนเรื่องประเภทปฏิกิริยาเคมี อัตราการเกิดปฏิกิริยา', prompt_en: 'Teach me types of chemical reactions and reaction rates' },
+      { label_th: 'กรด-เบส', label_en: 'Acids & Bases', prompt_th: 'สอนเรื่องกรด เบส pH และปฏิกิริยาสะเทิน', prompt_en: 'Teach me about acids, bases, pH, and neutralization' },
+      { label_th: 'เคมีอินทรีย์', label_en: 'Organic Chemistry', prompt_th: 'สอนเรื่องสารประกอบอินทรีย์ ไฮโดรคาร์บอน และหมู่ฟังก์ชัน', prompt_en: 'Teach me about organic compounds, hydrocarbons, and functional groups' },
+      { label_th: 'เตรียม A-Level เคมี', label_en: 'A-Level Chemistry Practice', prompt_th: 'ช่วยฝึกโจทย์เคมีสำหรับสอบ A-Level', prompt_en: 'Practice A-Level or PAT Chemistry problems' },
+    ],
+  },
+  {
+    id: 'biology',
+    slug: 'biology',
+    code: 'biology',
+    name_th: 'ชีววิทยา',
+    name_en: 'Biology',
+    icon: Dna,
+    illustrationUrl: '/illustrations/science_kid.png',
+    color: '#84CC16',
+    bgColor: 'bg-lime-50 dark:bg-lime-950/30',
+    description_th: 'เซลล์ ร่างกาย พันธุกรรม วิวัฒนาการ และระบบนิเวศ',
+    description_en: 'Cells, body systems, genetics, evolution, and ecology',
+    minGradeIndex: 10, // M4
+    maxGradeIndex: 17,
+    suggestions: [
+      { label_th: 'เซลล์และชีววิทยาของเซลล์', label_en: 'Cell Biology', prompt_th: 'สอนเรื่องโครงสร้างเซลล์ การแบ่งเซลล์ และการลำเลียงสาร', prompt_en: 'Teach me about cell structure, cell division, and transport across membranes' },
+      { label_th: 'ร่างกายมนุษย์', label_en: 'Human Body Systems', prompt_th: 'สอนเรื่องระบบย่อยอาหาร ระบบหายใจ ระบบหมุนเวียนเลือด', prompt_en: 'Teach me about digestive, respiratory, and circulatory systems' },
+      { label_th: 'พันธุศาสตร์', label_en: 'Genetics', prompt_th: 'สอนเรื่อง DNA ยีน การถ่ายทอดทางพันธุกรรม และกฎของเมนเดล', prompt_en: 'Teach me about DNA, genes, heredity, and Mendel\'s laws' },
+      { label_th: 'วิวัฒนาการ', label_en: 'Evolution', prompt_th: 'สอนเรื่องทฤษฎีวิวัฒนาการ การคัดเลือกโดยธรรมชาติ', prompt_en: 'Teach me about evolution theory and natural selection' },
+      { label_th: 'ระบบนิเวศ', label_en: 'Ecology', prompt_th: 'สอนเรื่องระบบนิเวศ ห่วงโซ่อาหาร และสมดุลธรรมชาติ', prompt_en: 'Teach me about ecosystems, food webs, and environmental balance' },
+      { label_th: 'เตรียม A-Level ชีววิทยา', label_en: 'A-Level Biology Practice', prompt_th: 'ช่วยฝึกโจทย์ชีววิทยาสำหรับสอบ A-Level', prompt_en: 'Practice A-Level or PAT Biology problems' },
     ],
   },
   {
@@ -108,7 +179,29 @@ export const subjects: SubjectInfo[] = [
       { label_th: 'การเขียน', label_en: 'Writing', prompt_th: 'สอนวิธีเขียนเรียงความภาษาอังกฤษ', prompt_en: 'Teach me how to write an essay in English' },
       { label_th: 'การอ่าน', label_en: 'Reading', prompt_th: 'ให้บทอ่านสั้นๆ แล้วถามคำถามเพื่อฝึกความเข้าใจ', prompt_en: 'Give me a short reading passage and ask comprehension questions' },
       { label_th: 'การสนทนา', label_en: 'Conversation', prompt_th: 'ฝึกบทสนทนาภาษาอังกฤษในชีวิตประจำวัน', prompt_en: 'Practice everyday English conversations with me' },
-      { label_th: 'การออกเสียง', label_en: 'Pronunciation', prompt_th: 'สอนเรื่องการออกเสียงภาษาอังกฤษที่ยากๆ', prompt_en: 'Help me with tricky English pronunciation and phonics' },
+      { label_th: 'เตรียม O-NET ภาษาอังกฤษ', label_en: 'O-NET English Prep', prompt_th: 'ช่วยฝึกโจทย์ภาษาอังกฤษสำหรับสอบ O-NET ม.3', prompt_en: 'Practice English for the Grade 9 O-NET exam' },
+    ],
+  },
+  {
+    id: 'social',
+    slug: 'social',
+    code: 'social',
+    name_th: 'สังคมศึกษา',
+    name_en: 'Social Studies',
+    icon: Globe,
+    illustrationUrl: '/illustrations/reading_kid.png',
+    color: '#3B82F6',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+    description_th: 'ประวัติศาสตร์ ภูมิศาสตร์ เศรษฐศาสตร์ และพลเมือง',
+    description_en: 'History, geography, economics, and civics',
+    minGradeIndex: 1,
+    maxGradeIndex: 17,
+    suggestions: [
+      { label_th: 'ประวัติศาสตร์ไทย', label_en: 'Thai History', prompt_th: 'สอนเรื่องประวัติศาสตร์ไทย ตั้งแต่อาณาจักรโบราณจนถึงปัจจุบัน', prompt_en: 'Teach me Thai history from ancient kingdoms to modern times' },
+      { label_th: 'ประวัติศาสตร์โลก', label_en: 'World History', prompt_th: 'สอนเรื่องประวัติศาสตร์โลกที่สำคัญ เช่น สงครามโลก การปฏิวัติ', prompt_en: 'Teach me key events in world history: wars, revolutions, empires' },
+      { label_th: 'ภูมิศาสตร์', label_en: 'Geography', prompt_th: 'สอนเรื่องภูมิศาสตร์ไทยและโลก ภูมิประเทศ ภูมิอากาศ', prompt_en: 'Teach me geography: landforms, climate, and countries of the world' },
+      { label_th: 'เศรษฐศาสตร์', label_en: 'Economics', prompt_th: 'สอนเรื่องเศรษฐศาสตร์เบื้องต้น อุปสงค์ อุปทาน และระบบเศรษฐกิจ', prompt_en: 'Teach me basic economics: supply, demand, and economic systems' },
+      { label_th: 'ศาสนาและวัฒนธรรม', label_en: 'Religion & Culture', prompt_th: 'สอนเรื่องพุทธศาสนาและวัฒนธรรมไทย', prompt_en: 'Teach me about Buddhism and Thai culture' },
     ],
   },
   {
@@ -127,11 +220,32 @@ export const subjects: SubjectInfo[] = [
     maxGradeIndex: 17,
     suggestions: [
       { label_th: 'ไวยากรณ์ไทย', label_en: 'Thai Grammar', prompt_th: 'สอนเรื่องชนิดของคำในภาษาไทย', prompt_en: 'Teach me about parts of speech in Thai language' },
-      { label_th: 'วรรณคดี', label_en: 'Literature', prompt_th: 'สอนเรื่องวรรณคดีไทยที่สำคัญ', prompt_en: 'Teach me about important Thai literature' },
-      { label_th: 'สำนวนไทย', label_en: 'Thai Idioms', prompt_th: 'สอนสำนวนและสุภาษิตไทยพร้อมความหมาย', prompt_en: 'Teach me Thai idioms and proverbs with their meanings' },
-      { label_th: 'การเขียนเรียงความ', label_en: 'Essay Writing', prompt_th: 'สอนวิธีเขียนเรียงความภาษาไทย', prompt_en: 'Teach me how to write an essay in Thai' },
+      { label_th: 'วรรณคดี', label_en: 'Literature', prompt_th: 'สอนเรื่องวรรณคดีไทยที่สำคัญ เช่น รามเกียรติ์ อิเหนา', prompt_en: 'Teach me about important Thai literature: Ramakien, I-nao' },
+      { label_th: 'สำนวนและสุภาษิต', label_en: 'Thai Idioms', prompt_th: 'สอนสำนวนและสุภาษิตไทยพร้อมความหมาย', prompt_en: 'Teach me Thai idioms and proverbs with their meanings' },
+      { label_th: 'การเขียนเรียงความ', label_en: 'Essay Writing', prompt_th: 'สอนวิธีเขียนเรียงความภาษาไทยให้ถูกต้อง', prompt_en: 'Teach me how to write an essay in Thai correctly' },
       { label_th: 'คำราชาศัพท์', label_en: 'Royal Thai', prompt_th: 'สอนเรื่องคำราชาศัพท์และการใช้ภาษาสุภาพ', prompt_en: 'Teach me about royal Thai vocabulary and formal language' },
-      { label_th: 'ฝึกอ่านออกเสียง', label_en: 'Reading Aloud', prompt_th: 'ให้บทอ่านสั้นๆ แล้วช่วยฝึกอ่านออกเสียง', prompt_en: 'Give me a passage to practice reading aloud in Thai' },
+      { label_th: 'เตรียม O-NET / A-Level ภาษาไทย', label_en: 'Thai Exam Prep', prompt_th: 'ช่วยฝึกโจทย์ภาษาไทยสำหรับสอบ O-NET หรือ A-Level', prompt_en: 'Practice Thai language for O-NET or A-Level exams' },
+    ],
+  },
+  {
+    id: 'history',
+    slug: 'history',
+    code: 'history',
+    name_th: 'ประวัติศาสตร์',
+    name_en: 'History',
+    icon: Clock,
+    illustrationUrl: '/illustrations/reading_kid.png',
+    color: '#D97706',
+    bgColor: 'bg-yellow-50 dark:bg-yellow-950/30',
+    description_th: 'ประวัติศาสตร์ไทยและโลก เหตุการณ์สำคัญในอดีต',
+    description_en: 'Thai and world history, key events and civilizations',
+    minGradeIndex: 1,
+    maxGradeIndex: 17,
+    suggestions: [
+      { label_th: 'อาณาจักรไทยโบราณ', label_en: 'Ancient Thai Kingdoms', prompt_th: 'สอนเรื่องสุโขทัย อยุธยา ธนบุรี และรัตนโกสินทร์', prompt_en: 'Teach me about Sukhothai, Ayutthaya, Thonburi, and Rattanakosin kingdoms' },
+      { label_th: 'ประวัติศาสตร์โลกยุคใหม่', label_en: 'Modern World History', prompt_th: 'สอนเรื่องสงครามโลก การปฏิวัติอุตสาหกรรม และสงครามเย็น', prompt_en: 'Teach me about World Wars, Industrial Revolution, and Cold War' },
+      { label_th: 'อารยธรรมโลก', label_en: 'World Civilizations', prompt_th: 'สอนเรื่องอารยธรรมกรีก โรมัน อียิปต์ และจีน', prompt_en: 'Teach me about Greek, Roman, Egyptian, and Chinese civilizations' },
+      { label_th: 'ประวัติศาสตร์ไทยยุคใหม่', label_en: 'Modern Thai History', prompt_th: 'สอนเรื่องไทยในยุคปัจจุบัน การเปลี่ยนแปลงทางการเมืองและสังคม', prompt_en: 'Teach me about modern Thailand: political and social changes' },
     ],
   },
   {
@@ -153,7 +267,6 @@ export const subjects: SubjectInfo[] = [
       { label_th: 'ฝึกอ่านจับใจความ', label_en: 'Comprehension', prompt_th: 'ให้บทความสั้นแล้วฝึกจับใจความสำคัญ', prompt_en: 'Give me a passage and help me identify the main ideas' },
       { label_th: 'คำศัพท์จากบทอ่าน', label_en: 'Vocabulary', prompt_th: 'ให้บทอ่านแล้วช่วยอธิบายคำศัพท์ยากๆ', prompt_en: 'Give me a reading with new vocabulary and explain the words' },
       { label_th: 'การสรุปความ', label_en: 'Summarizing', prompt_th: 'สอนวิธีสรุปเนื้อหาจากบทอ่าน', prompt_en: 'Teach me how to summarize what I read' },
-      { label_th: 'ฝึกอ่านเร็ว', label_en: 'Speed Reading', prompt_th: 'ให้เทคนิคฝึกอ่านเร็วและจับใจความ', prompt_en: 'Give me tips for reading faster while understanding' },
     ],
   },
   {

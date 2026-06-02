@@ -484,6 +484,8 @@ export default function ChatPage() {
             isGreeting: true,
             model: savedModel,
             studentMemory: activeStudent?.nemo_memory ?? null,
+            schoolName: activeStudent?.school_name || 'มกุฎเมืองราชวิทยาลัย',
+            schoolProgram: (activeStudent as any)?.school_program ?? null,
           }),
         });
 
@@ -667,6 +669,8 @@ export default function ChatPage() {
             gradeLevel: activeStudent?.current_grade,
             model: activeModel,
             studentMemory: activeStudent?.nemo_memory ?? null,
+            schoolName: activeStudent?.school_name || 'มกุฎเมืองราชวิทยาลัย',
+            schoolProgram: (activeStudent as any)?.school_program ?? null,
           }),
         });
       } finally {

@@ -212,6 +212,7 @@ export default function SettingsPage() {
   const [nicknameEnglish, setNicknameEnglish] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
   const [schoolName, setSchoolName] = useState('');
+  const [schoolProgram, setSchoolProgram] = useState(''); // 'EP', 'Thai', 'SMTE'
 
   // Populate form with existing data
   useEffect(() => {
@@ -227,6 +228,7 @@ export default function SettingsPage() {
       setNicknameEnglish(activeStudent.nickname_english ?? '');
       setGradeLevel(activeStudent.current_grade ?? '');
       setSchoolName(activeStudent.school_name ?? '');
+      setSchoolProgram((activeStudent as any).school_program ?? '');
     }
   }, [parent, activeStudent]);
 
@@ -275,6 +277,7 @@ export default function SettingsPage() {
           nickname_english: nicknameEnglish.trim() || null,
           current_grade: gradeLevel || null,
           school_name: schoolName.trim() || null,
+          school_program: schoolProgram || null,
           language_preference: dbLang,
           preferred_ai_model: preferredModel,
         })
@@ -577,6 +580,21 @@ export default function SettingsPage() {
                 <School className="w-3.5 h-3.5" /> {t('settings.school')}
               </Label>
               <Input value={schoolName} onChange={e => setSchoolName(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground flex items-center gap-1">
+                🎓 {locale === 'th' ? 'โปรแกรมการเรียน' : 'School Program'}
+              </Label>
+              <select
+                value={schoolProgram}
+                onChange={e => setSchoolProgram(e.target.value)}
+                className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">{locale === 'th' ? 'เลือกโปรแกรม' : 'Select program'}</option>
+                <option value="Thai">{locale === 'th' ? 'หลักสูตรปกติ (ภาษาไทย)' : 'Thai Program (Regular)'}</option>
+                <option value="EP">English Program (EP)</option>
+                <option value="SMTE">SMTE (Science-Math Special)</option>
+              </select>
             </div>
           </div>
         </motion.div>

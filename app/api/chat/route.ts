@@ -93,7 +93,7 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, subject, locale, studentName, gradeLevel, isGreeting, model, studentMemory } = body ?? {};
+    const { messages, subject, locale, studentName, gradeLevel, isGreeting, model, studentMemory, schoolName, schoolProgram } = body ?? {};
 
     if (!messages || !Array.isArray(messages) || (messages?.length ?? 0) === 0) {
       return new Response(JSON.stringify({ error: 'Messages are required' }), {
@@ -116,6 +116,18 @@ export async function POST(request: NextRequest) {
     else if (locale === 'sv') lang = 'Swedish';
     const grade = gradeLevel ? ` (Grade ${gradeLevel})` : '';
     const name = studentName ?? 'student';
+
+    // School / curriculum context
+    const isEP = schoolProgram?.toLowerCase().includes('ep') || schoolProgram?.toLowerCase().includes('english');
+    const schoolBlock = (schoolName || schoolProgram) ? `
+## School & Curriculum Context
+- School: ${schoolName || 'not specified'} (Klaeng, Rayong, Thailand)
+- Program: ${schoolProgram || 'Thai program'}
+- This school follows the Thai Ministry of Education Basic Education Core Curriculum (Revised 2017)
+${isEP ? `- **English Program (EP)**: Core subjects (Math, Science) are taught IN ENGLISH. Use English for ${subjectName} unless student writes Thai.` : ''}
+${gradeLevel === 'secondary_3' ? `- Grade 9 (Matthayom 3): Key exam this year is **O-NET** (national standardized test in Thai, Math, Science, English, Social Studies). Prioritise O-NET-style practice when relevant.` : ''}
+${gradeLevel === 'secondary_6' ? `- Grade 12 (Matthayom 6): **CRITICAL exam year** — A-Level and TPAT university entrance exams. Focus on exam preparation, deep understanding, and problem-solving speed.` : ''}
+` : '';
 
     // Build USER.md-style memory block if available
     const mem = studentMemory ?? {};
@@ -160,6 +172,7 @@ Do NOT include any text outside the JSON object.`;
     } else {
       systemPrompt = `You are "Nemo" (เนโม), a friendly and encouraging AI tutor. You help students learn and understand concepts clearly.
 ${memoryBlock}
+${schoolBlock}
 Context:
 - Subject: ${subjectName}
 - Student: ${name}${grade}
