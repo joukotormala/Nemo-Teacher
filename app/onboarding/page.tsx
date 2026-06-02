@@ -24,6 +24,7 @@ import {
   ArrowLeft,
   UserPlus,
   Mail,
+  LogOut,
 } from 'lucide-react';
 
 type UserRole = 'parent' | 'student' | null;
@@ -44,7 +45,7 @@ const LANGUAGE_OPTIONS = [
 ] as const;
 
 export default function OnboardingPage() {
-  const { user, parent, activeStudent, loading, profileComplete, refreshProfile } = useAuth();
+  const { user, parent, activeStudent, loading, profileComplete, refreshProfile, signOut } = useAuth();
   const { t, locale, setLocale } = useLanguage();
   const router = useRouter();
 
@@ -380,6 +381,13 @@ export default function OnboardingPage() {
           <p className="text-center text-xs text-muted-foreground mt-4">
             {locale === 'th' ? 'เนโมพร้อมช่วยคุณเรียนรู้แล้ว! 🎓' : 'Nemo is ready to help you learn! 🎓'}
           </p>
+          <button
+            onClick={async () => { await signOut(); router.replace('/login'); }}
+            className="mt-3 mx-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut className="w-3 h-3" />
+            {locale === 'th' ? 'ออกจากระบบ / ใช้บัญชีอื่น' : 'Sign out / Use different account'}
+          </button>
         </motion.div>
       </div>
     );

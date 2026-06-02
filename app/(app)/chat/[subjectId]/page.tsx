@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Send, Loader2, Bot, UserCircle, Plus, Cpu,
   MessageSquare, Clock, ChevronRight, History, X,
+  Volume2, VolumeX, Mic, MicOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessageContent } from '@/components/chat-message';
@@ -130,6 +131,117 @@ export default function ChatPage() {
   const sessionIdRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const greetingDoneRef = useRef(false);
+
+  // --- Text-to-Speech (TTS) state ---
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+
+  // --- Speech-to-Text (STT) state ---
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  // Get the speech language code from locale
+  const getSpeechLang = useCallback(() => {
+    if (locale === 'th') return 'th-TH';
+    if (locale === 'sv') return 'sv-SE';
+    return 'en-US';
+  }, [locale]);
+
+  // --- TTS handler ---
+  const handleSpeak = useCallback((text: string, idx: number) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    
+    // If already speaking this message, stop
+    if (speakingIdx === idx) {
+      window.speechSynthesis.cancel();
+      setSpeakingIdx(null);
+      return;
+    }
+
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+
+    // Strip markdown formatting for cleaner speech
+    const clean = text
+      .replace(/```[\s\S]*?```/g, '') // code blocks
+      .replace(/`([^`]+)`/g, '$1')     // inline code
+      .replace(/\*\*([^*]+)\*\*/g, '$1') // bold
+      .replace(/\*([^*]+)\*/g, '$1')    // italic
+      .replace(/#+\s/g, '')            // headings
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links
+      .replace(/[\-\*]\s/g, '')        // list items
+      .replace(/\n{2,}/g, '. ')        // double newlines to pause
+      .replace(/\n/g, ' ')             // single newlines
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = getSpeechLang();
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    // Try to find a matching voice
+    const voices = window.speechSynthesis.getVoices();
+    const langPrefix = utterance.lang.split('-')[0];
+    const matchedVoice = voices.find(v => v.lang.startsWith(langPrefix));
+    if (matchedVoice) utterance.voice = matchedVoice;
+
+    utterance.onend = () => setSpeakingIdx(null);
+    utterance.onerror = () => setSpeakingIdx(null);
+
+    setSpeakingIdx(idx);
+    window.speechSynthesis.speak(utterance);
+  }, [speakingIdx, getSpeechLang]);
+
+  // Stop TTS when leaving the page
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // --- STT handler ---
+  const toggleListening = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error(locale === 'th' ? 'เบราว์เซอร์ไม่รองรับการฟังเสียง' : 'Your browser does not support speech recognition');
+      return;
+    }
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = getSpeechLang();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setInput(transcript);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      if (event.error === 'not-allowed') {
+        toast.error(locale === 'th' ? 'กรุณาอนุญาตการใช้ไมโครโฟน' : 'Please allow microphone access');
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, [isListening, getSpeechLang, locale]);
 
   const subjectName = locale === 'th' ? (subject?.name_th ?? '') : (subject?.name_en ?? '');
   const studentName = activeStudent?.nickname_thai ?? activeStudent?.nickname_english ?? activeStudent?.name_english ?? activeStudent?.name_thai ?? '';
@@ -999,6 +1111,25 @@ const STOP_WORDS = new Set([
                         content={msg?.content ?? ''} 
                         onWordClick={msg?.role === 'assistant' ? handleWordClick : undefined}
                       />
+                      {msg?.role === 'assistant' && msg?.content && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleSpeak(msg.content, idx); }}
+                          className={`mt-2 flex items-center gap-1 text-[11px] font-medium transition-all rounded-full px-2 py-0.5 ${
+                            speakingIdx === idx
+                              ? 'text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-950/40'
+                              : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/60'
+                          }`}
+                          title={speakingIdx === idx
+                            ? (locale === 'th' ? 'หยุดอ่าน' : 'Stop reading')
+                            : (locale === 'th' ? 'อ่านออกเสียง' : 'Read aloud')}
+                        >
+                          {speakingIdx === idx ? (
+                            <><VolumeX className="w-3.5 h-3.5" /> {locale === 'th' ? 'หยุด' : 'Stop'}</>
+                          ) : (
+                            <><Volume2 className="w-3.5 h-3.5" /> {locale === 'th' ? 'ฟัง' : 'Listen'}</>
+                          )}
+                        </button>
+                      )}
                     </div>
                     {msg?.role === 'user' ? (
                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-1">
@@ -1129,6 +1260,20 @@ const STOP_WORDS = new Set([
                   }}
                 />
               </div>
+              <button
+                onClick={toggleListening}
+                type="button"
+                className={`h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all border ${
+                  isListening
+                    ? 'bg-red-500 text-white border-red-500 animate-pulse shadow-lg shadow-red-500/30'
+                    : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+                }`}
+                title={isListening
+                  ? (locale === 'th' ? 'หยุดฟัง' : 'Stop listening')
+                  : (locale === 'th' ? 'พูดคำถาม' : 'Speak your question')}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
               <Button
                 onClick={sendMessage}
                 disabled={!(input?.trim?.()) || isStreaming}
