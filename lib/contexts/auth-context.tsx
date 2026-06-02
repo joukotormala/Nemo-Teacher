@@ -162,39 +162,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
+
         if (currentSession?.user?.id) {
-          // Validate the session is actually valid by hitting the server
-          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-          
-          if (userError || !validatedUser) {
-            // Session is stale/invalid — clear it
-            console.warn('[Auth] Stale session detected, clearing...');
-            await supabase.auth.signOut().catch(() => {});
-            // Clear localStorage
-            if (typeof window !== 'undefined') {
-              Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth-token')) {
-                  localStorage.removeItem(key);
-                }
-              });
+          // Try to validate server-side — but DON'T wipe session if network fails
+          try {
+            const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+
+            if (!userError && validatedUser) {
+              // Server confirmed: valid session
+              setSession(currentSession);
+              setUser(validatedUser);
+              await fetchProfile(validatedUser.id);
+            } else if (userError?.status === 401 || userError?.message?.toLowerCase().includes('invalid')) {
+              // Truly invalid token — clear it
+              console.warn('[Auth] Invalid token, clearing session');
+              await supabase.auth.signOut().catch(() => {});
+              setSession(null);
+              setUser(null);
+            } else {
+              // Network error or other transient failure — trust local session
+              console.warn('[Auth] getUser() failed (likely network), trusting local session:', userError?.message);
+              setSession(currentSession);
+              setUser(currentSession.user);
+              await fetchProfile(currentSession.user.id);
             }
-            setSession(null);
-            setUser(null);
-            return;
+          } catch (innerErr) {
+            // Network/timeout — trust local session rather than logging user out
+            console.warn('[Auth] getUser() threw, trusting local session:', innerErr);
+            setSession(currentSession);
+            setUser(currentSession.user);
+            await fetchProfile(currentSession.user.id);
           }
-          
-          setSession(currentSession);
-          setUser(validatedUser);
-          await fetchProfile(validatedUser.id);
         } else {
           setSession(null);
           setUser(null);
         }
       } catch (err) {
         console.error('Auth init error:', err);
-        setSession(null);
-        setUser(null);
+        // Do NOT clear user here — if getSession itself fails, just stop loading
       } finally {
         didFinish = true;
         setLoading(false);
@@ -354,7 +359,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeStudent?.id, activeStudent?.preferred_ai_model]);
 
-  // Profile is complete when both parent AND at least one student record exist
+  // Profile is complete when parent record exists AND has at least one student,
+  // OR the user self-registered as a student (parent record alone is enough if
+  // the parent table stores student self-registrations too).
+  // We only send them to onboarding if parent is completely missing.
   const profileComplete = !!(parent?.id && students.length > 0);
 
   return (
