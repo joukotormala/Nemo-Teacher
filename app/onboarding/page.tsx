@@ -775,10 +775,25 @@ export default function OnboardingPage() {
               {/* Email + Phone for student self-registration */}
               {role === 'student' ? (
                 <>
+                  {/* Login info banner */}
+                  <div className="col-span-2 flex items-start gap-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-xl p-3">
+                    <Mail className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                        {locale === 'th' ? '🔑 วิธีเข้าสู่ระบบในครั้งต่อไป' : '🔑 How to log in next time'}
+                      </p>
+                      <p className="text-xs text-purple-600 dark:text-purple-400 mt-0.5">
+                        {locale === 'th'
+                          ? `ใช้อีเมล ${user?.email ?? ''} และรหัสผ่านที่ตั้งไว้ — หรือปุ่ม "เข้าสู่ระบบด้วย Google" หน้า Login`
+                          : `Use ${user?.email ?? 'your email'} + your password — or the "Sign in with Google" button on the Login page`}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="space-y-1.5">
                     <Label className="flex items-center gap-2 text-sm font-medium">
                       <Mail className="w-4 h-4 text-cyan-500" />
-                      {locale === 'th' ? 'อีเมล' : 'Email'}
+                      {locale === 'th' ? 'อีเมล (ใช้สำหรับล็อกอิน)' : 'Email (used to log in)'}
                     </Label>
                     <Input
                       type="email"
