@@ -106,10 +106,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setParent(parentData);
 
       // Step 2: Find student record by parent_id
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, avatar_url, nemo_memory, interests, learning_style, personality_notes')
-        .eq('parent_id', parentData.id);
+      // Try with new memory columns first; fall back to base columns if they don't exist yet
+      let studentData: any[] | null = null;
+      let studentError: any = null;
+
+      const fullSelect = 'id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, avatar_url, nemo_memory, interests, learning_style, personality_notes';
+      const baseSelect = 'id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, avatar_url';
+
+      const result = await supabase.from('students').select(fullSelect).eq('parent_id', parentData.id);
+      if (result.error) {
+        // Likely the new columns don't exist yet — fall back to base columns
+        console.warn('Memory columns not found, falling back to base select:', result.error.message);
+        const fallback = await supabase.from('students').select(baseSelect).eq('parent_id', parentData.id);
+        studentData = fallback.data;
+        studentError = fallback.error;
+      } else {
+        studentData = result.data;
+        studentError = result.error;
+      }
 
       if (studentError) {
         console.warn('Student fetch error:', studentError.message);
