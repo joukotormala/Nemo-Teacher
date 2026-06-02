@@ -205,7 +205,9 @@ export default function ChatPage() {
     if (typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast.error(locale === 'th' ? 'เบราว์เซอร์ไม่รองรับการฟังเสียง' : 'Your browser does not support speech recognition');
+      toast.error(locale === 'th'
+        ? 'เบราว์เซอร์ไม่รองรับการฟังเสียง — กรุณาใช้ Google Chrome'
+        : 'Speech recognition not supported — please use Google Chrome');
       return;
     }
 
@@ -215,32 +217,59 @@ export default function ChatPage() {
       return;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = getSpeechLang();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = getSpeechLang();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event: any) => {
-      let transcript = '';
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      setInput(transcript);
-    };
+      recognition.onstart = () => {
+        toast.success(locale === 'th' ? '🎤 กำลังฟัง... พูดได้เลย!' : '🎤 Listening... speak now!', { duration: 2000 });
+      };
 
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setInput(transcript);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        recognitionRef.current = null;
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        recognitionRef.current = null;
+        if (event.error === 'not-allowed') {
+          toast.error(locale === 'th' ? 'กรุณาอนุญาตการใช้ไมโครโฟน ในการตั้งค่าเบราว์เซอร์' : 'Please allow microphone access in browser settings');
+        } else if (event.error === 'no-speech') {
+          toast.info(locale === 'th' ? 'ไม่ได้ยินเสียง — กรุณาลองพูดอีกครั้ง' : 'No speech detected — please try again');
+        } else if (event.error === 'network') {
+          toast.error(locale === 'th' ? 'ข้อผิดพลาดเครือข่าย — กรุณาลองอีกครั้ง' : 'Network error — please try again');
+        } else if (event.error === 'aborted') {
+          // User stopped — no toast needed
+        } else {
+          toast.error(locale === 'th'
+            ? `การฟังเสียงล้มเหลว (${event.error}) — ลองใช้ Chrome`
+            : `Speech recognition failed (${event.error}) — try using Chrome`);
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+      setIsListening(true);
+    } catch (err: any) {
+      console.error('Failed to start speech recognition:', err);
+      toast.error(locale === 'th'
+        ? 'ไม่สามารถเริ่มฟังเสียงได้ — กรุณาใช้ Google Chrome'
+        : 'Could not start speech recognition — please use Google Chrome');
       setIsListening(false);
-      if (event.error === 'not-allowed') {
-        toast.error(locale === 'th' ? 'กรุณาอนุญาตการใช้ไมโครโฟน' : 'Please allow microphone access');
-      }
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+    }
   }, [isListening, getSpeechLang, locale]);
 
   const subjectName = locale === 'th' ? (subject?.name_th ?? '') : (subject?.name_en ?? '');
