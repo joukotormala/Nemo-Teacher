@@ -144,13 +144,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        setSession(currentSession ?? null);
-        setUser(currentSession?.user ?? null);
+        
         if (currentSession?.user?.id) {
-          await fetchProfile(currentSession.user.id);
+          // Validate the session is actually valid by hitting the server
+          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !validatedUser) {
+            // Session is stale/invalid — clear it
+            console.warn('[Auth] Stale session detected, clearing...');
+            await supabase.auth.signOut().catch(() => {});
+            // Clear localStorage
+            if (typeof window !== 'undefined') {
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth-token')) {
+                  localStorage.removeItem(key);
+                }
+              });
+            }
+            setSession(null);
+            setUser(null);
+            return;
+          }
+          
+          setSession(currentSession);
+          setUser(validatedUser);
+          await fetchProfile(validatedUser.id);
+        } else {
+          setSession(null);
+          setUser(null);
         }
       } catch (err) {
         console.error('Auth init error:', err);
+        setSession(null);
+        setUser(null);
       } finally {
         didFinish = true;
         setLoading(false);
