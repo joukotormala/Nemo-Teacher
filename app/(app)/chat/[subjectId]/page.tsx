@@ -22,10 +22,56 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+interface SearchResult {
+  query: string;
+  summary: string;
+  sources: { title: string; url: string; snippet: string }[];
+  images: { url: string; title: string; source: string }[];
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   reasoning?: string;
+  imageSearch?: SearchResult; // inline search result card
+}
+
+// Detect natural-language image/photo/search requests and extract the query
+function detectImageRequest(text: string): string | null {
+  const patterns = [
+    // English
+    /show\s+(?:me\s+)?(?:a\s+)?(?:picture|photo|image|pic|illustration|photo)s?\s+(?:of|about)\s+(.+)/i,
+    /(?:find|get|search\s+for|look\s+up|search)\s+(?:a\s+)?(?:picture|photo|image|pic|photos|images)\s+(?:of|about)?\s*(.+)/i,
+    /(?:a\s+)?(?:picture|photo|image|pic)\s+of\s+(.+)/i,
+    /what\s+does\s+(.+?)\s+look\s+like/i,
+    /can\s+you\s+show\s+(?:me\s+)?(.+)/i,
+    /show\s+(?:me\s+)?(?:the\s+)?(.+?)(?:\s+picture|\s+photo|\s+image|\s+pic)?$/i,
+    // Thai
+    /(?:แสดง|หา|ค้นหา|ดู)(?:รูป|ภาพ|ภาพถ่าย)(?:ของ|เกี่ยวกับ|)?\s*(.+)/i,
+    /(?:รูป|ภาพ)(?:ของ|เกี่ยวกับ)\s*(.+)/i,
+    /(.+)\s+(?:หน้าตา|รูปร่าง)\s+เป็นยังไง/i,
+    // Swedish
+    /(?:visa|hitta|sök)\s+(?:mig\s+)?(?:en\s+)?(?:bild|bilder|foto|foton)\s+(?:av|på|om)\s+(.+)/i,
+    /(?:bild|foto)\s+(?:av|på)\s+(.+)/i,
+  ];
+
+  // Only trigger if the text clearly asks for a picture — not just any message
+  const imageKeywords = [
+    /\b(?:picture|photo|image|pic|illustration|photos|images)\b/i,
+    /\b(?:show me|look like|find me)\b/i,
+    /(?:รูป|ภาพ)/,
+    /\b(?:bild|bilder|foto|foton)\b/i,
+  ];
+  const hasImageKeyword = imageKeywords.some(kw => kw.test(text));
+  if (!hasImageKeyword) return null;
+
+  for (const pattern of patterns) {
+    const m = text.match(pattern);
+    if (m?.[1]) {
+      return m[1].trim().replace(/[?!.]+$/, '').trim();
+    }
+  }
+  return null;
 }
 
 interface SavedConversation {
@@ -564,6 +610,35 @@ export default function ChatPage() {
     setMessages(newMessages);
     setInput('');
     setIsStreaming(true);
+
+    // ── Auto image/web search detection ─────────────────────────────────────
+    const imageQuery = detectImageRequest(trimmed);
+    if (imageQuery) {
+      // Run image search in parallel, don't block AI response
+      (async () => {
+        try {
+          const res = await fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: imageQuery, locale }),
+          });
+          const data: SearchResult = await res.json();
+          // Inject an assistant message with the image search results
+          setMessages(prev => {
+            const updated = [...prev];
+            // Find the placeholder assistant message and attach search result
+            for (let i = updated.length - 1; i >= 0; i--) {
+              if (updated[i].role === 'assistant') {
+                updated[i] = { ...updated[i], imageSearch: data };
+                break;
+              }
+            }
+            return updated;
+          });
+        } catch { /* silent fail */ }
+      })();
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     try {
       const controller = new AbortController();
@@ -1216,6 +1291,61 @@ const STOP_WORDS = new Set([
                         content={msg?.content ?? ''} 
                         onWordClick={msg?.role === 'assistant' ? handleWordClick : undefined}
                       />
+
+                      {/* 🔍 Inline image search results */}
+                      {msg?.role === 'assistant' && msg?.imageSearch && (
+                        <div className="mt-3 space-y-2">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 dark:text-green-400">
+                            <Globe className="w-3.5 h-3.5" />
+                            {locale === 'th' ? `ผลการค้นหา: "${msg.imageSearch.query}"` : `Web results: "${msg.imageSearch.query}"`}
+                          </div>
+
+                          {/* Images horizontal scroll */}
+                          {msg.imageSearch.images?.length > 0 && (
+                            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                              {msg.imageSearch.images.map((img, i) => (
+                                <div key={i} className="flex-shrink-0 w-28 h-28 rounded-xl overflow-hidden border border-border/50 bg-muted relative group shadow-sm">
+                                  <img
+                                    src={img.url}
+                                    alt={img.title}
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                    onError={e => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-1.5">
+                                    <p className="text-white text-[9px] leading-tight line-clamp-2">{img.title}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Summary */}
+                          {msg.imageSearch.summary && (
+                            <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 rounded-xl px-3 py-2 border border-border/30">
+                              {msg.imageSearch.summary.slice(0, 220)}{msg.imageSearch.summary.length > 220 ? '…' : ''}
+                            </p>
+                          )}
+
+                          {/* Source links */}
+                          {msg.imageSearch.sources?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {msg.imageSearch.sources.slice(0, 3).map((src, i) => (
+                                <a
+                                  key={i}
+                                  href={src.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50 transition-all truncate max-w-[140px]"
+                                >
+                                  <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" />
+                                  <span className="truncate">{src.title.split(' ').slice(0, 3).join(' ')}</span>
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {msg?.role === 'assistant' && msg?.content && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleSpeak(msg.content, idx); }}
