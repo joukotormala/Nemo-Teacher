@@ -21,7 +21,7 @@ const GRADE_OPTIONS = [
 ] as const;
 
 export default function SettingsPage() {
-  const { user, parent, activeStudent, refreshProfile, changeLanguage } = useAuth();
+  const { user, parent, activeStudent, students, refreshProfile, changeLanguage, isStudentMode } = useAuth();
   const { t, locale } = useLanguage();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -108,7 +108,6 @@ export default function SettingsPage() {
   const [sendingReset, setSendingReset] = useState(false);
 
   // PIN management
-  const { students } = useAuth();
   const [pinValues, setPinValues] = useState<Record<string, string>>({});
   const [savingPin, setSavingPin] = useState<string | null>(null);
 
@@ -302,18 +301,29 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-[800px] mx-auto px-4 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <h1 className="text-3xl font-display font-bold tracking-tight mb-1 flex items-center gap-2">
           <Settings className="w-7 h-7 text-primary" />
           {t('settings.title')}
         </h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-4">
           {locale === 'th' ? 'จัดการบัญชีและการตั้งค่า' : 'Manage your account and preferences'}
         </p>
+        {isStudentMode && (
+          <div className="mb-2 flex items-start gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 rounded-xl px-4 py-3">
+            <span className="text-xl">🎒</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                {locale === 'th' ? 'โหมดนักเรียน — การตั้งค่าบางส่วนถูกจำกัด' : 'Student Mode — some settings are restricted'}
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                {locale === 'th'
+                  ? 'คุณเปลี่ยนภาษาและโมเดล AI ได้ ผู้ปกครองต้องล็อกอินเพื่อแก้ไขข้อมูลอื่น'
+                  : 'You can change language and AI model. Parent must log in to edit other info.'}
+              </p>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       <div className="space-y-6">
@@ -334,7 +344,8 @@ export default function SettingsPage() {
           </div>
         </motion.div>
 
-        {/* Security / Password section */}
+        {/* Security / Password section — hidden from students */}
+        {!isStudentMode && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -419,8 +430,10 @@ export default function SettingsPage() {
             </Button>
           </div>
         </motion.div>
+        )}
 
-        {/* Student PIN Management */}
+        {/* Student PIN Management — hidden from students */}
+        {!isStudentMode && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -481,8 +494,10 @@ export default function SettingsPage() {
             )}
           </div>
         </motion.div>
+        )}
 
-        {/* Parent Info */}
+        {/* Parent Info — hidden from students */}
+        {!isStudentMode && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -511,6 +526,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </motion.div>
+        )}
 
         {/* Student Info */}
         <motion.div
@@ -565,7 +581,8 @@ export default function SettingsPage() {
           </div>
         </motion.div>
 
-        {/* Add Another Student Form */}
+        {/* Add Another Student Form — hidden from students */}
+        {!isStudentMode && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -686,6 +703,7 @@ export default function SettingsPage() {
             </div>
           )}
         </motion.div>
+        )}
 
         {/* Language section */}
         <motion.div

@@ -39,7 +39,7 @@ export default function LoginPage() {
   const [pinError, setPinError] = useState('');
   const [verifyingPin, setVerifyingPin] = useState(false);
 
-  const { signIn, signInWithGoogle, user, loading, profileComplete } = useAuth();
+  const { signIn, signInWithGoogle, user, loading, profileComplete, setStudentMode, switchActiveStudent } = useAuth();
   const { t, locale, setLocale } = useLanguage();
   const router = useRouter();
 
@@ -132,20 +132,27 @@ export default function LoginPage() {
         return;
       }
 
-      // Success — sign in as parent via magic link or direct sign-in prompt
       if (data.magicLink) {
-        // Use the magic link to establish session
+        // Magic link: set student mode BEFORE redirect
+        localStorage.setItem('nemo_student_mode', 'true');
+        localStorage.setItem('nemo_active_student_id', data.studentId);
         window.location.href = data.magicLink;
       } else {
-        // Fallback: store studentId and redirect to login with parent credentials
-        // For now, prompt parent password entry after PIN success
+        // Fallback: pre-fill parent email and mark student mode pending
+        // PIN was correct — lock the session to this student after parent signs in
         localStorage.setItem('nemo_active_student_id', data.studentId);
-        toast.success(locale === 'th' ? `ยินดีต้อนรับ ${data.studentName}! 🎉` : `Welcome ${data.studentName}! 🎉`);
-        // Sign in needs the parent's credentials — but we can use the stored studentId
-        // to pre-select after login. Direct them to parent login with email pre-filled.
+        localStorage.setItem('nemo_student_mode', 'true');
+        setStudentMode(true);
+        toast.success(locale === 'th' ? `🎉 PIN ถูกต้อง! ยินดีต้อนรับ ${data.studentName}` : `🎉 PIN correct! Welcome ${data.studentName}`);
+        // Switch to parent tab with email pre-filled so session can be established
         setTab('parent');
         setEmail(studentEmail.trim());
-        toast.info(locale === 'th' ? 'กรุณาให้ผู้ปกครองใส่รหัสผ่านด้วย' : 'Please ask your parent to enter their password once to activate the session.');
+        toast.info(
+          locale === 'th'
+            ? 'กรุณาขอให้ผู้ปกครองแตะต้องใส่รหัสผ่านอีกครั้งเดียว'
+            : 'Ask your parent to enter their password once to start the session.',
+          { duration: 6000 }
+        );
       }
     } catch {
       setPinError('Something went wrong. Try again.');
@@ -153,7 +160,7 @@ export default function LoginPage() {
     } finally {
       setVerifyingPin(false);
     }
-  }, [selectedStudent, studentEmail, locale]);
+  }, [selectedStudent, studentEmail, locale, setStudentMode]);
 
   if (loading) {
     return (

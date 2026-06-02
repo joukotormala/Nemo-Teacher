@@ -43,6 +43,8 @@ interface AuthContextType {
   activeStudent: StudentProfile | null;
   loading: boolean;
   profileComplete: boolean;
+  isStudentMode: boolean;          // true when a child logged in via PIN
+  setStudentMode: (v: boolean) => void;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<void>;
@@ -60,6 +62,8 @@ const AuthContext = createContext<AuthContextType>({
   activeStudent: null,
   loading: true,
   profileComplete: false,
+  isStudentMode: false,
+  setStudentMode: () => {},
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
   signInWithGoogle: async () => {},
@@ -77,6 +81,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [activeStudent, setActiveStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Student mode: true when a child logged in via PIN (not a full parent login)
+  const [isStudentMode, setIsStudentMode] = useState(
+    typeof window !== 'undefined' && localStorage.getItem('nemo_student_mode') === 'true'
+  );
+  const setStudentMode = useCallback((v: boolean) => {
+    setIsStudentMode(v);
+    if (typeof window !== 'undefined') {
+      if (v) localStorage.setItem('nemo_student_mode', 'true');
+      else localStorage.removeItem('nemo_student_mode');
+    }
+  }, []);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -256,8 +271,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setParent(null);
     setStudents([]);
     setActiveStudent(null);
+    setStudentMode(false); // clear student mode on logout
     if (typeof window !== 'undefined') {
-      // Clear all Supabase auth keys from localStorage
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('sb-') || key.startsWith('supabase')) {
           localStorage.removeItem(key);
@@ -266,7 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('nemo_active_student_id');
       localStorage.removeItem('nemo_preferred_model');
     }
-  }, []);
+  }, [setStudentMode]);
 
   const changeLanguage = useCallback(async (newLocale: Locale) => {
     setLocale(newLocale);
@@ -341,7 +356,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, session, parent, students, activeStudent, loading, profileComplete,
-      signIn, signUp, signInWithGoogle,
+      isStudentMode, setStudentMode,
+      signIn: async (email, password) => {
+        setStudentMode(false); // parent is logging in — clear student mode
+        return supabase.auth.signInWithPassword({ email, password }).then(({ error }) => ({ error }));
+      },
+      signUp, signInWithGoogle,
       signOut: signOutFn, refreshProfile, switchActiveStudent, changeLanguage,
     }}>
       {children}
