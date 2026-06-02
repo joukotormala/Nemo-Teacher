@@ -161,45 +161,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initAuth = async () => {
       try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-
-        if (currentSession?.user?.id) {
-          // Try to validate server-side — but DON'T wipe session if network fails
-          try {
-            const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-
-            if (!userError && validatedUser) {
-              // Server confirmed: valid session
-              setSession(currentSession);
-              setUser(validatedUser);
-              await fetchProfile(validatedUser.id);
-            } else if (userError?.status === 401 || userError?.message?.toLowerCase().includes('invalid')) {
-              // Truly invalid token — clear it
-              console.warn('[Auth] Invalid token, clearing session');
-              await supabase.auth.signOut().catch(() => {});
-              setSession(null);
-              setUser(null);
-            } else {
-              // Network error or other transient failure — trust local session
-              console.warn('[Auth] getUser() failed (likely network), trusting local session:', userError?.message);
-              setSession(currentSession);
-              setUser(currentSession.user);
-              await fetchProfile(currentSession.user.id);
-            }
-          } catch (innerErr) {
-            // Network/timeout — trust local session rather than logging user out
-            console.warn('[Auth] getUser() threw, trusting local session:', innerErr);
-            setSession(currentSession);
-            setUser(currentSession.user);
-            await fetchProfile(currentSession.user.id);
-          }
-        } else {
-          setSession(null);
-          setUser(null);
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('[Auth] getSession error:', error.message);
         }
+        if (currentSession?.user?.id) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await fetchProfile(currentSession.user.id);
+        }
+        // If no session, user stays null — that's fine
       } catch (err) {
-        console.error('Auth init error:', err);
-        // Do NOT clear user here — if getSession itself fails, just stop loading
+        console.error('[Auth] Init error:', err);
       } finally {
         didFinish = true;
         setLoading(false);
