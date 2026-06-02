@@ -1306,13 +1306,13 @@ const STOP_WORDS = new Set([
                 className={`h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all border ${
                   isListening
                     ? 'bg-red-500 text-white border-red-500 animate-pulse shadow-lg shadow-red-500/30'
-                    : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+                    : 'bg-gradient-to-br from-purple-500 to-cyan-500 text-white border-purple-400 hover:from-purple-600 hover:to-cyan-600 shadow-md shadow-purple-500/20'
                 }`}
                 title={isListening
                   ? (locale === 'th' ? 'หยุดฟัง' : 'Stop listening')
                   : (locale === 'th' ? 'พูดคำถาม' : 'Speak your question')}
               >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
               <Button
                 onClick={sendMessage}
