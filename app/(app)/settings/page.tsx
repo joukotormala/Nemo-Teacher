@@ -107,6 +107,38 @@ export default function SettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
 
+  // PIN management
+  const { students } = useAuth();
+  const [pinValues, setPinValues] = useState<Record<string, string>>({});
+  const [savingPin, setSavingPin] = useState<string | null>(null);
+
+  const handleSavePin = async (studentId: string) => {
+    const pin = pinValues[studentId] ?? '';
+    if (!/^\d{4}$/.test(pin)) {
+      toast.error(locale === 'th' ? 'PIN ต้องเป็นตัวเลข 4 หลัก' : 'PIN must be exactly 4 digits');
+      return;
+    }
+    setSavingPin(studentId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { toast.error('Not authenticated'); return; }
+      const res = await fetch('/api/student-set-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ studentId, pin }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error ?? 'Failed to set PIN'); return; }
+      toast.success(locale === 'th' ? '✅ ตั้ง PIN สำเร็จ!' : '✅ PIN saved!');
+      setPinValues(prev => ({ ...prev, [studentId]: '' }));
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Error');
+    } finally {
+      setSavingPin(null);
+    }
+  };
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPassword) {
@@ -385,6 +417,68 @@ export default function SettingsPage() {
                 locale === 'th' ? 'ส่งลิงก์รีเซ็ต' : 'Send reset link'
               )}
             </Button>
+          </div>
+        </motion.div>
+
+        {/* Student PIN Management */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.09 }}
+          className="bg-card rounded-xl p-6"
+          style={{ boxShadow: 'var(--shadow-md)' }}
+        >
+          <h2 className="text-lg font-display font-semibold mb-1 flex items-center gap-2">
+            <Lock className="w-5 h-5 text-purple-500" />
+            {locale === 'th' ? '🔑 PIN ของนักเรียน' : '🔑 Student PINs'}
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            {locale === 'th'
+              ? 'ตั้ง PIN 4 หลักสำหรับแต่ละคน เพื่อให้นักเรียนล็อกอินด้วยตัวเองได้'
+              : 'Set a 4-digit PIN for each child so they can log in independently from the Student tab.'}
+          </p>
+          <div className="space-y-3">
+            {(students ?? []).map(student => {
+              const name = student.nickname_english || student.name_english || student.nickname_thai || student.name_thai || 'Student';
+              return (
+                <div key={student.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-cyan-400 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-sm">{name[0]?.toUpperCase()}</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold">{name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {locale === 'th' ? 'ใส่ PIN 4 หลัก' : 'Enter 4-digit PIN'}
+                    </p>
+                  </div>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="••••"
+                    value={pinValues[student.id] ?? ''}
+                    onChange={e => {
+                      const v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                      setPinValues(prev => ({ ...prev, [student.id]: v }));
+                    }}
+                    className="w-20 text-center h-10 rounded-xl border border-input bg-background text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                  />
+                  <Button
+                    size="sm"
+                    disabled={savingPin === student.id || (pinValues[student.id] ?? '').length !== 4}
+                    onClick={() => handleSavePin(student.id)}
+                    className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl px-3"
+                  >
+                    {savingPin === student.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (locale === 'th' ? 'บันทึก' : 'Save')}
+                  </Button>
+                </div>
+              );
+            })}
+            {(!students || students.length === 0) && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {locale === 'th' ? 'ยังไม่มีนักเรียนในบัญชีนี้' : 'No students in this account yet'}
+              </p>
+            )}
           </div>
         </motion.div>
 
