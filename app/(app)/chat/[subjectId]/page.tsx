@@ -201,7 +201,7 @@ export default function ChatPage() {
   }, []);
 
   // --- STT handler ---
-  const toggleListening = useCallback(() => {
+  const toggleListening = useCallback(async () => {
     if (typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -211,12 +211,27 @@ export default function ChatPage() {
       return;
     }
 
+    // Stop if already listening
     if (isListening && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsListening(false);
       return;
     }
 
+    // Step 1: Request microphone permission first (Chrome requires this)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Got permission — stop the stream immediately (SpeechRecognition handles its own audio)
+      stream.getTracks().forEach(track => track.stop());
+    } catch (permErr: any) {
+      console.error('Microphone permission denied:', permErr);
+      toast.error(locale === 'th'
+        ? '🎤 กรุณาอนุญาตการใช้ไมโครโฟน — คลิกไอคอนกล้องในแถบ URL'
+        : '🎤 Please allow microphone access — click the camera icon in the URL bar');
+      return;
+    }
+
+    // Step 2: Start speech recognition
     try {
       const recognition = new SpeechRecognition();
       recognition.lang = getSpeechLang();
@@ -246,17 +261,13 @@ export default function ChatPage() {
         setIsListening(false);
         recognitionRef.current = null;
         if (event.error === 'not-allowed') {
-          toast.error(locale === 'th' ? 'กรุณาอนุญาตการใช้ไมโครโฟน ในการตั้งค่าเบราว์เซอร์' : 'Please allow microphone access in browser settings');
+          toast.error(locale === 'th' ? 'กรุณาอนุญาตการใช้ไมโครโฟน' : 'Please allow microphone access');
         } else if (event.error === 'no-speech') {
           toast.info(locale === 'th' ? 'ไม่ได้ยินเสียง — กรุณาลองพูดอีกครั้ง' : 'No speech detected — please try again');
         } else if (event.error === 'network') {
           toast.error(locale === 'th' ? 'ข้อผิดพลาดเครือข่าย — กรุณาลองอีกครั้ง' : 'Network error — please try again');
-        } else if (event.error === 'aborted') {
-          // User stopped — no toast needed
-        } else {
-          toast.error(locale === 'th'
-            ? `การฟังเสียงล้มเหลว (${event.error}) — ลองใช้ Chrome`
-            : `Speech recognition failed (${event.error}) — try using Chrome`);
+        } else if (event.error !== 'aborted') {
+          toast.error(`Speech recognition failed (${event.error})`);
         }
       };
 
@@ -266,8 +277,8 @@ export default function ChatPage() {
     } catch (err: any) {
       console.error('Failed to start speech recognition:', err);
       toast.error(locale === 'th'
-        ? 'ไม่สามารถเริ่มฟังเสียงได้ — กรุณาใช้ Google Chrome'
-        : 'Could not start speech recognition — please use Google Chrome');
+        ? 'ไม่สามารถเริ่มฟังเสียงได้'
+        : 'Could not start speech recognition');
       setIsListening(false);
     }
   }, [isListening, getSpeechLang, locale]);
