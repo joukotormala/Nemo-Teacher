@@ -644,24 +644,34 @@ export default function ChatPage() {
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
+      // 45-second client-side timeout — don't hang forever waiting for the API
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 45000);
+
       const apiMessages = newMessages
         .filter((m, i) => !(i < 2 && m.role === 'assistant'))
         .map(m => ({ role: m.role, content: m.content }));
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          messages: apiMessages.length > 0 ? apiMessages : [{ role: 'user', content: trimmed }],
-          subject: subjectName,
-          locale,
-          studentName,
-          gradeLevel: activeStudent?.current_grade,
-          model: activeModel,
-          studentMemory: activeStudent?.nemo_memory ?? null,
-        }),
-      });
+      let response: Response;
+      try {
+        response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            messages: apiMessages.length > 0 ? apiMessages : [{ role: 'user', content: trimmed }],
+            subject: subjectName,
+            locale,
+            studentName,
+            gradeLevel: activeStudent?.current_grade,
+            model: activeModel,
+            studentMemory: activeStudent?.nemo_memory ?? null,
+          }),
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (!response?.ok) {
         const errData = await response?.json?.().catch(() => ({}));
@@ -751,7 +761,21 @@ export default function ChatPage() {
         }
       }
     } catch (error: any) {
-      if (error?.name !== 'AbortError') {
+      if (error?.name === 'AbortError') {
+        // Aborted by user or timeout
+        const wasTimeout = !abortControllerRef.current; // already null if we timed out
+        if (wasTimeout) {
+          toast.error(locale === 'th'
+            ? 'Nemo ใช้เวลานานเกินไป กรุณาลองใหม่หรือเปลี่ยน AI model'
+            : 'Nemo took too long to respond. Try again or switch to a faster AI model.');
+          setMessages(prev => {
+            const updated = [...(prev ?? [])];
+            if (updated.length > 0 && updated[updated.length - 1]?.content === '') updated.pop();
+            return updated;
+          });
+        }
+        // If aborted by user (Stop button), just clean up silently
+      } else {
         console.error('Chat error:', error);
         toast.error(error?.message ?? 'Failed to send message');
         setMessages(prev => {
@@ -1453,17 +1477,33 @@ const STOP_WORDS = new Set([
                 </div>
               ) : null}
 
-              {/* Streaming indicator */}
+              {/* Streaming indicator with Stop button */}
               {isStreaming && messages.length > 0 && messages[messages.length - 1]?.content === '' ? (
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border border-purple-500/20 bg-card">
                     <img src="/nemo_avatar.jpg" alt="Nemo" className="w-full h-full object-cover" />
                   </div>
-                  <div className="bg-card rounded-2xl rounded-bl-md px-4 py-3" style={{ boxShadow: 'var(--shadow-sm)' }}>
+                  <div className="bg-card rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-3" style={{ boxShadow: 'var(--shadow-sm)' }}>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       {t('chat.thinking')}
                     </div>
+                    <button
+                      onClick={() => {
+                        abortControllerRef.current?.abort();
+                        abortControllerRef.current = null;
+                        setIsStreaming(false);
+                        setMessages(prev => {
+                          const updated = [...(prev ?? [])];
+                          if (updated.length > 0 && updated[updated.length - 1]?.content === '') updated.pop();
+                          return updated;
+                        });
+                      }}
+                      className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/60 transition-all font-medium border border-red-200 dark:border-red-800"
+                    >
+                      <X className="w-3 h-3" />
+                      {locale === 'th' ? 'หยุด' : 'Stop'}
+                    </button>
                   </div>
                 </div>
               ) : null}
