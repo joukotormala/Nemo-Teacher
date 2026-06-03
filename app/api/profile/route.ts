@@ -8,8 +8,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
   {
     global: {
-      fetch: (url: RequestInfo | URL, options: RequestInit = {}) =>
-        fetch(url, { ...options, cache: 'no-store' }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fetch: (url: any, options: any = {}) => fetch(url, { ...options, cache: 'no-store' }),
     },
   }
 );
