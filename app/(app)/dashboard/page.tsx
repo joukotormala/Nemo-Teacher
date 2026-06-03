@@ -46,7 +46,7 @@ export default function DashboardPage() {
         )) ?? []}
       </div>
 
-      <FeedbackButton subjectContext="dashboard" />
+      <FeedbackButton subjectContext="dashboard" showBanner />
     </div>
   );
 }

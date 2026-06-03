@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { MessageSquare, X, CheckCheck, Loader2, Reply, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { MessageSquare, X, CheckCheck, Loader2, Reply, ChevronDown, ChevronUp, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 
 interface FeedbackButtonProps {
   subjectContext?: string;
+  showBanner?: boolean; // show a top banner on the dashboard when there are unread replies
 }
 
 interface FeedbackReply {
@@ -24,7 +25,7 @@ interface FeedbackReply {
   subject_context: string | null;
 }
 
-export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
+export function FeedbackButton({ subjectContext, showBanner }: FeedbackButtonProps) {
   const { activeStudent } = useAuth();
   const { locale } = useLanguage();
 
@@ -45,8 +46,8 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
   const [replies, setReplies] = useState<FeedbackReply[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [repliesOpen, setRepliesOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  // Load replies when student is known
   useEffect(() => {
     if (!activeStudent?.id) return;
     fetchReplies();
@@ -60,19 +61,13 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
       const list: FeedbackReply[] = data.replies ?? [];
       setReplies(list);
       setUnreadCount(list.filter(r => !r.reply_seen).length);
-    } catch {
-      // silent
-    }
+    } catch { /* silent */ }
   }, [activeStudent?.id]);
 
-  // When modal opens, auto-expand replies if there are unread ones
   useEffect(() => {
-    if (showFeedback && unreadCount > 0) {
-      setRepliesOpen(true);
-    }
+    if (showFeedback && unreadCount > 0) setRepliesOpen(true);
   }, [showFeedback, unreadCount]);
 
-  // Mark replies as seen when student reads them
   const markRepliesSeen = useCallback(async (ids: string[]) => {
     for (const id of ids) {
       try {
@@ -81,9 +76,7 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ feedbackId: id }),
         });
-      } catch {
-        // silent
-      }
+      } catch { /* silent */ }
     }
     setUnreadCount(0);
     setReplies(prev => prev.map(r => ({ ...r, reply_seen: true })));
@@ -91,6 +84,14 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
 
   const handleOpenReplies = useCallback(() => {
     setRepliesOpen(v => !v);
+    const unseen = replies.filter(r => !r.reply_seen).map(r => r.id);
+    if (unseen.length) markRepliesSeen(unseen);
+  }, [replies, markRepliesSeen]);
+
+  const openAndExpand = useCallback(() => {
+    setBannerDismissed(true);
+    setShowFeedback(true);
+    setRepliesOpen(true);
     const unseen = replies.filter(r => !r.reply_seen).map(r => r.id);
     if (unseen.length) markRepliesSeen(unseen);
   }, [replies, markRepliesSeen]);
@@ -135,29 +136,110 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
     general: { emoji: '💬', th: 'ทั่วไป',          en: 'General' },
   };
 
+  const hasUnread = unreadCount > 0;
+
   return (
     <>
-      {/* ── Floating button ─────────────────────────────── */}
+      {/* ── Login / Dashboard notification banner ── */}
+      <AnimatePresence>
+        {showBanner && hasUnread && !bannerDismissed && !showFeedback && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 260, delay: 0.6 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4"
+          >
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+              {/* Gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)]" />
+
+              <div className="relative flex items-center gap-3 px-4 py-3">
+                {/* Animated bell */}
+                <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                  <motion.div
+                    animate={{ rotate: [0, -15, 15, -10, 10, 0] }}
+                    transition={{ duration: 0.6, delay: 1.0, repeat: 3, repeatDelay: 4 }}
+                  >
+                    <Bell className="w-4 h-4 text-white" />
+                  </motion.div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-semibold text-sm leading-tight">
+                    {locale === 'th' ? `มีข้อความจากทีม Nemo! 🎉` : `You have a reply from Nemo! 🎉`}
+                  </p>
+                  <p className="text-white/70 text-xs mt-0.5 truncate">
+                    {locale === 'th' ? 'ทีมพัฒนาตอบความคิดเห็นของคุณแล้ว' : 'The Nemo team replied to your feedback'}
+                  </p>
+                </div>
+
+                <button
+                  onClick={openAndExpand}
+                  className="shrink-0 bg-white text-purple-700 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors"
+                >
+                  {locale === 'th' ? 'ดูเลย' : 'See it'}
+                </button>
+
+                <button
+                  onClick={() => setBannerDismissed(true)}
+                  className="text-white/50 hover:text-white transition-colors ml-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Floating button ─────────────────────────── */}
       <div className="fixed bottom-32 right-3 z-40 flex flex-col items-center gap-1">
-        <button
+        <motion.button
           onClick={() => setShowFeedback(true)}
           title={locale === 'th' ? 'ส่งความคิดเห็นถึงผู้พัฒนา' : 'Send feedback to developer'}
-          className="relative w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 ring-2 ring-purple-400/30"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative w-12 h-12 rounded-full text-white shadow-xl flex items-center justify-center overflow-hidden"
+          style={{
+            background: hasUnread
+              ? 'linear-gradient(135deg, #dc2626 0%, #db2777 100%)'   // red→pink when unread
+              : 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',  // violet→pink normally
+            boxShadow: hasUnread
+              ? '0 0 0 3px rgba(220,38,38,0.3), 0 8px 24px rgba(220,38,38,0.4)'
+              : '0 0 0 2px rgba(124,58,237,0.25), 0 8px 24px rgba(124,58,237,0.35)',
+          }}
         >
-          <MessageSquare className="w-5 h-5" />
-          {/* Unread reply badge */}
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow">
+          {/* Shimmer overlay */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.25),transparent)]" />
+          <MessageSquare className="w-5 h-5 relative z-10" />
+
+          {/* Unread badge */}
+          {hasUnread && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-red-600 text-[10px] font-bold flex items-center justify-center shadow-md z-20"
+            >
               {unreadCount}
-            </span>
+            </motion.span>
           )}
-        </button>
-        <span className="text-[9px] font-semibold text-purple-500 dark:text-purple-400 leading-none tracking-tight">
-          {locale === 'th' ? 'ความเห็น' : 'Feedback'}
+
+          {/* Pulse ring when unread */}
+          {hasUnread && (
+            <span className="absolute inset-0 rounded-full animate-ping opacity-30 bg-red-500" />
+          )}
+        </motion.button>
+
+        <span className={`text-[9px] font-semibold leading-none tracking-tight ${hasUnread ? 'text-red-500' : 'text-purple-500 dark:text-purple-400'}`}>
+          {hasUnread
+            ? (locale === 'th' ? '● ใหม่!' : '● New!')
+            : (locale === 'th' ? 'ความเห็น' : 'Feedback')}
         </span>
       </div>
 
-      {/* ── Modal ──────────────────────────────────────── */}
+      {/* ── Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showFeedback && (
           <motion.div
@@ -174,8 +256,11 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
-              {/* Header */}
-              <div className="bg-purple-600 px-5 py-4 flex items-center justify-between shrink-0">
+              {/* Header — gradient */}
+              <div
+                className="px-5 py-4 flex items-center justify-between shrink-0"
+                style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)' }}
+              >
                 <div className="flex items-center gap-2 text-white">
                   <MessageSquare className="w-4 h-4" />
                   <span className="font-semibold text-sm">
@@ -188,7 +273,7 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
               </div>
 
               <div className="overflow-y-auto flex-1">
-                {/* ── Replies section ── */}
+                {/* Replies section */}
                 {replies.length > 0 && (
                   <div className="border-b border-border">
                     <button
@@ -222,7 +307,6 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
                               const stars = '⭐'.repeat(reply.rating ?? 0);
                               return (
                                 <div key={reply.id} className={`rounded-xl border p-3 space-y-2 ${!reply.reply_seen ? 'border-purple-400/60 bg-purple-50 dark:bg-purple-950/20' : 'border-border bg-muted/20'}`}>
-                                  {/* Original feedback */}
                                   <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                                     <span>{cat.emoji} {locale === 'th' ? cat.th : cat.en}</span>
                                     {stars && <span>{stars}</span>}
@@ -232,9 +316,9 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
                                   <p className="text-xs text-foreground/70 italic border-l-2 border-muted-foreground/30 pl-2">
                                     "{reply.message}"
                                   </p>
-                                  {/* Admin reply */}
                                   <div className="flex gap-2 pt-1">
-                                    <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+                                    <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                                      style={{ background: 'linear-gradient(135deg,#7c3aed,#db2777)' }}>
                                       <span className="text-white text-[10px] font-bold">N</span>
                                     </div>
                                     <div className="flex-1">
@@ -257,7 +341,7 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
                   </div>
                 )}
 
-                {/* ── Submit section ── */}
+                {/* Submit section */}
                 {fbDone ? (
                   <div className="flex flex-col items-center justify-center py-10 px-6 gap-3">
                     <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -277,11 +361,8 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
                       </p>
                       <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map(star => (
-                          <button
-                            key={star}
-                            onClick={() => setFbRating(star === fbRating ? 0 : star)}
-                            className={`text-2xl transition-transform hover:scale-110 active:scale-95 ${star <= fbRating ? 'opacity-100' : 'opacity-25'}`}
-                          >
+                          <button key={star} onClick={() => setFbRating(star === fbRating ? 0 : star)}
+                            className={`text-2xl transition-transform hover:scale-110 active:scale-95 ${star <= fbRating ? 'opacity-100' : 'opacity-25'}`}>
                             ⭐
                           </button>
                         ))}
@@ -297,15 +378,12 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
                         {(['great', 'improve', 'bug'] as const).map(id => {
                           const c = categoryLabels[id];
                           return (
-                            <button
-                              key={id}
-                              onClick={() => setFbCategory(id)}
+                            <button key={id} onClick={() => setFbCategory(id)}
                               className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border text-xs font-medium transition-all ${
                                 fbCategory === id
                                   ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300'
                                   : 'border-border bg-card/50 hover:bg-muted/40 text-muted-foreground'
-                              }`}
-                            >
+                              }`}>
                               <span className="text-lg">{c.emoji}</span>
                               <span>{locale === 'th' ? c.th : c.en}</span>
                             </button>
@@ -332,13 +410,12 @@ export function FeedbackButton({ subjectContext }: FeedbackButtonProps) {
                     <Button
                       onClick={handleSubmit}
                       disabled={!fbMessage.trim() || fbSubmitting}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl h-11 font-semibold text-sm"
+                      className="w-full text-white rounded-xl h-11 font-semibold text-sm border-0"
+                      style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)' }}
                     >
-                      {fbSubmitting ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {locale === 'th' ? 'กำลังส่ง...' : 'Sending...'}</>
-                      ) : (
-                        locale === 'th' ? '📨 ส่งความคิดเห็น' : '📨 Send Feedback'
-                      )}
+                      {fbSubmitting
+                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {locale === 'th' ? 'กำลังส่ง...' : 'Sending...'}</>
+                        : locale === 'th' ? '📨 ส่งความคิดเห็น' : '📨 Send Feedback'}
                     </Button>
 
                     <p className="text-center text-[10px] text-muted-foreground/60">
