@@ -388,11 +388,13 @@ export const subjects: SubjectInfo[] = [
   {
     id: 'computer_science',
     slug: 'computer_science',
+    code: 'computer_science',
     name_th: 'วิทยาการคอมพิวเตอร์ (Scratch)',
     name_en: 'Computer Science (Scratch)',
     icon: Monitor,
     illustrationUrl: '/illustrations/cs_scratch.png',
     color: '#F97316',
+    bgColor: 'bg-orange-50 dark:bg-orange-950/30',
     description_th: 'เรียนเขียนโปรแกรมด้วย Scratch — สร้างเกม แอนิเมชัน และโปรเจกต์สนุกๆ บน Windows และ Mac',
     description_en: 'Learn programming with Scratch — build games, animations, and fun projects on Windows and Mac',
     minGradeIndex: 0,   // open to all students
