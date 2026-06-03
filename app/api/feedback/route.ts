@@ -7,9 +7,9 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const ADMIN_EMAIL = process.env.ADMIN_FEEDBACK_EMAIL || 'jouko@nemo-teacher.app';
+const ADMIN_EMAIL = process.env.ADMIN_FEEDBACK_EMAIL || '';
 
-// POST /api/feedback
+// POST /api/feedback — student submits feedback
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -36,17 +36,19 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: dbErr.message }, { status: 500 });
     }
 
-    // 2. Send email notification via Resend (only if API key is configured)
+    // 2. Send email via Resend
     const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const stars = '⭐'.repeat(rating || 0) || 'No rating';
+    let emailStatus = 'no_key';
+
+    if (resendKey && ADMIN_EMAIL) {
+      const stars = '⭐'.repeat(rating || 0) || '(no rating)';
       const categoryLabels: Record<string, string> = {
-        great: '😊 What I love',
+        great:   '😊 What I love',
         improve: '💡 What could be better',
-        bug: '🐛 Something is broken',
+        bug:     '🐛 Something is broken',
         general: '💬 General feedback',
       };
-      const categoryLabel = categoryLabels[category] || category;
+      const categoryLabel = categoryLabels[category] || category || 'general';
 
       const htmlBody = `
         <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; background: #f8f8f8; border-radius: 12px; overflow: hidden;">
@@ -69,52 +71,78 @@ export async function POST(req: NextRequest) {
       `;
 
       try {
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${resendKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'Nemo Feedback <feedback@nemo-teacher.app>',
+            // ✅ Resend's built-in verified sender — works without any domain setup
+            // To use your own domain later: 'Nemo Feedback <feedback@nemo-teacher.app>'
+            // (requires adding nemo-teacher.app to Resend → Domains)
+            from: 'Nemo Feedback <onboarding@resend.dev>',
             to: [ADMIN_EMAIL],
-            subject: `💬 ${studentName || 'A student'} sent feedback — ${stars}`,
+            subject: `💬 ${studentName || 'A student'} left feedback on Nemo — ${stars}`,
             html: htmlBody,
           }),
         });
-      } catch (emailErr) {
-        // Don't fail the whole request if email fails — feedback is already saved
-        console.error('Email send failed (feedback still saved):', emailErr);
+
+        const resendBody = await resendRes.json();
+
+        if (!resendRes.ok) {
+          console.error('Resend API error:', JSON.stringify(resendBody));
+          emailStatus = `resend_error: ${resendBody?.message ?? resendBody?.name ?? resendRes.status}`;
+        } else {
+          emailStatus = 'sent';
+          console.log('Feedback email sent OK, id:', resendBody?.id);
+        }
+      } catch (emailErr: any) {
+        console.error('Email fetch exception:', emailErr?.message);
+        emailStatus = `fetch_error: ${emailErr?.message}`;
       }
+
+    } else {
+      if (!resendKey)   emailStatus = 'missing_RESEND_API_KEY';
+      if (!ADMIN_EMAIL) emailStatus = 'missing_ADMIN_FEEDBACK_EMAIL';
+      console.warn('Feedback email not sent:', emailStatus);
     }
 
-    return Response.json({ ok: true });
+    return Response.json({ ok: true, emailStatus });
+
   } catch (err: any) {
     console.error('Feedback route error:', err);
     return Response.json({ error: err?.message ?? 'Failed to save feedback' }, { status: 500 });
   }
 }
 
-// GET /api/feedback — for admin panel
+// GET /api/feedback — env check (?check=env) OR authenticated list for admin panel
 export async function GET(req: NextRequest) {
-  try {
-    const authHeader = req.headers.get('authorization') ?? '';
-    const token = authHeader.replace('Bearer ', '').trim();
-    if (!token) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const url = new URL(req.url);
 
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !user) return Response.json({ error: 'Invalid session' }, { status: 401 });
-
-    const { data, error: dbErr } = await supabaseAdmin
-      .from('feedback')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
-
-    if (dbErr) return Response.json({ error: dbErr.message }, { status: 500 });
-
-    return Response.json({ feedback: data ?? [] });
-  } catch (err: any) {
-    return Response.json({ error: err?.message }, { status: 500 });
+  // Quick env-var health check — no secrets exposed, just presence
+  if (url.searchParams.get('check') === 'env') {
+    return Response.json({
+      RESEND_API_KEY:        process.env.RESEND_API_KEY        ? '✅ set' : '❌ missing',
+      ADMIN_FEEDBACK_EMAIL:  process.env.ADMIN_FEEDBACK_EMAIL  || '❌ missing',
+    });
   }
+
+  // Authenticated list for admin panel
+  const authHeader = req.headers.get('authorization') ?? '';
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+  if (error || !user) return Response.json({ error: 'Invalid session' }, { status: 401 });
+
+  const { data, error: dbErr } = await supabaseAdmin
+    .from('feedback')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (dbErr) return Response.json({ error: dbErr.message }, { status: 500 });
+
+  return Response.json({ feedback: data ?? [] });
 }
