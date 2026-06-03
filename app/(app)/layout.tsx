@@ -7,9 +7,10 @@ import { DashboardNav } from '@/components/dashboard-nav';
 import { Loader2 } from 'lucide-react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, profileComplete } = useAuth();
+  const { user, loading, profileComplete, refreshProfile } = useAuth();
   const router = useRouter();
 
+  // Auth guard
   useEffect(() => {
     if (!loading) {
       if (!user) {
@@ -19,6 +20,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
     }
   }, [user, loading, profileComplete, router]);
+
+  // Refresh profile from DB on every page load so deleted/added students
+  // are reflected immediately without requiring a full browser reload
+  useEffect(() => {
+    if (user && !loading) {
+      refreshProfile();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (loading) {
     return (
