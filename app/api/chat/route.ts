@@ -10,6 +10,8 @@ const LLAMA_8B_MODEL = 'meta/llama-3.1-8b-instruct';
 const GEMMA_4B_MODEL = 'google/gemma-3n-e4b-it';
 const NVIDIA_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
 const QWEN_MODEL = 'qwen/qwen3-next-80b-a3b-instruct';
+const NEMOTRON_SUPER_MODEL = 'nvidia/llama-3.3-nemotron-super-49b-v1';
+const DEEPSEEK_R1_MODEL = 'deepseek-ai/deepseek-r1';
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
 
 function getEndpointConfig(modelChoice?: string): { url: string; model: string; headers: Record<string, string> } | null {
@@ -76,6 +78,28 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
       url: `${OLLAMA_URL}/v1/chat/completions`,
       model: selectedModel,
       headers: { 'Content-Type': 'application/json' },
+    };
+  }
+
+  if (choice === 'nemotron-super') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: NEMOTRON_SUPER_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'deepseek-r1') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: DEEPSEEK_R1_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
     };
   }
 

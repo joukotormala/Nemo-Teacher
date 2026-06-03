@@ -938,6 +938,8 @@ const STOP_WORDS = new Set([
     else if (modelId === 'gemma-4b') setModelName('Gemma-3-4B');
     else if (modelId === 'sea-lion') setModelName('Sea-Lion (Local)');
     else if (modelId === 'nemotron') setModelName('nemotron-mini');
+    else if (modelId === 'nemotron-super') setModelName('Nemotron-Super-49B ⭐');
+    else if (modelId === 'deepseek-r1') setModelName('DeepSeek-R1 🧠');
 
     const displayMap: Record<string, string> = {
       'nvidia': 'Nemotron-3-nano',
@@ -946,7 +948,9 @@ const STOP_WORDS = new Set([
       'llama-8b': 'Llama 3.1 8B',
       'gemma-4b': 'Gemma 3 4B',
       'sea-lion': 'Sea-Lion',
-      'nemotron': 'Nemotron-mini'
+      'nemotron': 'Nemotron-mini',
+      'nemotron-super': 'Nemotron Super 49B',
+      'deepseek-r1': 'DeepSeek R1',
     };
     const displayName = displayMap[modelId] || 'Nemo';
 
@@ -1114,7 +1118,17 @@ const STOP_WORDS = new Set([
                     </span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56 bg-card border border-border">
+                 <DropdownMenuContent align="start" className="w-64 bg-card border border-border">
+                  <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">⭐ Best for University / Research</div>
+                  <DropdownMenuItem onClick={() => handleModelChange('nemotron-super')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
+                    <span className="font-medium text-xs sm:text-sm">Nemotron Super 49B ⭐</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">llama-3.3-nemotron-super-49b (Nvidia) — Best for science</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleModelChange('deepseek-r1')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
+                    <span className="font-medium text-xs sm:text-sm">DeepSeek R1 🧠</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">deepseek-ai/deepseek-r1 (Nvidia) — Deep reasoning</span>
+                  </DropdownMenuItem>
+                  <div className="px-2 py-1 mt-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-t border-border/50">Standard Models</div>
                   <DropdownMenuItem onClick={() => handleModelChange('nvidia')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.nvidia')}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">Nemotron-3-nano (Nvidia)</span>
