@@ -37,6 +37,22 @@ export default function SettingsPage() {
   const [newSchoolName, setNewSchoolName] = useState('');
   const [addingChild, setAddingChild] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [profileRefreshed, setProfileRefreshed] = useState(false);
+
+  // On mount: force a fresh profile fetch to clear stale cached student data
+  useEffect(() => {
+    refreshProfile().then(() => {
+      setProfileRefreshed(true);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-open the add form if — after the fresh refresh — there are no students
+  useEffect(() => {
+    if (profileRefreshed && !isStudentMode && (!students || students.length === 0)) {
+      setShowAddForm(true);
+    }
+  }, [profileRefreshed, students, isStudentMode]);
 
   const handleAddChild = async (e: React.FormEvent) => {
     e.preventDefault();

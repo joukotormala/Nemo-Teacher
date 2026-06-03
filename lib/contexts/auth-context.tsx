@@ -142,8 +142,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const savedId = typeof window !== 'undefined' ? localStorage.getItem('nemo_active_student_id') : null;
         const currentActive = childList.find((s: any) => s.id === savedId) || childList[0];
         setActiveStudent(currentActive);
+        // If saved ID no longer exists in the list, update localStorage to the new active student
+        if (savedId && !childList.find((s: any) => s.id === savedId)) {
+          localStorage.setItem('nemo_active_student_id', currentActive.id);
+        }
       } else {
         setActiveStudent(null);
+        // Clear stale localStorage so deleted students don't linger
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('nemo_active_student_id');
+        }
       }
     } catch (err) {
       console.error('fetchProfile error:', err);
