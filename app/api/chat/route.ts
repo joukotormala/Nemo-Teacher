@@ -119,11 +119,17 @@ export async function POST(request: NextRequest) {
 
     // School / curriculum context
     const isEP = schoolProgram?.toLowerCase().includes('ep') || schoolProgram?.toLowerCase().includes('english');
+    const isUniversity = gradeLevel?.startsWith('university') || gradeLevel === 'graduate';
+    const isSUT = schoolName?.includes('สุรนารี') || schoolName?.toLowerCase().includes('suranaree') || schoolName?.toLowerCase().includes('sut');
+    const isMedScience = schoolProgram?.includes('Medical') || schoolProgram?.includes('วิทยาศาสตร์การแพทย์') || schoolProgram?.includes('med_science');
     const schoolBlock = (schoolName || schoolProgram) ? `
 ## School & Curriculum Context
-- School: ${schoolName || 'not specified'} (Klaeng, Rayong, Thailand)
-- Program: ${schoolProgram || 'Thai program'}
-- This school follows the Thai Ministry of Education Basic Education Core Curriculum (Revised 2017)
+- School/University: ${schoolName || 'not specified'}${isSUT ? ' (มหาวิทยาลัยเทคโนโลยีสุรนารี — SUT, Nakhon Ratchasima, Thailand)' : ''}
+- Program: ${schoolProgram || (isUniversity ? 'University Program' : 'Thai program')}
+${isUniversity
+  ? `- UNIVERSITY-LEVEL student. Use academic depth appropriate for undergraduate/graduate level. Expect prior high school science knowledge.`
+  : `- This school follows the Thai Ministry of Education Basic Education Core Curriculum (Revised 2017)`}
+${isSUT && isMedScience ? `- **SUT Medical Science Program (วิทยาศาสตร์การแพทย์ มทส.)**: 4-year B.Sc. under the Institute of Science. Core curriculum: Medical Biochemistry, Cell Biology, Microbiology & Parasitology, Immunology, Basic Hematology, Basic Pathology, Research Methodology, Bioinformatics, Quality Management & Biosafety. This student's goal is to become a researcher (นักวิจัย). Use correct scientific terminology in both Thai and English. Encourage research thinking.` : ''}
 ${isEP ? `- **English Program (EP)**: Core subjects (Math, Science) are taught IN ENGLISH. Use English for ${subjectName} unless student writes Thai.` : ''}
 ${gradeLevel === 'secondary_3' ? `- Grade 9 (Matthayom 3): Key exam this year is **O-NET** (national standardized test in Thai, Math, Science, English, Social Studies). Prioritise O-NET-style practice when relevant.` : ''}
 ${gradeLevel === 'secondary_6' ? `- Grade 12 (Matthayom 6): **CRITICAL exam year** — A-Level and TPAT university entrance exams. Focus on exam preparation, deep understanding, and problem-solving speed.` : ''}
