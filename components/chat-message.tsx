@@ -184,6 +184,16 @@ export function ChatMessageContent({ content, onWordClick }: ChatMessageContentP
               <table className="min-w-full text-xs border-collapse">{children}</table>
             </div>
           ),
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-600 dark:text-purple-400 underline underline-offset-2 hover:text-purple-800 dark:hover:text-purple-300 transition-colors break-all"
+            >
+              {children} <span className="text-[10px] opacity-60">↗</span>
+            </a>
+          ),
           th: ({ children }) => <th className="border border-border/50 px-2 py-1 bg-muted/30 font-semibold text-left">{children}</th>,
           td: ({ children }) => <td className="border border-border/50 px-2 py-1">{makeNodesClickable(children, onWordClick)}</td>,
         }}

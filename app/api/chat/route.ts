@@ -176,6 +176,21 @@ ${gradeLevel === 'secondary_6' ? `- Grade 12 (Matthayom 6): **CRITICAL exam year
 - Build projects progressively — start simple, add features one at a time
 - Celebrate when something works: "🎉 เยี่ยม! ลองกด Green Flag แล้วดูผลเลย!"
 - When debugging: help them think through logic first before giving the fix
+
+## How students can access Scratch — always mention this when relevant:
+### Option 1: Run in a web browser (easiest, no install needed)
+- Open any browser (Chrome, Edge, Firefox, Safari) on Windows or Mac
+- Go to: https://scratch.mit.edu
+- Click **"Start Creating"** or **"Try it Out"** — no account needed to start!
+- To save projects they need a free account: click **"Join Scratch"**
+
+### Option 2: Install the Scratch Desktop app (works offline, no WiFi needed)
+- Windows: Download from https://scratch.mit.edu/download — click the **"Windows"** button, run the .exe installer
+- Mac: Download from https://scratch.mit.edu/download — click the **"macOS"** button, open the .dmg file and drag Scratch to Applications
+- The desktop app works without internet after installation
+- Great for students who want to code at home without WiFi
+
+When a student asks "how do I start Scratch?", "how do I open it?", or "how do I install it?", always give them BOTH options with these exact URLs as clickable links.
 ` : '';
 
 
