@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
-import { Settings, Globe, User, Users, Save, Mail, GraduationCap, Phone, School, Loader2, Cpu, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Settings, Globe, User, Users, Save, Mail, GraduationCap, Phone, School, Loader2, Cpu, Lock, Trash2, AlertTriangle, Plus, Key, Shield, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 
 const GRADE_OPTIONS = [
   'kindergarten',
@@ -122,6 +122,35 @@ export default function SettingsPage() {
   // PIN management
   const [pinValues, setPinValues] = useState<Record<string, string>>({});
   const [savingPin, setSavingPin] = useState<string | null>(null);
+
+  // Delete student
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteStudent = async (studentId: string) => {
+    setDeletingId(studentId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { toast.error('Please log in again'); return; }
+
+      const res = await fetch('/api/student-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ studentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to delete');
+
+      toast.success(locale === 'th' ? '🗑️ ลบนักเรียนสำเร็จ' : '🗑️ Student deleted');
+      setDeleteConfirmId(null);
+      await refreshProfile();
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Failed to delete student');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleSavePin = async (studentId: string) => {
     const pin = pinValues[studentId] ?? '';
@@ -472,37 +501,86 @@ export default function SettingsPage() {
           <div className="space-y-3">
             {(students ?? []).map(student => {
               const name = student.nickname_english || student.name_english || student.nickname_thai || student.name_thai || 'Student';
+              const isConfirming = deleteConfirmId === student.id;
+              const isDeleting = deletingId === student.id;
               return (
-                <div key={student.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-cyan-400 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">{name[0]?.toUpperCase()}</span>
+                <div key={student.id} className="rounded-xl border border-border/50 overflow-hidden">
+                  <div className="flex items-center gap-3 p-3 bg-muted/40">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-cyan-400 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-sm">{name[0]?.toUpperCase()}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">{name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {locale === 'th' ? 'ใส่ PIN 4 หลัก' : 'Enter 4-digit PIN'}
+                      </p>
+                    </div>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="••••"
+                      value={pinValues[student.id] ?? ''}
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        setPinValues(prev => ({ ...prev, [student.id]: v }));
+                      }}
+                      className="w-20 text-center h-10 rounded-xl border border-input bg-background text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                    />
+                    <Button
+                      size="sm"
+                      disabled={savingPin === student.id || (pinValues[student.id] ?? '').length !== 4}
+                      onClick={() => handleSavePin(student.id)}
+                      className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl px-3"
+                    >
+                      {savingPin === student.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (locale === 'th' ? 'บันทึก' : 'Save')}
+                    </Button>
+                    {/* Delete button */}
+                    <button
+                      onClick={() => setDeleteConfirmId(isConfirming ? null : student.id)}
+                      className="p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
+                      title={locale === 'th' ? 'ลบนักเรียน' : 'Delete student'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold">{name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {locale === 'th' ? 'ใส่ PIN 4 หลัก' : 'Enter 4-digit PIN'}
-                    </p>
-                  </div>
-                  <input
-                    type="password"
-                    inputMode="numeric"
-                    maxLength={4}
-                    placeholder="••••"
-                    value={pinValues[student.id] ?? ''}
-                    onChange={e => {
-                      const v = e.target.value.replace(/\D/g, '').slice(0, 4);
-                      setPinValues(prev => ({ ...prev, [student.id]: v }));
-                    }}
-                    className="w-20 text-center h-10 rounded-xl border border-input bg-background text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-500/30"
-                  />
-                  <Button
-                    size="sm"
-                    disabled={savingPin === student.id || (pinValues[student.id] ?? '').length !== 4}
-                    onClick={() => handleSavePin(student.id)}
-                    className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl px-3"
-                  >
-                    {savingPin === student.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (locale === 'th' ? 'บันทึก' : 'Save')}
-                  </Button>
+                  {/* Confirmation row */}
+                  <AnimatePresence>
+                    {isConfirming && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-red-500/5 border-t border-red-500/20">
+                          <p className="text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                            {locale === 'th'
+                              ? `ลบ "${name}" ออกจากบัญชีนี้ถาวร?`
+                              : `Permanently delete "${name}" from this account?`}
+                          </p>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border hover:bg-muted transition-all"
+                            >
+                              {locale === 'th' ? 'ยกเลิก' : 'Cancel'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteStudent(student.id)}
+                              disabled={isDeleting}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500 hover:bg-red-600 text-white transition-all flex items-center gap-1.5 disabled:opacity-60"
+                            >
+                              {isDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                              {locale === 'th' ? 'ลบเลย' : 'Delete'}
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
