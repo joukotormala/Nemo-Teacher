@@ -40,7 +40,11 @@ export default function SettingsPage() {
 
   const handleAddChild = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!parent?.id) return;
+    if (!parent?.id) {
+      toast.error(locale === 'th' ? 'ไม่พบข้อมูลผู้ปกครอง — กรุณารีเฟรชหน้า' : 'Parent profile not loaded — please refresh the page');
+      console.error('handleAddChild: parent is null', { parent });
+      return;
+    }
     if (!newStudentNameThai.trim()) {
       toast.error(locale === 'th' ? 'กรุณากรอกชื่อนักเรียน (ภาษาไทย)' : 'Student name (Thai) is required');
       return;
@@ -262,40 +266,44 @@ export default function SettingsPage() {
     try {
       const dbLang = locale === 'en' ? 'english' : locale === 'sv' ? 'swedish' : 'thai';
 
-      // Update parent
-      const { error: parentErr } = await supabase
-        .from('parents')
-        .update({
-          name_thai: parentNameThai.trim(),
-          name_english: parentNameEnglish.trim() || null,
-          phone: parentPhone.trim(),
-          language_preference: dbLang,
-        })
-        .eq('id', parent.id);
+      // Get token for the API call
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        toast.error(locale === 'th' ? 'กรุณาล็อกอินใหม่' : 'Please log in again');
+        return;
+      }
 
-      if (parentErr) throw parentErr;
+      // Use the server-side API route (service role) so RLS doesn't block the update
+      const res = await fetch('/api/settings-save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          parentNameThai: parentNameThai.trim(),
+          parentNameEnglish: parentNameEnglish.trim() || null,
+          parentPhone: parentPhone.trim(),
+          languagePreference: dbLang,
+          studentId: activeStudent.id,
+          studentNameThai: studentNameThai.trim(),
+          studentNameEnglish: studentNameEnglish.trim() || null,
+          nicknameThai: nicknameThai.trim() || null,
+          nicknameEnglish: nicknameEnglish.trim() || null,
+          gradeLevel: gradeLevel || null,
+          schoolName: schoolName.trim() || null,
+          schoolProgram: schoolProgram || null,
+          preferredModel,
+        }),
+      });
 
-      // Update student
-      const { error: studentErr } = await supabase
-        .from('students')
-        .update({
-          name_thai: studentNameThai.trim(),
-          name_english: studentNameEnglish.trim() || null,
-          nickname_thai: nicknameThai.trim() || null,
-          nickname_english: nicknameEnglish.trim() || null,
-          current_grade: gradeLevel || null,
-          school_name: schoolName.trim() || null,
-          school_program: schoolProgram || null,
-          language_preference: dbLang,
-          preferred_ai_model: preferredModel,
-        })
-        .eq('id', activeStudent.id);
-
-      if (studentErr) throw studentErr;
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? 'Failed to save');
 
       await refreshProfile();
-      
-      // Save preferred model
+
+      // Save preferred model to localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem('nemo_preferred_model', preferredModel);
       }
