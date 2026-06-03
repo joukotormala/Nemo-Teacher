@@ -110,7 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Use the server-side API route (service role key) to bypass RLS
-      const res = await fetch('/api/profile', {
+      // Add timestamp to bust any CDN/edge cache at all levels
+      const res = await fetch(`/api/profile?t=${Date.now()}`, {
         headers: { 'Authorization': `Bearer ${token}` },
         cache: 'no-store',
       });
