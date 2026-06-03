@@ -19,6 +19,14 @@ if (!supabaseAnonKey || supabaseAnonKey === 'undefined') {
 let serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 serviceRoleKey = serviceRoleKey.replace(/^['"]|['"]$/g, '').trim();
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey || supabaseAnonKey);
+// Force all Supabase admin queries to bypass Next.js Data Cache
+// so deleted/updated records are never served from a stale cache
+const noCacheAdminFetch: typeof fetch = (url, options = {}) =>
+  fetch(url, { ...options, cache: 'no-store' });
 
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabaseAdmin = createClient(
+  supabaseUrl,
+  serviceRoleKey || supabaseAnonKey,
+  { global: { fetch: noCacheAdminFetch } }
+);

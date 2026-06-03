@@ -2,9 +2,16 @@ export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Force Supabase's internal fetch calls to bypass Next.js Data Cache
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    global: {
+      fetch: (url: RequestInfo | URL, options: RequestInit = {}) =>
+        fetch(url, { ...options, cache: 'no-store' }),
+    },
+  }
 );
 
 // GET /api/profile
