@@ -6,7 +6,7 @@ import {
   AlertCircle, ArrowRight, Search, MessageSquare, 
   Calendar, Clock, Download, LogOut, RefreshCw, 
   UserCheck, Smile, BookOpen, ChevronRight, X,
-  ImagePlus, Sparkles, FolderOpen, Copy, CheckCheck, Loader2
+  ImagePlus, Sparkles, FolderOpen, Copy, CheckCheck, Loader2, Trash2
 } from 'lucide-react';
 
 interface ParentData {
@@ -103,6 +103,37 @@ export default function AdminPage() {
   const [illError, setIllError] = useState('');
   const [illCopied, setIllCopied] = useState(false);
   const [illElapsed, setIllElapsed] = useState(0);
+
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'kid' | 'parent'; id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleAdminDelete = async () => {
+    if (!deleteConfirm) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/admin/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: deleteConfirm.type, id: deleteConfirm.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Delete failed');
+      setDeleteConfirm(null);
+      // Remove from local lists instantly, then refresh
+      if (deleteConfirm.type === 'kid') {
+        setKidsList(prev => prev.filter(k => k.id !== deleteConfirm.id));
+      } else {
+        setParentsList(prev => prev.filter(p => p.id !== deleteConfirm.id));
+        setKidsList(prev => prev.filter(k => k.parent?.id !== deleteConfirm.id));
+      }
+      fetchDashboardData();
+    } catch (err: any) {
+      alert('Delete failed: ' + (err?.message ?? 'Unknown error'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Tick elapsed seconds while generating
   useEffect(() => {
@@ -776,13 +807,22 @@ export default function AdminPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => setSelectedParent(parent)}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition"
-                          >
-                            <span>Inspect Kids</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              onClick={() => setSelectedParent(parent)}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition"
+                            >
+                              <span>Inspect Kids</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm({ type: 'parent', id: parent.id, name: parent.name_thai || parent.name_english || parent.email })}
+                              className="p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                              title="Delete parent and all their students"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -863,13 +903,22 @@ export default function AdminPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => setSelectedKid(kid)}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-350 transition"
-                          >
-                            <span>Inspect</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              onClick={() => setSelectedKid(kid)}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-350 transition"
+                            >
+                              <span>Inspect</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm({ type: 'kid', id: kid.id, name: kid.name_thai || kid.name_english || 'this student' })}
+                              className="p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                              title="Delete student"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -1216,6 +1265,50 @@ export default function AdminPage() {
                 className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold rounded-xl transition"
               >
                 Close Window
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== DELETE CONFIRMATION MODAL ===== */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-zinc-700 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-500/20 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm">Confirm Delete</h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  {deleteConfirm.type === 'parent'
+                    ? 'This will also delete all their students.'
+                    : 'This will permanently remove this student.'}
+                </p>
+              </div>
+            </div>
+            <div className="bg-slate-950/60 border border-zinc-800 rounded-xl px-4 py-3">
+              <p className="text-xs text-zinc-500 uppercase tracking-wider font-bold mb-1">
+                {deleteConfirm.type === 'parent' ? 'Parent' : 'Student'}
+              </p>
+              <p className="text-sm font-semibold text-white">{deleteConfirm.name}</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-zinc-700 hover:bg-zinc-800 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAdminDelete}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 text-white transition flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
