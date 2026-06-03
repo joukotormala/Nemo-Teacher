@@ -1111,11 +1111,37 @@ const STOP_WORDS = new Set([
               <h2 className="font-display font-semibold text-sm">{subjectName}</h2>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer select-none">
+                  <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer select-none group relative">
                     <Cpu className="w-3 h-3 text-purple-500 animate-pulse" />
                     <span>
                       {t('chat.model')}: <span className="font-semibold underline decoration-dotted">{modelName}</span>
                     </span>
+                    {/* Speed/quality badge with hover tooltip */}
+                    {(() => {
+                      const badges: Record<string, { label: string; color: string; tip: string }> = {
+                        'llama-8b':       { label: '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
+                        'gemma-4b':       { label: '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
+                        'nvidia':         { label: '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: 'Fast and efficient. Good balance of speed and quality for most subjects.' },
+                        'cloud':          { label: '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: 'Fast and reliable. 70 billion parameters — great for most school subjects.' },
+                        'qwen':           { label: '🧠 Smarter',    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400', tip: 'Larger model — takes a bit longer but gives more detailed and accurate answers. Best Thai language support.' },
+                        'nemotron-super': { label: '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: "NVIDIA's top science model (49 billion parameters). May take 10–30 seconds to think — but gives the most accurate scientific answers." },
+                        'deepseek-r1':    { label: '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: 'Deep reasoning model — thinks step by step before answering. Can take 15–45 seconds, but works through complex problems very carefully.' },
+                        'sea-lion':       { label: '🏠 Local',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: 'Runs on your own computer — speed depends on your device.' },
+                        'nemotron':       { label: '🏠 Local',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: 'Runs locally via Ollama — speed depends on your device.' },
+                      };
+                      const b = badges[activeModel];
+                      if (!b) return null;
+                      return (
+                        <span className="relative">
+                          <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold leading-none ${b.color}`}>
+                            {b.label}
+                          </span>
+                          <span className="absolute left-0 top-full mt-1.5 z-50 hidden group-hover:block w-56 bg-popover border border-border text-popover-foreground text-[10px] leading-relaxed rounded-lg px-2.5 py-2 shadow-lg pointer-events-none">
+                            {b.tip}
+                          </span>
+                        </span>
+                      );
+                    })()}
                   </button>
                 </DropdownMenuTrigger>
                  <DropdownMenuContent align="start" className="w-64 bg-card border border-border">
