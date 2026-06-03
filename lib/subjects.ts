@@ -305,7 +305,7 @@ export const subjects: SubjectInfo[] = [
     bgColor: 'bg-sky-50 dark:bg-sky-950/30',
     description_th: 'ชีวโมเลกุล เมแทบอลิซึม และชีววิทยาโมเลกุล',
     description_en: 'Biomolecules, metabolism, and molecular biology',
-    minGradeIndex: 14, // university_1
+    minGradeIndex: 13, // university_1
     maxGradeIndex: 17,
     suggestions: [
       { label_th: 'โปรตีนและเอนไซม์', label_en: 'Proteins & Enzymes', prompt_th: 'สอนเรื่องโครงสร้างโปรตีน กรดอะมิโน และการทำงานของเอนไซม์', prompt_en: 'Teach me about protein structure, amino acids, and enzyme kinetics' },
@@ -328,7 +328,7 @@ export const subjects: SubjectInfo[] = [
     bgColor: 'bg-green-50 dark:bg-green-950/30',
     description_th: 'แบคทีเรีย ไวรัส เชื้อรา และปรสิตทางการแพทย์',
     description_en: 'Bacteria, viruses, fungi, and medical parasites',
-    minGradeIndex: 14,
+    minGradeIndex: 13,
     maxGradeIndex: 17,
     suggestions: [
       { label_th: 'แบคทีเรียวิทยา', label_en: 'Bacteriology', prompt_th: 'สอนเรื่องโครงสร้างแบคทีเรีย การย้อมสี Gram และชนิดสำคัญทางคลินิก', prompt_en: 'Teach me bacterial structure, Gram staining, and clinically important species' },
@@ -351,7 +351,7 @@ export const subjects: SubjectInfo[] = [
     bgColor: 'bg-violet-50 dark:bg-violet-950/30',
     description_th: 'ระบบภูมิคุ้มกันและวิทยาการเลือด',
     description_en: 'Immune system and blood science',
-    minGradeIndex: 14,
+    minGradeIndex: 13,
     maxGradeIndex: 17,
     suggestions: [
       { label_th: 'ภูมิคุ้มกันโดยกำเนิด', label_en: 'Innate Immunity', prompt_th: 'สอนเรื่องระบบภูมิคุ้มกันโดยกำเนิด เซลล์ป้องกัน และการอักเสบ', prompt_en: 'Teach me about innate immunity, defense cells, and inflammation' },
@@ -374,7 +374,7 @@ export const subjects: SubjectInfo[] = [
     bgColor: 'bg-pink-50 dark:bg-pink-950/30',
     description_th: 'การวิจัยทางวิทยาศาสตร์ สถิติ และชีวสารสนเทศ',
     description_en: 'Scientific research, statistics, and bioinformatics',
-    minGradeIndex: 14,
+    minGradeIndex: 13,
     maxGradeIndex: 17,
     suggestions: [
       { label_th: 'ระเบียบวิธีวิจัย', label_en: 'Research Methodology', prompt_th: 'สอนเรื่องการออกแบบการวิจัย สมมติฐาน และตัวแปร', prompt_en: 'Teach me about research design, hypotheses, and variables' },
