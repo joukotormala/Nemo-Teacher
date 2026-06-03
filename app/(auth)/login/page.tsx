@@ -43,6 +43,14 @@ export default function LoginPage() {
   const { t, locale, setLocale } = useLanguage();
   const router = useRouter();
 
+  // Clear any stale student-mode flags when the login page loads
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('nemo_student_mode');
+    }
+    setStudentMode(false);
+  }, [setStudentMode]);
+
   useEffect(() => {
     if (!loading && user) {
       router.replace(profileComplete ? '/dashboard' : '/onboarding');

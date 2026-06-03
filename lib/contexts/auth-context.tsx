@@ -93,22 +93,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const fetchProfile = useCallback(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string, accessToken?: string) => {
     try {
-      // Step 1: Find parent record by auth_user_id
-      const { data: parentData, error: parentError } = await supabase
-        .from('parents')
-        .select('id, name_thai, name_english, phone, email, language_preference')
-        .eq('auth_user_id', userId)
-        .maybeSingle();
+      // Use the provided token, or fall back to fetching the current session
+      let token = accessToken;
+      if (!token) {
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token;
+      }
 
-      if (parentError) {
-        console.warn('Parent fetch error:', parentError.message);
+      if (!token) {
         setParent(null);
         setStudents([]);
         setActiveStudent(null);
         return;
       }
+
+      // Use the server-side API route (service role key) to bypass RLS
+      const res = await fetch('/api/profile', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        console.warn('fetchProfile API error:', res.status);
+        setParent(null);
+        setStudents([]);
+        setActiveStudent(null);
+        return;
+      }
+
+      const { parent: parentData, students: studentData } = await res.json();
 
       if (!parentData) {
         // No parent record yet — new user needs onboarding
@@ -120,39 +134,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setParent(parentData);
 
-      // Step 2: Find student record by parent_id
-      // Try with new memory columns first; fall back to base columns if they don't exist yet
-      let studentData: any[] | null = null;
-      let studentError: any = null;
-
-      const fullSelect = 'id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, avatar_url, nemo_memory, interests, learning_style, personality_notes';
-      const baseSelect = 'id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, avatar_url';
-
-      const result = await supabase.from('students').select(fullSelect).eq('parent_id', parentData.id);
-      if (result.error) {
-        // Likely the new columns don't exist yet — fall back to base columns
-        console.warn('Memory columns not found, falling back to base select:', result.error.message);
-        const fallback = await supabase.from('students').select(baseSelect).eq('parent_id', parentData.id);
-        studentData = fallback.data;
-        studentError = fallback.error;
-      } else {
-        studentData = result.data;
-        studentError = result.error;
-      }
-
-      if (studentError) {
-        console.warn('Student fetch error:', studentError.message);
-        setStudents([]);
-        setActiveStudent(null);
-        return;
-      }
-
-      const childList = studentData ?? [];
+      const childList: any[] = studentData ?? [];
       setStudents(childList);
 
       if (childList.length > 0) {
         const savedId = typeof window !== 'undefined' ? localStorage.getItem('nemo_active_student_id') : null;
-        const currentActive = childList.find(s => s.id === savedId) || childList[0];
+        const currentActive = childList.find((s: any) => s.id === savedId) || childList[0];
         setActiveStudent(currentActive);
       } else {
         setActiveStudent(null);
@@ -164,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setActiveStudent(null);
     }
   }, []);
+
 
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
@@ -183,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (currentSession?.user?.id) {
           setSession(currentSession);
           setUser(currentSession.user);
-          await fetchProfile(currentSession.user.id);
+          await fetchProfile(currentSession.user.id, currentSession.access_token);
         }
         // If no session, user stays null — that's fine
       } catch (err) {
@@ -208,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(newSession ?? null);
       setUser(newSession?.user ?? null);
       if (newSession?.user?.id) {
-        await fetchProfile(newSession.user.id);
+        await fetchProfile(newSession.user.id, newSession.access_token);
       } else {
         setParent(null);
         setStudents([]);
