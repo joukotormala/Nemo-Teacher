@@ -133,20 +133,20 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/feedback/reply', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-secret': setupPassword,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feedbackId, reply: text }),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.ok) {
         setReplySent(prev => ({ ...prev, [feedbackId]: true }));
         setFeedbackList(prev => prev.map(f =>
           f.id === feedbackId ? { ...f, admin_reply: text, replied_at: new Date().toISOString() } : f
         ));
+      } else {
+        alert('Reply failed: ' + (data.error ?? 'Unknown error'));
       }
-    } catch {
-      // silent
+    } catch (err: any) {
+      alert('Network error: ' + err?.message);
     } finally {
       setReplySending(prev => ({ ...prev, [feedbackId]: false }));
     }

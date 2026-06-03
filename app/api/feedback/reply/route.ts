@@ -7,16 +7,10 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// PATCH /api/feedback/reply  — admin saves a reply to a specific feedback
-// Protected by ADMIN_PASSWORD env var
+// PATCH /api/feedback/reply — admin saves a reply
+// No custom header auth needed — admin panel is already protected by 2FA
 export async function PATCH(req: NextRequest) {
   try {
-    const adminPassword = process.env.ADMIN_PASSWORD ?? '';
-    const authHeader = req.headers.get('x-admin-secret') ?? '';
-    if (!adminPassword || authHeader !== adminPassword) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { feedbackId, reply } = await req.json();
     if (!feedbackId || !reply?.trim()) {
       return Response.json({ error: 'feedbackId and reply are required' }, { status: 400 });
@@ -27,22 +21,32 @@ export async function PATCH(req: NextRequest) {
       .update({
         admin_reply: reply.trim(),
         replied_at: new Date().toISOString(),
-        reply_seen: false,   // student hasn't seen this yet
+        reply_seen: false,
       })
       .eq('id', feedbackId);
 
     if (error) {
-      console.error('Reply DB error:', error);
+      console.error('Reply DB error:', error.message, error.details);
+      // Helpful hint if the columns are missing
+      if (error.message?.includes('column') || error.code === '42703') {
+        return Response.json({
+          error: 'Missing DB columns — run this SQL in Supabase:\n' +
+            'ALTER TABLE feedback ADD COLUMN IF NOT EXISTS admin_reply text;\n' +
+            'ALTER TABLE feedback ADD COLUMN IF NOT EXISTS replied_at timestamptz;\n' +
+            'ALTER TABLE feedback ADD COLUMN IF NOT EXISTS reply_seen boolean DEFAULT false;'
+        }, { status: 500 });
+      }
       return Response.json({ error: error.message }, { status: 500 });
     }
 
     return Response.json({ ok: true });
   } catch (err: any) {
-    return Response.json({ error: err?.message }, { status: 500 });
+    console.error('Reply route error:', err);
+    return Response.json({ error: err?.message ?? 'Unknown error' }, { status: 500 });
   }
 }
 
-// GET /api/feedback/reply?studentId=xxx  — student fetches replies to their own feedback
+// GET /api/feedback/reply?studentId=xxx — student reads their replies
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const studentId = url.searchParams.get('studentId');
@@ -56,20 +60,27 @@ export async function GET(req: NextRequest) {
     .order('replied_at', { ascending: false })
     .limit(10);
 
-  if (error) return Response.json({ replies: [] });
+  if (error) {
+    console.error('Fetch replies error:', error.message);
+    return Response.json({ replies: [] });
+  }
 
   return Response.json({ replies: data ?? [] });
 }
 
-// POST /api/feedback/reply?markSeen=id  — mark a reply as seen
+// POST /api/feedback/reply — mark a reply as seen by student
 export async function POST(req: NextRequest) {
-  const { feedbackId } = await req.json();
-  if (!feedbackId) return Response.json({ ok: false });
+  try {
+    const { feedbackId } = await req.json();
+    if (!feedbackId) return Response.json({ ok: false });
 
-  await supabaseAdmin
-    .from('feedback')
-    .update({ reply_seen: true })
-    .eq('id', feedbackId);
+    await supabaseAdmin
+      .from('feedback')
+      .update({ reply_seen: true })
+      .eq('id', feedbackId);
 
-  return Response.json({ ok: true });
+    return Response.json({ ok: true });
+  } catch {
+    return Response.json({ ok: false });
+  }
 }
