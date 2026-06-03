@@ -21,7 +21,7 @@ interface StudentOption {
 }
 
 export default function LoginPage() {
-  const [tab, setTab] = useState<'parent' | 'student'>('parent');
+  const [tab, setTab] = useState<'parent' | 'student'>('student');
 
   // Parent login state
   const [email, setEmail] = useState('');
@@ -221,16 +221,16 @@ export default function LoginPage() {
           {/* Tab switcher */}
           <div className="flex gap-1 bg-muted/60 p-1 rounded-2xl mb-4 border border-border/30">
             <button
-              onClick={() => setTab('parent')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'parent' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              👨‍👩‍👧 {locale === 'th' ? 'ผู้ปกครอง' : locale === 'sv' ? 'Förälder' : 'Parent'}
-            </button>
-            <button
               onClick={() => setTab('student')}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'student' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 shadow text-white' : 'text-muted-foreground hover:text-foreground'}`}
             >
               🎒 {locale === 'th' ? 'นักเรียน' : locale === 'sv' ? 'Elev' : 'Student'}
+            </button>
+            <button
+              onClick={() => setTab('parent')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'parent' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              👨‍👩‍👧 {locale === 'th' ? 'ผู้ปกครอง' : locale === 'sv' ? 'Förälder' : 'Parent'}
             </button>
           </div>
 
