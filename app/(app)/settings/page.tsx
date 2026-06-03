@@ -701,9 +701,21 @@ export default function SettingsPage() {
                 className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">{locale === 'th' ? 'เลือกโปรแกรม' : 'Select program'}</option>
-                <option value="Thai">{locale === 'th' ? 'หลักสูตรปกติ (ภาษาไทย)' : 'Thai Program (Regular)'}</option>
-                <option value="EP">English Program (EP)</option>
-                <option value="SMTE">SMTE (Science-Math Special)</option>
+                <optgroup label={locale === 'th' ? '── ระดับมัธยม ──' : '── High School ──'}>
+                  <option value="Thai">{locale === 'th' ? 'หลักสูตรปกติ (ภาษาไทย)' : 'Thai Program (Regular)'}</option>
+                  <option value="EP">English Program (EP)</option>
+                  <option value="SMTE">SMTE (Science-Math Special)</option>
+                </optgroup>
+                <optgroup label={locale === 'th' ? '── ระดับมหาวิทยาลัย ──' : '── University ──'}>
+                  <option value="วิทยาศาสตร์การแพทย์ (Medical Science)">{locale === 'th' ? 'วิทยาศาสตร์การแพทย์ — B.Sc. Medical Science' : 'B.Sc. Medical Science (วิทยาศาสตร์การแพทย์)'}</option>
+                  <option value="เทคนิคการแพทย์ (Medical Technology)">{locale === 'th' ? 'เทคนิคการแพทย์ — B.Sc. Medical Technology' : 'B.Sc. Medical Technology (เทคนิคการแพทย์)'}</option>
+                  <option value="ชีววิทยา (Biology)">{locale === 'th' ? 'ชีววิทยา — B.Sc. Biology' : 'B.Sc. Biology (ชีววิทยา)'}</option>
+                  <option value="เคมี (Chemistry)">{locale === 'th' ? 'เคมี — B.Sc. Chemistry' : 'B.Sc. Chemistry (เคมี)'}</option>
+                  <option value="จุลชีววิทยา (Microbiology)">{locale === 'th' ? 'จุลชีววิทยา — B.Sc. Microbiology' : 'B.Sc. Microbiology (จุลชีววิทยา)'}</option>
+                  <option value="ฟิสิกส์ (Physics)">{locale === 'th' ? 'ฟิสิกส์ — B.Sc. Physics' : 'B.Sc. Physics (ฟิสิกส์)'}</option>
+                  <option value="วิทยาการคอมพิวเตอร์ (Computer Science)">{locale === 'th' ? 'วิทยาการคอมพิวเตอร์ — B.Sc. CS' : 'B.Sc. Computer Science'}</option>
+                  <option value="University Other">{locale === 'th' ? 'มหาวิทยาลัย (สาขาอื่น)' : 'University — Other Program'}</option>
+                </optgroup>
               </select>
             </div>
           </div>

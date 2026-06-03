@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     const isEP = schoolProgram?.toLowerCase().includes('ep') || schoolProgram?.toLowerCase().includes('english');
     const isUniversity = gradeLevel?.startsWith('university') || gradeLevel === 'graduate';
     const isSUT = schoolName?.includes('สุรนารี') || schoolName?.toLowerCase().includes('suranaree') || schoolName?.toLowerCase().includes('sut');
-    const isMedScience = schoolProgram?.includes('Medical') || schoolProgram?.includes('วิทยาศาสตร์การแพทย์') || schoolProgram?.includes('med_science');
+    const isMedScience = schoolProgram?.includes('Medical Science') || schoolProgram?.includes('วิทยาศาสตร์การแพทย์') || schoolProgram?.includes('med_science');
     const schoolBlock = (schoolName || schoolProgram) ? `
 ## School & Curriculum Context
 - School/University: ${schoolName || 'not specified'}${isSUT ? ' (มหาวิทยาลัยเทคโนโลยีสุรนารี — SUT, Nakhon Ratchasima, Thailand)' : ''}
