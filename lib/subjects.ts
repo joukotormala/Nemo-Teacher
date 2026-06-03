@@ -1,4 +1,4 @@
-import { Calculator, FlaskConical, BookOpen, Languages, BookText, Microscope, Atom, Dna, Globe, Clock, Zap, Brain, Bug, Shield, Activity } from 'lucide-react';
+import { Calculator, FlaskConical, BookOpen, Languages, BookText, Microscope, Atom, Dna, Globe, Clock, Zap, Brain, Bug, Shield, Activity, Monitor } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface SubjectSuggestion {
@@ -383,6 +383,27 @@ export const subjects: SubjectInfo[] = [
       { label_th: 'ชีวสารสนเทศเบื้องต้น', label_en: 'Basic Bioinformatics', prompt_th: 'สอนเรื่องฐานข้อมูลชีววิทยา (NCBI, BLAST) และการวิเคราะห์ลำดับ DNA', prompt_en: 'Teach me bioinformatics databases (NCBI, BLAST) and DNA sequence analysis' },
       { label_th: 'จริยธรรมการวิจัย', label_en: 'Research Ethics', prompt_th: 'สอนเรื่องจริยธรรมในการวิจัย ความปลอดภัยทางชีวภาพ และ IRB', prompt_en: 'Teach me research ethics, biosafety regulations, and IRB requirements' },
       { label_th: 'การทบทวนวรรณกรรม', label_en: 'Literature Review', prompt_th: 'สอนวิธีค้นหาบทความวิชาการ ทบทวนวรรณกรรม และวิเคราะห์งานวิจัย', prompt_en: 'Teach me how to search scientific literature, write literature reviews, and critically analyze research' },
+    ],
+  },
+  {
+    id: 'computer_science',
+    slug: 'computer_science',
+    name_th: 'วิทยาการคอมพิวเตอร์ (Scratch)',
+    name_en: 'Computer Science (Scratch)',
+    icon: Monitor,
+    illustrationUrl: '/illustrations/cs_scratch.png',
+    color: '#F97316',
+    description_th: 'เรียนเขียนโปรแกรมด้วย Scratch — สร้างเกม แอนิเมชัน และโปรเจกต์สนุกๆ บน Windows และ Mac',
+    description_en: 'Learn programming with Scratch — build games, animations, and fun projects on Windows and Mac',
+    minGradeIndex: 0,   // open to all students
+    maxGradeIndex: 99,
+    suggestions: [
+      { label_th: 'เริ่มต้นกับ Scratch', label_en: 'Getting Started with Scratch', prompt_th: 'สอนฉันเรื่องพื้นฐาน Scratch — Stage, Sprite, และบล็อกคำสั่งคืออะไร?', prompt_en: 'Teach me the basics of Scratch — what are Stage, Sprites, and code blocks?' },
+      { label_th: 'Loops และ Events', label_en: 'Loops & Events', prompt_th: 'สอนเรื่อง when green flag clicked, loops (repeat/forever) และการใช้ events ใน Scratch', prompt_en: 'Teach me about when green flag clicked, loops (repeat/forever), and events in Scratch' },
+      { label_th: 'ตัวแปรและเงื่อนไข', label_en: 'Variables & Conditions', prompt_th: 'สอนเรื่องการสร้างตัวแปร (variables) และการใช้ if/else ใน Scratch', prompt_en: 'Teach me how to create variables and use if/else conditions in Scratch' },
+      { label_th: 'สร้างเกมใน Scratch', label_en: 'Build a Game in Scratch', prompt_th: 'ช่วยฉันสร้างเกมง่ายๆ ใน Scratch ทีละขั้นตอน', prompt_en: 'Help me build a simple game in Scratch step by step' },
+      { label_th: 'แอนิเมชันและเสียง', label_en: 'Animation & Sound', prompt_th: 'สอนวิธีทำ Sprite ให้เคลื่อนไหว เปลี่ยน costume และเพิ่มเสียงใน Scratch', prompt_en: 'Teach me how to animate sprites, switch costumes, and add sounds in Scratch' },
+      { label_th: 'Debug โปรแกรม', label_en: 'Debugging Programs', prompt_th: 'สอนวิธีหาข้อผิดพลาด (bug) และแก้ไขโค้ดใน Scratch', prompt_en: 'Teach me how to find bugs and fix code problems in Scratch' },
     ],
   },
 ];
