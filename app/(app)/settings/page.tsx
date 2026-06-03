@@ -899,32 +899,46 @@ export default function SettingsPage() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {[
-              { id: 'nvidia', label: t('model.nvidia'), desc: 'Nemotron-3-nano (Nvidia Cloud)' },
-              { id: 'qwen', label: t('model.qwen'), desc: 'Qwen-3-Next-80B (Nvidia Cloud)' },
-              { id: 'cloud', label: t('model.cloud'), desc: 'Llama-3.3-70B (Nvidia Cloud)' },
-              { id: 'llama-8b', label: t('model.llama8b'), desc: 'Llama-3.1-8B (Nvidia Cloud)' },
-              { id: 'gemma-4b', label: t('model.gemma4b'), desc: 'Gemma-3-4B (Nvidia Cloud)' },
-              { id: 'sea-lion', label: t('model.seaLion'), desc: 'Sea-Lion GGUF/MLX (Ollama/LM Studio)' },
-              { id: 'nemotron', label: t('model.nemotron'), desc: 'nemotron-mini (Local Ollama)' },
-            ].map((m) => {
-              const isSelected = preferredModel === m.id;
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => setPreferredModel(m.id)}
-                  type="button"
-                  className={`flex flex-col items-start p-4 rounded-xl text-left border transition-all duration-fast hover:shadow-sm ${
-                    isSelected
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border bg-card/50 hover:bg-muted/30'
-                  }`}
-                >
-                  <span className="font-semibold text-sm leading-tight mb-1">{m.label}</span>
-                  <span className="text-xs text-muted-foreground font-mono">{m.desc}</span>
-                </button>
-              );
-            })}
+            {(() => {
+              const isUniversityStudent = activeStudent?.current_grade?.startsWith('university') || activeStudent?.current_grade === 'graduate';
+              const allModels = [
+                // University/Research tier — shown first for university students
+                ...(isUniversityStudent ? [
+                  { id: 'nemotron-super', label: 'Nemotron Super 49B ⭐', desc: 'llama-3.3-nemotron-super-49b (Nvidia) — Best for science & research', star: true },
+                  { id: 'deepseek-r1', label: 'DeepSeek R1 🧠', desc: 'deepseek-ai/deepseek-r1 (Nvidia) — Deep step-by-step reasoning', star: true },
+                ] : []),
+                { id: 'nvidia', label: t('model.nvidia'), desc: 'Nemotron-3-nano (Nvidia Cloud)' },
+                { id: 'qwen', label: t('model.qwen'), desc: 'Qwen-3-Next-80B (Nvidia Cloud)' },
+                { id: 'cloud', label: t('model.cloud'), desc: 'Llama-3.3-70B (Nvidia Cloud)' },
+                { id: 'llama-8b', label: t('model.llama8b'), desc: 'Llama-3.1-8B (Nvidia Cloud)' },
+                { id: 'gemma-4b', label: t('model.gemma4b'), desc: 'Gemma-3-4B (Nvidia Cloud)' },
+                // Local models — hidden for university students
+                ...(!isUniversityStudent ? [
+                  { id: 'sea-lion', label: t('model.seaLion'), desc: 'Sea-Lion GGUF/MLX (Ollama/LM Studio)' },
+                  { id: 'nemotron', label: t('model.nemotron'), desc: 'nemotron-mini (Local Ollama)' },
+                ] : []),
+              ];
+              return allModels.map((m: any) => {
+                const isSelected = preferredModel === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setPreferredModel(m.id)}
+                    type="button"
+                    className={`flex flex-col items-start p-4 rounded-xl text-left border transition-all duration-fast hover:shadow-sm ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                        : m.star
+                        ? 'border-yellow-400/60 bg-yellow-50/40 dark:bg-yellow-950/20 hover:bg-yellow-50/80 dark:hover:bg-yellow-950/30'
+                        : 'border-border bg-card/50 hover:bg-muted/30'
+                    }`}
+                  >
+                    <span className="font-semibold text-sm leading-tight mb-1">{m.label}</span>
+                    <span className="text-xs text-muted-foreground font-mono">{m.desc}</span>
+                  </button>
+                );
+              });
+            })()}
           </div>
 
           {(preferredModel === 'sea-lion' || preferredModel === 'nemotron') && (
