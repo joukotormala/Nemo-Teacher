@@ -1935,13 +1935,18 @@ const STOP_WORDS = new Set([
       </div>
 
       {/* ── Floating Feedback Button ─────────────────────────────────────── */}
-      <button
-        onClick={() => setShowFeedback(true)}
-        title={locale === 'th' ? 'ส่งความคิดเห็นถึงผู้พัฒนา' : 'Send feedback to developer'}
-        className="fixed bottom-24 right-4 z-40 w-11 h-11 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-      >
-        <MessageSquare className="w-5 h-5" />
-      </button>
+      <div className="fixed bottom-32 right-3 z-40 flex flex-col items-center gap-1">
+        <button
+          onClick={() => setShowFeedback(true)}
+          title={locale === 'th' ? 'ส่งความคิดเห็นถึงผู้พัฒนา' : 'Send feedback to developer'}
+          className="w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 ring-2 ring-purple-400/30"
+        >
+          <MessageSquare className="w-5 h-5" />
+        </button>
+        <span className="text-[9px] font-semibold text-purple-500 dark:text-purple-400 leading-none tracking-tight">
+          {locale === 'th' ? 'ความเห็น' : 'Feedback'}
+        </span>
+      </div>
 
       {/* ── Feedback Modal ───────────────────────────────────────────────── */}
       <AnimatePresence>
