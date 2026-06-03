@@ -7,6 +7,7 @@ import { SubjectCard } from '@/components/subject-card';
 import { subjects, getSubjectsForGrade } from '@/lib/subjects';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import { FeedbackButton } from '@/components/feedback-button';
 
 export default function DashboardPage() {
   const { activeStudent, user } = useAuth();
@@ -44,6 +45,8 @@ export default function DashboardPage() {
           <SubjectCard key={subj?.id ?? idx} subject={subj} index={idx} />
         )) ?? []}
       </div>
+
+      <FeedbackButton subjectContext="dashboard" />
     </div>
   );
 }
