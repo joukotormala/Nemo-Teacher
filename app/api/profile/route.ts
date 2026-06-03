@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
   {
     global: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fetch: (url: any, options: any = {}) => fetch(url, { ...options, cache: 'no-store' }),
+      fetch: ((url: any, options: any = {}) => fetch(url, { ...options, cache: 'no-store' })) as typeof fetch,
     },
   }
 );

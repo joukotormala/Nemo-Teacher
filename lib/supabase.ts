@@ -22,8 +22,8 @@ serviceRoleKey = serviceRoleKey.replace(/^['\"]|['\"]$/g, '').trim();
 // Force all Supabase admin queries to bypass Next.js Data Cache
 // so deleted/updated records are never served from a stale cache
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const noCacheAdminFetch = (url: any, options: any = {}) =>
-  fetch(url, { ...options, cache: 'no-store' });
+const noCacheAdminFetch = ((url: any, options: any = {}) =>
+  fetch(url, { ...options, cache: 'no-store' })) as typeof fetch;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const supabaseAdmin = createClient(
