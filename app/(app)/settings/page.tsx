@@ -56,27 +56,37 @@ export default function SettingsPage() {
 
     setAddingChild(true);
     try {
-      const { data, error } = await supabase
-        .from('students')
-        .insert({
-          parent_id: parent.id,
-          name_thai: newStudentNameThai.trim(),
-          name_english: newStudentNameEnglish.trim() || null,
-          nickname_thai: newNicknameThai.trim() || null,
-          nickname_english: newNicknameEnglish.trim() || null,
-          birth_date: newBirthDate,
-          current_grade: newGradeLevel,
-          school_name: newSchoolName.trim() || null,
-          language_preference: 'thai',
-          preferred_ai_model: 'llama-8b',
-        })
-        .select('id')
-        .single();
+      // Get the current session token to authenticate the API call
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        toast.error(locale === 'th' ? 'กรุณาล็อกอินใหม่อีกครั้ง' : 'Please log in again');
+        return;
+      }
 
-      if (error) throw error;
+      // Use the server-side API route (service role) so RLS doesn't block the insert
+      const res = await fetch('/api/student-add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nameThai: newStudentNameThai.trim(),
+          nameEnglish: newStudentNameEnglish.trim() || null,
+          nicknameThai: newNicknameThai.trim() || null,
+          nicknameEnglish: newNicknameEnglish.trim() || null,
+          birthDate: newBirthDate,
+          gradeLevel: newGradeLevel,
+          schoolName: newSchoolName.trim() || null,
+        }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? 'Failed to add student');
 
       toast.success(locale === 'th' ? 'เพิ่มข้อมูลผู้เรียนคนใหม่สำเร็จแล้ว!' : 'New student profile added successfully!');
-      
+
       setNewStudentNameThai('');
       setNewStudentNameEnglish('');
       setNewNicknameThai('');
@@ -87,11 +97,9 @@ export default function SettingsPage() {
       setShowAddForm(false);
 
       await refreshProfile();
-      
-      if (data?.id) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('nemo_active_student_id', data.id);
-        }
+
+      if (result.studentId && typeof window !== 'undefined') {
+        localStorage.setItem('nemo_active_student_id', result.studentId);
       }
     } catch (err: any) {
       console.error('Add child error:', err);
