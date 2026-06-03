@@ -6,7 +6,8 @@ import {
   AlertCircle, ArrowRight, Search, MessageSquare, 
   Calendar, Clock, Download, LogOut, RefreshCw, 
   UserCheck, Smile, BookOpen, ChevronRight, X,
-  ImagePlus, Sparkles, FolderOpen, Copy, CheckCheck, Loader2, Trash2
+  ImagePlus, Sparkles, FolderOpen, Copy, CheckCheck, Loader2, Trash2,
+  Reply, Star
 } from 'lucide-react';
 
 interface ParentData {
@@ -85,7 +86,7 @@ export default function AdminPage() {
   const [kidsList, setKidsList] = useState<KidData[]>([]);
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [dataError, setDataError] = useState('');
-  const [activeTab, setActiveTab] = useState<'parents' | 'kids' | 'illustrations'>('parents');
+  const [activeTab, setActiveTab] = useState<'parents' | 'kids' | 'illustrations' | 'feedback'>('parents');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Selected user details modal
@@ -98,6 +99,58 @@ export default function AdminPage() {
   const [illGenConcept, setIllGenConcept] = useState('');
   const [illGenFolder, setIllGenFolder] = useState('generated');
   const [illGenPrompt, setIllGenPrompt] = useState('');
+
+  // Feedback tab state
+  const [feedbackList, setFeedbackList] = useState<any[]>([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [replySending, setReplySending] = useState<Record<string, boolean>>({});
+  const [replySent, setReplySent] = useState<Record<string, boolean>>({});
+
+  const fetchFeedback = async () => {
+    setFeedbackLoading(true);
+    try {
+      const res = await fetch('/api/feedback?check=list', {
+        headers: { 'x-admin-secret': setupPassword },
+      });
+      // Fall back to direct supabase read via service route
+      const res2 = await fetch('/api/admin/feedback');
+      if (res2.ok) {
+        const data = await res2.json();
+        setFeedbackList(data.feedback ?? []);
+      }
+    } catch {
+      // silent
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  const sendReply = async (feedbackId: string) => {
+    const text = replyText[feedbackId]?.trim();
+    if (!text) return;
+    setReplySending(prev => ({ ...prev, [feedbackId]: true }));
+    try {
+      const res = await fetch('/api/feedback/reply', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': setupPassword,
+        },
+        body: JSON.stringify({ feedbackId, reply: text }),
+      });
+      if (res.ok) {
+        setReplySent(prev => ({ ...prev, [feedbackId]: true }));
+        setFeedbackList(prev => prev.map(f =>
+          f.id === feedbackId ? { ...f, admin_reply: text, replied_at: new Date().toISOString() } : f
+        ));
+      }
+    } catch {
+      // silent
+    } finally {
+      setReplySending(prev => ({ ...prev, [feedbackId]: false }));
+    }
+  };
   const [illGenerating, setIllGenerating] = useState(false);
   const [illResult, setIllResult] = useState<{ path: string; mapEntry: string } | null>(null);
   const [illError, setIllError] = useState('');
@@ -713,6 +766,17 @@ export default function AdminPage() {
               <ImagePlus className="w-3.5 h-3.5" />
               <span>Illustrations</span>
             </button>
+            <button
+              onClick={() => { setActiveTab('feedback'); fetchFeedback(); }}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${
+                activeTab === 'feedback' 
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md' 
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Feedback</span>
+            </button>
           </div>
 
           {/* Search filter input */}
@@ -1080,6 +1144,124 @@ export default function AdminPage() {
                 )}
               </div>
 
+            </div>
+          )}
+
+          {/* RENDER TAB 4: Student Feedback */}
+          {activeTab === 'feedback' && (
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-purple-400" />
+                  <h3 className="text-sm font-bold text-white">Student Feedback</h3>
+                  <span className="text-xs text-zinc-500">({feedbackList.length} total)</span>
+                </div>
+                <button
+                  onClick={fetchFeedback}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-zinc-300 transition-colors"
+                >
+                  <RefreshCw className={`w-3 h-3 ${feedbackLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+
+              {feedbackLoading && (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                </div>
+              )}
+
+              {!feedbackLoading && feedbackList.length === 0 && (
+                <div className="text-center py-16 text-zinc-500">
+                  <MessageSquare className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">No feedback yet. Students will see a 💬 button in the app.</p>
+                </div>
+              )}
+
+              {!feedbackLoading && feedbackList.map((fb: any) => {
+                const catEmoji: Record<string, string> = { great: '😊', improve: '💡', bug: '🐛', general: '💬' };
+                const stars = '⭐'.repeat(fb.rating ?? 0);
+                const hasReply = !!fb.admin_reply;
+                const sent = replySent[fb.id];
+                return (
+                  <div
+                    key={fb.id}
+                    className={`rounded-2xl border p-5 space-y-3 ${hasReply ? 'border-zinc-700 bg-slate-900/40' : 'border-amber-500/40 bg-amber-950/10'}`}
+                  >
+                    {/* Header row */}
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-sm text-white">{fb.student_name || 'Anonymous'}</span>
+                        {fb.subject_context && (
+                          <span className="text-[10px] bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded-full">{fb.subject_context}</span>
+                        )}
+                        <span className="text-[10px] text-zinc-500">{catEmoji[fb.category] ?? '💬'} {fb.category}</span>
+                        {stars && <span className="text-xs">{stars}</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!hasReply && (
+                          <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold">Awaiting reply</span>
+                        )}
+                        {hasReply && (
+                          <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-bold">✓ Replied</span>
+                        )}
+                        <span className="text-[10px] text-zinc-600">{new Date(fb.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    </div>
+
+                    {/* Student message */}
+                    <div className="bg-slate-950/60 rounded-xl px-4 py-3 border border-zinc-800">
+                      <p className="text-sm text-zinc-200 leading-relaxed">{fb.message}</p>
+                    </div>
+
+                    {/* Existing reply */}
+                    {hasReply && (
+                      <div className="flex gap-3 bg-purple-950/30 border border-purple-800/40 rounded-xl px-4 py-3">
+                        <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-white text-[10px] font-bold">N</span>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-semibold text-purple-400 mb-1">Your reply · {new Date(fb.replied_at).toLocaleDateString('en-GB')}</p>
+                          <p className="text-sm text-zinc-200 leading-relaxed">{fb.admin_reply}</p>
+                          {!fb.reply_seen && (
+                            <p className="text-[10px] text-amber-400 mt-1">Student hasn't read this yet</p>
+                          )}
+                          {fb.reply_seen && (
+                            <p className="text-[10px] text-green-400 mt-1">✓ Student has read this</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reply form */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                        {hasReply ? 'Update reply' : 'Write a reply'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={replyText[fb.id] ?? (hasReply ? fb.admin_reply : '')}
+                        onChange={e => setReplyText(prev => ({ ...prev, [fb.id]: e.target.value }))}
+                        placeholder="Type your reply to the student here..."
+                        className="w-full px-3 py-2.5 text-sm border border-zinc-700 rounded-xl bg-slate-950 text-zinc-200 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                      />
+                      <button
+                        onClick={() => sendReply(fb.id)}
+                        disabled={!replyText[fb.id]?.trim() || replySending[fb.id]}
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {replySending[fb.id] ? (
+                          <><Loader2 className="w-3 h-3 animate-spin" /> Sending...</>
+                        ) : sent ? (
+                          <><CheckCheck className="w-3 h-3" /> Sent!</>
+                        ) : (
+                          <><Reply className="w-3 h-3" /> Send Reply to Student</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
