@@ -23,12 +23,14 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Invalid session' }, { status: 401 });
     }
 
-    // Lookup parent by auth_user_id
-    const { data: parent } = await supabaseAdmin
+    // Lookup parent by auth_user_id (handles duplicate rows gracefully)
+    const { data: parents } = await supabaseAdmin
       .from('parents')
       .select('id')
       .eq('auth_user_id', user.id)
-      .maybeSingle();
+      .order('id', { ascending: true });
+
+    const parent = parents?.[0] ?? null;
 
     if (!parent) {
       return Response.json({ error: 'Parent account not found' }, { status: 404 });
