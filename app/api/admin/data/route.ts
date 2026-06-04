@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   console.log('[Admin Data API] GET request received');
   try {
     // 1. Authenticate via JWT Cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('nemo_admin_token')?.value;
 
     console.log('[Admin Data API] Token cookie present:', !!token);

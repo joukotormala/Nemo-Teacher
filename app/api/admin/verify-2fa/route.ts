@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Set HTTP-only Cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set('nemo_admin_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

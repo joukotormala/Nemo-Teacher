@@ -16,7 +16,7 @@ const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'nemo_admin_jwt_secret_
 // Requires valid admin session cookie (nemo_admin_token)
 export async function POST(req: NextRequest) {
   // Verify admin session — same pattern as other admin routes
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('nemo_admin_token')?.value;
   if (!token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
