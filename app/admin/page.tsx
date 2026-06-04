@@ -7,7 +7,7 @@ import {
   Calendar, Clock, Download, LogOut, RefreshCw, 
   UserCheck, Smile, BookOpen, ChevronRight, X,
   ImagePlus, Sparkles, FolderOpen, Copy, CheckCheck, Loader2, Trash2,
-  Reply, Star
+  Reply, Star, BarChart2
 } from 'lucide-react';
 
 interface ParentData {
@@ -86,7 +86,7 @@ export default function AdminPage() {
   const [kidsList, setKidsList] = useState<KidData[]>([]);
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [dataError, setDataError] = useState('');
-  const [activeTab, setActiveTab] = useState<'parents' | 'kids' | 'illustrations' | 'feedback'>('parents');
+  const [activeTab, setActiveTab] = useState<'parents' | 'kids' | 'illustrations' | 'feedback' | 'progress'>('parents');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Selected user details modal
@@ -106,6 +106,26 @@ export default function AdminPage() {
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [replySending, setReplySending] = useState<Record<string, boolean>>({});
   const [replySent, setReplySent] = useState<Record<string, boolean>>({});
+
+  // Progress tab state
+  const [progressData, setProgressData] = useState<Record<string, any[]>>({});
+  const [progressLoading, setProgressLoading] = useState(false);
+
+  const fetchProgress = async () => {
+    setProgressLoading(true);
+    try {
+      // Fetch progress for all students
+      const allStudents = [...(kidsList ?? [])]; // kids already loaded
+      const results: Record<string, any[]> = {};
+      await Promise.all(allStudents.map(async (k) => {
+        const res = await fetch(`/api/progress?studentId=${k.id}`);
+        const d = await res.json();
+        results[k.id] = d.events ?? [];
+      }));
+      setProgressData(results);
+    } catch { /* silent */ }
+    finally { setProgressLoading(false); }
+  };
 
   const fetchFeedback = async () => {
     setFeedbackLoading(true);
@@ -777,6 +797,17 @@ export default function AdminPage() {
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Feedback</span>
             </button>
+            <button
+              onClick={() => { setActiveTab('progress'); fetchProgress(); }}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${
+                activeTab === 'progress'
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              <span>Progress</span>
+            </button>
           </div>
 
           {/* Search filter input */}
@@ -1259,6 +1290,160 @@ export default function AdminPage() {
                         )}
                       </button>
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* RENDER TAB 5: Student Progress */}
+          {activeTab === 'progress' && (
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-purple-400" />
+                  <h3 className="text-sm font-bold text-white">Student Progress</h3>
+                  <span className="text-xs text-zinc-500">({kidsList.length} students)</span>
+                </div>
+                <button
+                  onClick={fetchProgress}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-zinc-300 transition-colors"
+                >
+                  <RefreshCw className={`w-3 h-3 ${progressLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+
+              {progressLoading && (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                </div>
+              )}
+
+              {!progressLoading && kidsList.length === 0 && (
+                <div className="text-center py-16 text-zinc-500">
+                  <p className="text-sm">No students registered yet.</p>
+                </div>
+              )}
+
+              {!progressLoading && kidsList.map((kid) => {
+                const events: any[] = progressData[kid.id] ?? [];
+                const quizEvents = events.filter(e => e.event_type === 'quiz');
+                const confEvents = events.filter(e => e.event_type === 'confidence');
+                const avgScore = quizEvents.length
+                  ? Math.round(quizEvents.reduce((s, e) => s + (e.total ? (e.score / e.total) * 100 : 0), 0) / quizEvents.length)
+                  : null;
+                const avgConf = confEvents.length
+                  ? Math.round(confEvents.reduce((s, e) => s + (e.confidence ?? 0), 0) / confEvents.length)
+                  : null;
+                const subjects = [...new Set(quizEvents.map((e: any) => e.subject))];
+                const streak = (() => {
+                  if (!events.length) return 0;
+                  const days = Array.from(new Set(events.map((e: any) => e.created_at.slice(0, 10)))) as string[];
+                  const sorted = days.sort().reverse();
+                  const today = new Date().toISOString().slice(0, 10);
+                  const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+                  if (!sorted.length || (sorted[0] !== today && sorted[0] !== yesterday)) return 0;
+                  let s = 1;
+                  for (let i = 1; i < sorted.length; i++) {
+                    if ((new Date(sorted[i-1]).getTime() - new Date(sorted[i]).getTime()) / 864e5 === 1) s++;
+                    else break;
+                  }
+                  return s;
+                })();
+
+                return (
+                  <div key={kid.id} className="rounded-2xl border border-zinc-700 bg-slate-900/40 p-5">
+                    {/* Student header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                          {(kid.nickname_english || kid.name_english || '?')[0]?.toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm text-white">
+                            {kid.nickname_english ?? kid.nickname_thai ?? kid.name_english ?? kid.name_thai}
+                          </p>
+                          <p className="text-[10px] text-zinc-500">Grade {kid.current_grade ?? '—'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap justify-end">
+                        {streak > 0 && (
+                          <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-bold">🔥 {streak} day streak</span>
+                        )}
+                        {quizEvents.length === 0 && (
+                          <span className="text-[10px] text-zinc-600">No quizzes yet</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {quizEvents.length > 0 && (
+                      <>
+                        {/* Stats row */}
+                        <div className="grid grid-cols-3 gap-3 mb-4">
+                          {[
+                            { label: 'Quizzes', value: quizEvents.length, color: '#6366f1' },
+                            { label: 'Avg Score', value: `${avgScore}%`, color: avgScore! >= 70 ? '#10b981' : avgScore! >= 40 ? '#f59e0b' : '#ef4444' },
+                            { label: 'Confidence', value: avgConf ? '⭐'.repeat(avgConf) : '—', color: '#db2777' },
+                          ].map((s, i) => (
+                            <div key={i} className="bg-slate-950/60 rounded-xl p-3 text-center border border-zinc-800">
+                              <p className="text-xs text-zinc-500 mb-1">{s.label}</p>
+                              <p className="text-sm font-bold" style={{ color: s.color }}>{s.value}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Score bar */}
+                        <div className="mb-3">
+                          <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                            <span>Average score</span>
+                            <span>{avgScore}%</span>
+                          </div>
+                          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${avgScore}%`,
+                                background: avgScore! >= 70 ? 'linear-gradient(90deg,#10b981,#34d399)'
+                                  : avgScore! >= 40 ? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+                                  : 'linear-gradient(90deg,#ef4444,#f87171)',
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Subjects */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {subjects.map((subj: string) => {
+                            const subQuizzes = quizEvents.filter((e: any) => e.subject === subj);
+                            const subAvg = Math.round(subQuizzes.reduce((s: number, e: any) => s + (e.total ? (e.score/e.total)*100 : 0), 0) / subQuizzes.length);
+                            return (
+                              <span key={subj} className="text-[10px] bg-indigo-900/40 text-indigo-300 px-2 py-0.5 rounded-full">
+                                {subj}: {subAvg}%
+                              </span>
+                            );
+                          })}
+                        </div>
+
+                        {/* Recent quizzes */}
+                        <div className="mt-3 space-y-1">
+                          {quizEvents.slice(0, 3).map((e: any) => {
+                            const pct = e.total ? Math.round((e.score / e.total) * 100) : 0;
+                            return (
+                              <div key={e.id} className="flex items-center justify-between text-[11px] text-zinc-400">
+                                <span>{e.subject}</span>
+                                <span className="flex items-center gap-2">
+                                  <span>{new Date(e.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                                  <span className={`font-bold ${pct >= 70 ? 'text-green-400' : pct >= 40 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                    {e.score}/{e.total} ({pct}%)
+                                  </span>
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })}
