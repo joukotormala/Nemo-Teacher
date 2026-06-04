@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Send, Loader2, Bot, UserCircle, Plus, Cpu,
-  MessageSquare, Clock, ChevronRight, History, X,
+  MessageSquare, Clock, ChevronRight, History, X, Flag,
   Volume2, VolumeX, Mic, MicOff, Search, Globe, ExternalLink, ImageOff,
 } from 'lucide-react';
 import { FeedbackButton } from '@/components/feedback-button';
+import { QuizModal } from '@/components/quiz-modal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessageContent } from '@/components/chat-message';
 import {
@@ -175,6 +176,9 @@ export default function ChatPage() {
   } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Quiz state — must be declared after subjectName (defined below around line 380)
+  const [showQuiz, setShowQuiz] = useState(false);
   const sessionIdRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const greetingDoneRef = useRef(false);
@@ -378,6 +382,23 @@ export default function ChatPage() {
   const subjectName = locale === 'th' ? (subject?.name_th ?? '') : (subject?.name_en ?? '');
   const studentName = activeStudent?.nickname_thai ?? activeStudent?.nickname_english ?? activeStudent?.name_english ?? activeStudent?.name_thai ?? '';
 
+  const handleQuizComplete = useCallback(async (confidence: number, score: number, total: number) => {
+    setShowQuiz(false);
+    if (!activeStudent?.id) return;
+    await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentId: activeStudent.id, subject: subjectName || subjectSlug, eventType: 'confidence', confidence }),
+    });
+    await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentId: activeStudent.id, subject: subjectName || subjectSlug, eventType: 'quiz', score, total }),
+    });
+    toast.success(locale === 'th' ? `🎯 บันทึกผลแล้ว! คุณได้ ${score}/${total} 🎉` : `🎯 Saved! You scored ${score}/${total}`);
+  }, [activeStudent?.id, subjectName, subjectSlug, locale]);
+
+  const userMessageCount = useMemo(() => messages.filter(m => m.role === 'user').length, [messages]);
 
   useEffect(() => {
     messagesEndRef?.current?.scrollIntoView?.({ behavior: 'smooth' });
@@ -1561,6 +1582,22 @@ const STOP_WORDS = new Set([
             </div>
           </div>
 
+          {/* ── Finish Lesson button ── */}
+          {userMessageCount >= 8 && (
+            <div className="px-4 py-2 border-t border-border/30">
+              <div className="max-w-[900px] mx-auto">
+                <button
+                  onClick={() => setShowQuiz(true)}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all"
+                  style={{ background: 'linear-gradient(135deg,#7c3aed22,#db287722)', border: '1px solid #7c3aed44', color: '#7c3aed' }}
+                >
+                  <Flag className="w-4 h-4" />
+                  {locale === 'th' ? '🎯 จบบทเรียน — ทำแบบทดสอบ' : '🎯 Finish Lesson — Take Quiz'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Input */}
           <div className="border-t border-border/50 bg-card px-4 py-3">
             <div className="max-w-[900px] mx-auto flex gap-2 items-end">
@@ -1898,6 +1935,18 @@ const STOP_WORDS = new Set([
       </div>
 
       <FeedbackButton subjectContext={subjectName} />
+
+      <QuizModal
+        isOpen={showQuiz}
+        onClose={() => setShowQuiz(false)}
+        onComplete={handleQuizComplete}
+        messages={messages}
+        subject={subjectName || subjectSlug}
+        subjectEmoji={null}
+        studentName={studentName}
+        locale={locale}
+        numQuestions={3}
+      />
     </div>
   );
 }
