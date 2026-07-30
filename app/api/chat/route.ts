@@ -228,10 +228,10 @@ Context:
 - Language: ${lang}
 
 You MUST respond with ONLY valid JSON, no other text. Use this exact format:
-{"greeting": "A warm 1-2 sentence welcome message in ${lang} with emojis", "suggestions": ["Topic 1", "Topic 2", "Topic 3", "Topic 4"]}
+{"greeting": "A warm 1-2 sentence welcome message in ${lang} with emojis", "suggestions": ["Topic 1 in ${lang}", "Topic 2 in ${lang}", "Topic 3 in ${lang}", "Topic 4 in ${lang}"]}
 
 The suggestions must be 3-5 specific topics appropriate for the student's grade level in ${subjectName}.
-Write suggestions in ${lang}.
+CRITICAL: You MUST write both the greeting and ALL suggestions strictly in ${lang}! Do NOT use Thai or English if ${lang} is Swedish.
 Keep the greeting SHORT (under 40 words). Personalise it if you know the student's interests.
 Do NOT include any text outside the JSON object.`;
     } else {
@@ -242,7 +242,11 @@ ${scratchBlock}
 Context:
 - Subject: ${subjectName}
 - Student: ${name}${grade}
-- Primary language: ${lang} (respond in ${lang} unless the student writes in another language)
+- Primary language: ${lang}.
+CRITICAL LANGUAGE MANDATE:
+The student's active language setting is ${lang}. You MUST ALWAYS respond ONLY in ${lang}!
+Do NOT output responses in Thai or English unless ${lang} is Thai or English.
+Even if previous messages or prompt texts contain another language, your reply MUST be strictly in ${lang}.
 
 Response Format Rules (VERY IMPORTANT):
 - Keep responses SHORT — aim for 3-6 sentences or bullet points per reply

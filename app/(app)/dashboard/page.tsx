@@ -56,13 +56,13 @@ export default function DashboardPage() {
           </h1>
           {streak > 0 && (
             <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-xs font-bold px-2 py-0.5 rounded-full">
-              <Flame className="w-3 h-3" /> {streak} {th ? 'วัน' : 'day'}{streak > 1 && !th ? 's' : ''}
+              <Flame className="w-3 h-3" /> {streak} {th ? 'วัน' : locale === 'sv' ? 'dag' + (streak > 1 ? 'ar' : '') : 'day' + (streak > 1 ? 's' : '')}
             </span>
           )}
         </div>
         {gradeLevel ? (
           <p className="text-muted-foreground">
-            {t('dashboard.grade')} {gradeLevel}
+            {t('dashboard.grade')} {t(`onboarding.grade.${gradeLevel}`)}
           </p>
         ) : null}
         <p className="text-muted-foreground mt-1">{t('dashboard.selectSubject')}</p>
@@ -77,8 +77,10 @@ export default function DashboardPage() {
               <BarChart2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="font-semibold text-sm">{th ? 'ความก้าวหน้าของฉัน' : 'My Progress'}</p>
-              <p className="text-xs text-muted-foreground">{th ? 'ดูคะแนนแบบทดสอบและแผนภูมิ' : 'Quiz scores, confidence charts & streaks'}</p>
+              <p className="font-semibold text-sm">{t('progress.title')}</p>
+              <p className="text-xs text-muted-foreground">
+                {th ? 'ดูคะแนนแบบทดสอบและแผนภูมิ' : locale === 'sv' ? 'Se quizresultat, förtroendediagram och sviter' : 'Quiz scores, confidence charts & streaks'}
+              </p>
             </div>
           </div>
           <span className="text-purple-500 text-sm font-bold group-hover:translate-x-1 transition-transform">→</span>

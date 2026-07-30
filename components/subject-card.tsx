@@ -21,8 +21,8 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
   useEffect(() => { setMounted(true); }, []);
 
   const Icon = subject?.icon;
-  const name = locale === 'th' ? (subject?.name_th ?? '') : (subject?.name_en ?? '');
-  const desc = locale === 'th' ? (subject?.description_th ?? '') : (subject?.description_en ?? '');
+  const name = locale === 'th' ? (subject?.name_th ?? '') : locale === 'sv' ? (subject?.name_sv ?? subject?.name_en ?? '') : (subject?.name_en ?? '');
+  const desc = locale === 'th' ? (subject?.description_th ?? '') : locale === 'sv' ? (subject?.description_sv ?? subject?.description_en ?? '') : (subject?.description_en ?? '');
 
   const hasSuggestions = (subject?.suggestions?.length ?? 0) > 0;
 
@@ -35,8 +35,8 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
     }
   }
 
-  function handleTopicClick(labelEn: string, labelTh: string) {
-    const label = locale === 'th' ? labelTh : labelEn;
+  function handleTopicClick(labelEn: string, labelTh: string, labelSv?: string) {
+    const label = locale === 'th' ? labelTh : (locale === 'sv' && labelSv) ? labelSv : labelEn;
     router.push(`/chat/${subject?.slug ?? ''}?topic=${encodeURIComponent(label)}`);
     setShowPicker(false);
   }
@@ -130,7 +130,7 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
                   <div className="flex-1 min-w-0">
                     <h2 className="font-display font-bold text-lg text-foreground">{name}</h2>
                     <p className="text-sm text-muted-foreground">
-                      {locale === 'th' ? 'เลือกหัวข้อที่ต้องการเรียน' : 'Choose a topic to study'}
+                      {locale === 'th' ? 'เลือกหัวข้อที่ต้องการเรียน' : locale === 'sv' ? 'Välj ett ämne att studera' : 'Choose a topic to study'}
                     </p>
                   </div>
                   <button
@@ -144,7 +144,7 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
                 {/* Topic list */}
                 <div className="p-3 space-y-1 max-h-[60vh] overflow-y-auto">
                   {subject?.suggestions?.map((s, idx) => {
-                    const label = locale === 'th' ? s.label_th : s.label_en;
+                    const label = locale === 'th' ? s.label_th : (locale === 'sv' && s.label_sv) ? s.label_sv : s.label_en;
                     const sublabel = locale === 'th' ? s.label_en : s.label_th;
                     return (
                       <motion.button
@@ -152,7 +152,7 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.04, duration: 0.2 }}
-                        onClick={() => handleTopicClick(s.label_en, s.label_th)}
+                        onClick={() => handleTopicClick(s.label_en, s.label_th, s.label_sv)}
                         className="w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl text-left
                           hover:bg-muted/80 active:scale-[0.98] transition-all duration-150 group"
                       >
@@ -193,10 +193,10 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
                       </div>
                       <div>
                         <p className="font-semibold text-sm text-foreground">
-                          {locale === 'th' ? 'สำรวจทุกหัวข้อ' : 'Explore all topics'}
+                          {locale === 'th' ? 'สำรวจทุกหัวข้อ' : locale === 'sv' ? 'Utforska alla ämnen' : 'Explore all topics'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {locale === 'th' ? `ถามอะไรก็ได้เกี่ยวกับ${name}` : `Ask anything about ${name}`}
+                          {locale === 'th' ? `ถามอะไรก็ได้เกี่ยวกับ${name}` : locale === 'sv' ? `Fråga vad som helst om ${name}` : `Ask anything about ${name}`}
                         </p>
                       </div>
                     </div>

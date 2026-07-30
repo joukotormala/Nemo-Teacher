@@ -98,6 +98,8 @@ export default function ProgressPage() {
 
   const displayName = activeStudent?.nickname_thai ?? activeStudent?.nickname_english ?? activeStudent?.name_english ?? '';
 
+  const sv = locale === 'sv';
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
@@ -109,22 +111,22 @@ export default function ProgressPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> {th ? 'กลับ' : 'Back'}
+          <ArrowLeft className="w-4 h-4" /> {th ? 'กลับ' : sv ? 'Tillbaka' : 'Back'}
         </button>
         <h1 className="text-3xl font-bold">
-          {th ? `ความก้าวหน้าของ ${displayName} 📊` : `${displayName}'s Progress 📊`}
+          {th ? `ความก้าวหน้าของ ${displayName} 📊` : sv ? `${displayName}s framsteg 📊` : `${displayName}'s Progress 📊`}
         </h1>
         <p className="text-muted-foreground mt-1">
-          {th ? 'ดูคะแนนแบบทดสอบและความมั่นใจของคุณ' : 'Your quiz scores and confidence over time'}
+          {th ? 'ดูคะแนนแบบทดสอบและความมั่นใจของคุณ' : sv ? 'Se dina quizresultat och ditt förtroende över tid' : 'Your quiz scores and confidence over time'}
         </p>
       </motion.div>
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         {[
-          { icon: <Flame className="w-5 h-5 text-orange-500" />, value: streak, label: th ? 'วันติดต่อกัน 🔥' : 'Day streak 🔥', grad: 'from-orange-500/10 to-red-500/10 border-orange-500/20' },
-          { icon: <Trophy className="w-5 h-5 text-yellow-500" />, value: quizEvents.length, label: th ? 'แบบทดสอบ' : 'Quizzes done', grad: 'from-yellow-500/10 to-amber-500/10 border-yellow-500/20' },
-          { icon: <BookOpen className="w-5 h-5 text-purple-500" />, value: new Set(quizEvents.map(e => e.subject)).size, label: th ? 'วิชา' : 'Subjects', grad: 'from-purple-500/10 to-pink-500/10 border-purple-500/20' },
+          { icon: <Flame className="w-5 h-5 text-orange-500" />, value: streak, label: th ? 'วันติดต่อกัน 🔥' : sv ? 'Dagar i svit 🔥' : 'Day streak 🔥', grad: 'from-orange-500/10 to-red-500/10 border-orange-500/20' },
+          { icon: <Trophy className="w-5 h-5 text-yellow-500" />, value: quizEvents.length, label: th ? 'แบบทดสอบ' : sv ? 'Gjorda quiz' : 'Quizzes done', grad: 'from-yellow-500/10 to-amber-500/10 border-yellow-500/20' },
+          { icon: <BookOpen className="w-5 h-5 text-purple-500" />, value: new Set(quizEvents.map(e => e.subject)).size, label: th ? 'วิชา' : sv ? 'Ämnen' : 'Subjects', grad: 'from-purple-500/10 to-pink-500/10 border-purple-500/20' },
         ].map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
             className={`bg-gradient-to-br ${s.grad} border rounded-2xl p-4 flex flex-col items-center text-center gap-1`}>
@@ -138,8 +140,8 @@ export default function ProgressPage() {
       {events.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted-foreground">
           <div className="text-6xl mb-4">📚</div>
-          <h2 className="text-xl font-semibold mb-2">{th ? 'ยังไม่มีข้อมูล' : 'No data yet'}</h2>
-          <p className="text-sm">{th ? 'เรียนกับ Nemo แล้วกด "จบบทเรียน" เพื่อทำแบบทดสอบ!' : 'Finish a lesson and take a quiz to see your progress here!'}</p>
+          <h2 className="text-xl font-semibold mb-2">{th ? 'ยังไม่มีข้อมูล' : sv ? 'Ingen data än' : 'No data yet'}</h2>
+          <p className="text-sm">{th ? 'เรียนกับ Nemo แล้วกด "จบบทเรียน" เพื่อทำแบบทดสอบ!' : sv ? 'Lär dig med Nemo och gör ett quiz för att se dina framsteg här!' : 'Finish a lesson and take a quiz to see your progress here!'}</p>
         </motion.div>
       ) : (
         <>
@@ -148,13 +150,13 @@ export default function ProgressPage() {
             {lineData.length > 0 && (
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
                 className="bg-card border border-border rounded-2xl p-5">
-                <h3 className="text-sm font-bold mb-4">{th ? '📈 คะแนนแบบทดสอบ' : '📈 Quiz Scores Over Time'}</h3>
+                <h3 className="text-sm font-bold mb-4">{th ? '📈 คะแนนแบบทดสอบ' : sv ? '📈 Quizresultat över tid' : '📈 Quiz Scores Over Time'}</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={lineData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} />
-                    <Tooltip formatter={(v: any) => [`${v}%`, th ? 'คะแนน' : 'Score']} />
+                    <Tooltip formatter={(v: any) => [`${v}%`, th ? 'คะแนน' : sv ? 'Poäng' : 'Score']} />
                     <Line type="monotone" dataKey="score" stroke="#7c3aed" strokeWidth={2.5}
                       dot={{ fill: '#7c3aed', r: 4 }} activeDot={{ r: 6 }} />
                   </LineChart>
@@ -165,13 +167,13 @@ export default function ProgressPage() {
             {radarData.length >= 2 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
                 className="bg-card border border-border rounded-2xl p-5">
-                <h3 className="text-sm font-bold mb-4">{th ? '🕸️ ความมั่นใจในแต่ละวิชา' : '🕸️ Confidence by Subject'}</h3>
+                <h3 className="text-sm font-bold mb-4">{th ? '🕸️ ความมั่นใจในแต่ละวิชา' : sv ? '🕸️ Förtroende per ämne' : '🕸️ Confidence by Subject'}</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <RadarChart data={radarData}>
                     <PolarGrid />
                     <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
                     <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9 }} />
-                    <Radar name={th ? 'ความมั่นใจ' : 'Confidence'} dataKey="confidence"
+                    <Radar name={th ? 'ความมั่นใจ' : sv ? 'Förtroende' : 'Confidence'} dataKey="confidence"
                       stroke="#db2777" fill="#db2777" fillOpacity={0.25} />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -182,7 +184,7 @@ export default function ProgressPage() {
           {/* Subject cards */}
           {subjectStats.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-              <h3 className="text-sm font-bold mb-3">{th ? '📚 สรุปรายวิชา' : '📚 Subject Summary'}</h3>
+              <h3 className="text-sm font-bold mb-3">{th ? '📚 สรุปรายวิชา' : sv ? '📚 Ämnessammanfattning' : '📚 Subject Summary'}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {subjectStats.map(s => {
                   const color = getColor(s.subject);
@@ -196,14 +198,14 @@ export default function ProgressPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{s.subject}</p>
-                        <p className="text-xs text-muted-foreground">{s.quizzes} {th ? 'ครั้ง' : 'quizzes'}</p>
+                        <p className="text-xs text-muted-foreground">{s.quizzes} {th ? 'ครั้ง' : sv ? 'quiz' : 'quizzes'}</p>
                         <div className="mt-1.5 h-1.5 bg-muted rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all" style={{ width: `${s.avgScore}%`, background: color }} />
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-lg font-bold" style={{ color }}>{s.avgScore}%</p>
-                        <p className="text-[10px] text-muted-foreground">{th ? 'เฉลี่ย' : 'avg'}</p>
+                        <p className="text-[10px] text-muted-foreground">{th ? 'เฉลี่ย' : sv ? 'snitt' : 'avg'}</p>
                       </div>
                     </div>
                   );
@@ -215,7 +217,7 @@ export default function ProgressPage() {
           {/* Recent history */}
           {quizEvents.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-6">
-              <h3 className="text-sm font-bold mb-3">{th ? '🕐 ประวัติล่าสุด' : '🕐 Recent Sessions'}</h3>
+              <h3 className="text-sm font-bold mb-3">{th ? '🕐 ประวัติล่าสุด' : sv ? '🕐 Senaste sessioner' : '🕐 Recent Sessions'}</h3>
               <div className="space-y-2">
                 {quizEvents.slice(0, 10).map(e => {
                   const pct = e.total ? Math.round(((e.score ?? 0) / e.total) * 100) : 0;
@@ -227,7 +229,7 @@ export default function ProgressPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{e.subject}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(e.created_at).toLocaleDateString(th ? 'th-TH' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(e.created_at).toLocaleDateString(th ? 'th-TH' : sv ? 'sv-SE' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           {confE?.confidence ? <> · {'⭐'.repeat(confE.confidence)}</> : null}
                         </p>
                       </div>

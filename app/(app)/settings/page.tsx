@@ -900,23 +900,16 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {(() => {
-              const isUniversityStudent = activeStudent?.current_grade?.startsWith('university') || activeStudent?.current_grade === 'graduate';
               const allModels = [
-                // University/Research tier — shown first for university students
-                ...(isUniversityStudent ? [
-                  { id: 'nemotron-super', label: 'Nemotron Super 49B ⭐', desc: 'llama-3.3-nemotron-super-49b (Nvidia) — Best for science & research', star: true },
-                  { id: 'deepseek-r1', label: 'DeepSeek R1 🧠', desc: 'deepseek-ai/deepseek-r1 (Nvidia) — Deep step-by-step reasoning', star: true },
-                ] : []),
-                { id: 'nvidia', label: t('model.nvidia'), desc: 'Nemotron-3-nano (Nvidia Cloud)' },
+                { id: 'cloud', label: t('model.cloud'), desc: 'Llama-3.3-70B (Nvidia Cloud) — Best Overall & Swedish', star: true },
+                { id: 'nemotron-super', label: t('model.nemotronSuper'), desc: 'llama-3.3-nemotron-super-49b (Nvidia) — Best for Science & Math', star: true },
+                { id: 'llama-8b', label: t('model.llama8b'), desc: 'Llama-3.1-8B (Nvidia Cloud) — Fast responses' },
                 { id: 'qwen', label: t('model.qwen'), desc: 'Qwen-3-Next-80B (Nvidia Cloud)' },
-                { id: 'cloud', label: t('model.cloud'), desc: 'Llama-3.3-70B (Nvidia Cloud)' },
-                { id: 'llama-8b', label: t('model.llama8b'), desc: 'Llama-3.1-8B (Nvidia Cloud)' },
+                { id: 'deepseek-r1', label: t('model.deepseekR1'), desc: 'deepseek-ai/deepseek-r1 (Nvidia)' },
+                { id: 'nvidia', label: t('model.nvidia'), desc: 'Nemotron-3-nano (Nvidia Cloud)' },
                 { id: 'gemma-4b', label: t('model.gemma4b'), desc: 'Gemma-3-4B (Nvidia Cloud)' },
-                // Local models — hidden for university students
-                ...(!isUniversityStudent ? [
-                  { id: 'sea-lion', label: t('model.seaLion'), desc: 'Sea-Lion GGUF/MLX (Ollama/LM Studio)' },
-                  { id: 'nemotron', label: t('model.nemotron'), desc: 'nemotron-mini (Local Ollama)' },
-                ] : []),
+                { id: 'sea-lion', label: t('model.seaLion'), desc: 'Sea-Lion GGUF/MLX (Ollama/LM Studio)' },
+                { id: 'nemotron', label: t('model.nemotron'), desc: 'nemotron-mini (Local Ollama)' },
               ];
               return allModels.map((m: any) => {
                 const isSelected = preferredModel === m.id;

@@ -379,7 +379,7 @@ export default function ChatPage() {
     }
   }, [searchQuery, locale]);
 
-  const subjectName = locale === 'th' ? (subject?.name_th ?? '') : (subject?.name_en ?? '');
+  const subjectName = locale === 'th' ? (subject?.name_th ?? '') : locale === 'sv' ? (subject?.name_sv ?? subject?.name_en ?? '') : (subject?.name_en ?? '');
   const studentName = activeStudent?.nickname_thai ?? activeStudent?.nickname_english ?? activeStudent?.name_english ?? activeStudent?.name_thai ?? '';
 
   const handleQuizComplete = useCallback(async (confidence: number, score: number, total: number) => {
@@ -395,7 +395,7 @@ export default function ChatPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentId: activeStudent.id, subject: subjectName || subjectSlug, eventType: 'quiz', score, total }),
     });
-    toast.success(locale === 'th' ? `🎯 บันทึกผลแล้ว! คุณได้ ${score}/${total} 🎉` : `🎯 Saved! You scored ${score}/${total}`);
+    toast.success(locale === 'th' ? `🎯 บันทึกผลแล้ว! คุณได้ ${score}/${total} 🎉` : locale === 'sv' ? `🎯 Sparat! Du fick ${score}/${total} 🎉` : `🎯 Saved! You scored ${score}/${total}`);
   }, [activeStudent?.id, subjectName, subjectSlug, locale]);
 
   const userMessageCount = useMemo(() => messages.filter(m => m.role === 'user').length, [messages]);
@@ -488,7 +488,7 @@ export default function ChatPage() {
     setMessages([{ role: 'assistant', content: quickGreeting }]);
 
     if (subject?.suggestions?.length) {
-      const predefined = subject.suggestions.map(s => locale === 'th' ? s.label_th : s.label_en);
+      const predefined = subject.suggestions.map(s => locale === 'th' ? s.label_th : locale === 'sv' ? (s.label_sv ?? s.label_en) : s.label_en);
       setTopicSuggestions(predefined);
     }
 
@@ -541,10 +541,10 @@ export default function ChatPage() {
           : null;
         if (urlTopic) {
           const suggestion = subject?.suggestions?.find(
-            s => s.label_en === urlTopic || s.label_th === urlTopic
+            s => s.label_en === urlTopic || s.label_th === urlTopic || s.label_sv === urlTopic
           );
           const prompt = suggestion
-            ? (locale === 'th' ? suggestion.prompt_th : suggestion.prompt_en)
+            ? (locale === 'th' ? suggestion.prompt_th : locale === 'sv' ? (suggestion.prompt_sv ?? suggestion.prompt_en) : suggestion.prompt_en)
             : urlTopic;
           setTopicSuggestions([]);
           setTimeout(() => { sendMessageCore(prompt); }, 300);
@@ -832,10 +832,10 @@ export default function ChatPage() {
     setTopicSuggestions([]);
 
     const suggestion = subject?.suggestions?.find(
-      s => s.label_th === topic || s.label_en === topic
+      s => s.label_th === topic || s.label_en === topic || s.label_sv === topic
     );
     const prompt = suggestion
-      ? (locale === 'th' ? suggestion.prompt_th : suggestion.prompt_en)
+      ? (locale === 'th' ? suggestion.prompt_th : locale === 'sv' ? (suggestion.prompt_sv ?? suggestion.prompt_en) : suggestion.prompt_en)
       : topic;
 
     sendMessageCore(prompt);
@@ -861,7 +861,7 @@ export default function ChatPage() {
       : `Hi ${studentName}! 😊 Welcome to ${subjectName}. Type your question below to get started!`;
     setMessages([{ role: 'assistant', content: quickGreeting }]);
     if (subject?.suggestions?.length) {
-      const predefined = subject.suggestions.map(s => locale === 'th' ? s.label_th : s.label_en);
+      const predefined = subject.suggestions.map(s => locale === 'th' ? s.label_th : locale === 'sv' ? (s.label_sv ?? s.label_en) : s.label_en);
       setTopicSuggestions(predefined);
     } else {
       setTopicSuggestions([]);
@@ -1144,16 +1144,17 @@ const STOP_WORDS = new Set([
                     </span>
                     {/* Speed/quality badge with hover tooltip */}
                     {(() => {
+                      const isSv = locale === 'sv';
                       const badges: Record<string, { label: string; color: string; tip: string }> = {
-                        'llama-8b':       { label: '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
-                        'gemma-4b':       { label: '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
-                        'nvidia':         { label: '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: 'Fast and efficient. Good balance of speed and quality for most subjects.' },
-                        'cloud':          { label: '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: 'Fast and reliable. 70 billion parameters — great for most school subjects.' },
-                        'qwen':           { label: '🧠 Smarter',    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400', tip: 'Larger model — takes a bit longer but gives more detailed and accurate answers. Best Thai language support.' },
-                        'nemotron-super': { label: '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: "NVIDIA's top science model (49 billion parameters). May take 10–30 seconds to think — but gives the most accurate scientific answers." },
-                        'deepseek-r1':    { label: '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: 'Deep reasoning model — thinks step by step before answering. Can take 15–45 seconds, but works through complex problems very carefully.' },
-                        'sea-lion':       { label: '🏠 Local',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: 'Runs on your own computer — speed depends on your device.' },
-                        'nemotron':       { label: '🏠 Local',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: 'Runs locally via Ollama — speed depends on your device.' },
+                        'llama-8b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
+                        'gemma-4b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
+                        'nvidia':         { label: isSv ? '⚡ Snabb' : '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: isSv ? 'Snabb och effektiv.' : 'Fast and efficient. Good balance of speed and quality for most subjects.' },
+                        'cloud':          { label: isSv ? '⚡ Snabb' : '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: isSv ? 'Snabb och pålitlig (70B modeller) — bäst för svenska.' : 'Fast and reliable. 70 billion parameters — great for most school subjects.' },
+                        'qwen':           { label: isSv ? '🧠 Smartare' : '🧠 Smarter',    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400', tip: isSv ? 'Större modell för mer detaljerade svar.' : 'Larger model — takes a bit longer but gives more detailed and accurate answers. Best Thai language support.' },
+                        'nemotron-super': { label: isSv ? '🧠⭐ Smartast' : '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: isSv ? 'NVIDIAs främsta vetenskapsmodell (49B).' : "NVIDIA's top science model (49 billion parameters). May take 10–30 seconds to think — but gives the most accurate scientific answers." },
+                        'deepseek-r1':    { label: isSv ? '🧠⭐ Smartast' : '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: isSv ? 'Djupstegsresonemang.' : 'Deep reasoning model — thinks step by step before answering. Can take 15–45 seconds, but works through complex problems very carefully.' },
+                        'sea-lion':       { label: '🏠 Lokal',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: isSv ? 'Körs på din dator.' : 'Runs on your own computer — speed depends on your device.' },
+                        'nemotron':       { label: '🏠 Lokal',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: isSv ? 'Körs lokalt via Ollama.' : 'Runs locally via Ollama — speed depends on your device.' },
                       };
                       const b = badges[activeModel];
                       if (!b) return null;
@@ -1222,7 +1223,7 @@ const STOP_WORDS = new Set([
               className="relative"
             >
               <History className="w-4 h-4 mr-1" />
-              {locale === 'th' ? 'ประวัติ' : 'History'}
+              {locale === 'th' ? 'ประวัติ' : locale === 'sv' ? 'Historik' : 'History'}
               {pastConversations.length > 0 ? (
                 <span className="ml-1.5 text-[10px] bg-purple-500 text-white rounded-full px-1.5 py-0.5 font-medium">
                   {pastConversations.length}
@@ -1449,13 +1450,13 @@ const STOP_WORDS = new Set([
                               : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/60'
                           }`}
                           title={speakingIdx === idx
-                            ? (locale === 'th' ? 'หยุดอ่าน' : 'Stop reading')
-                            : (locale === 'th' ? 'อ่านออกเสียง' : 'Read aloud')}
+                            ? (locale === 'th' ? 'หยุดอ่าน' : locale === 'sv' ? 'Sluta läsa' : 'Stop reading')
+                            : (locale === 'th' ? 'อ่านออกเสียง' : locale === 'sv' ? 'Läs upp' : 'Read aloud')}
                         >
                           {speakingIdx === idx ? (
-                            <><VolumeX className="w-3.5 h-3.5" /> {locale === 'th' ? 'หยุด' : 'Stop'}</>
+                            <><VolumeX className="w-3.5 h-3.5" /> {locale === 'th' ? 'หยุด' : locale === 'sv' ? 'Stopp' : 'Stop'}</>
                           ) : (
-                            <><Volume2 className="w-3.5 h-3.5" /> {locale === 'th' ? 'ฟัง' : 'Listen'}</>
+                            <><Volume2 className="w-3.5 h-3.5" /> {locale === 'th' ? 'ฟัง' : locale === 'sv' ? 'Lyssna' : 'Listen'}</>
                           )}
                         </button>
                       )}
