@@ -20,13 +20,13 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
   const choice = modelChoice || 'llama-8b';
 
   if (choice === 'gemini' || choice === 'google-gemini') {
-    const keyParam = GEMINI_API_KEY ? `?key=${GEMINI_API_KEY}` : '';
+    const cleanKey = (process.env.GEMINI_API_KEY || '').trim();
     return {
-      url: `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions${keyParam}`,
+      url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
       model: GEMINI_MODEL,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GEMINI_API_KEY}`,
+        'Authorization': `Bearer ${cleanKey}`,
       },
     };
   }
@@ -514,11 +514,19 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
       console.error('LLM API error:', response?.status, errText);
 
       let customErrMsg = `LLM API error: ${response?.status}`;
-      if (response?.status === 401) {
-        if (model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL) {
-          customErrMsg = 'Invalid or missing Google Gemini API Key. Please get a free key at https://aistudio.google.com/app/apikey and update GEMINI_API_KEY in your .env file.';
-        } else {
-          customErrMsg = 'Invalid API key for the selected LLM service.';
+      const isGemini = model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL;
+
+      if (isGemini && (response?.status === 400 || response?.status === 401 || errText.includes('valid API key'))) {
+        customErrMsg = 'Google Gemini API Key is invalid or expired. Please check your GEMINI_API_KEY in Vercel settings (must start with AIzaSy...).';
+      } else if (response?.status === 401) {
+        customErrMsg = 'Invalid API key for the selected LLM service.';
+      } else {
+        try {
+          const parsedErr = JSON.parse(errText);
+          const msg = parsedErr?.error?.message || parsedErr?.[0]?.error?.message;
+          if (msg) customErrMsg = `LLM Error: ${msg}`;
+        } catch {
+          // Keep default customErrMsg
         }
       }
 
