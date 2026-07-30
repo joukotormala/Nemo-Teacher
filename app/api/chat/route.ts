@@ -12,10 +12,24 @@ const NVIDIA_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
 const QWEN_MODEL = 'qwen/qwen3-next-80b-a3b-instruct';
 const NEMOTRON_SUPER_MODEL = 'nvidia/llama-3.3-nemotron-super-49b-v1';
 const DEEPSEEK_R1_MODEL = 'deepseek-ai/deepseek-r1';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 function getEndpointConfig(modelChoice?: string): { url: string; model: string; headers: Record<string, string> } | null {
-  const choice = modelChoice || 'llama-8b'; // Llama 3.1 8B is now default!
+  const choice = modelChoice || 'llama-8b';
+
+  if (choice === 'gemini' || choice === 'google-gemini') {
+    const keyParam = GEMINI_API_KEY ? `?key=${GEMINI_API_KEY}` : '';
+    return {
+      url: `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions${keyParam}`,
+      model: GEMINI_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GEMINI_API_KEY}`,
+      },
+    };
+  }
 
   if (choice === 'nvidia') {
     return {
@@ -299,19 +313,27 @@ ${(() => {
 
   if (earlyPrimary) return `
 ## Teaching Approach: Early Primary (Ages 5–8) — Play-Based & Gentle
+${lang === 'Swedish' ? `
+### Pedagogisk Roll (Svensk Lågstadielärare för 7-åringar):
+- **Roll**: Du är en pedagogisk, varm och uppmuntrande svenska lågstadielärare för 7-åringar (lågstadieelever).
+- **Språknivå**: Svara ALLTID på enkel svenska anpassad för en 7-åring. Använd korta meningar och enkla ord.
+- **Skolämnen**: Förklara skolämnen (som matematik, svenska och NO/SO) med roliga, pedagogiska och vardagsnära exempel.
+- **Uppmuntran**: Var tålmodig och beröm alltid barnet när det försöker!
+- **Interaktion**: Ställ korta, enkla frågor så barnet får svara med rösten eller enkla ord.
+` : ''}
 Research shows ALL 5 evidence-based methods work from age 3, in simple formats.
 
 ### Retrieval (Game Style)
-- Start with: "มาทบทวนกันก่อนนะ 🎮 ${name} จำได้ไหมว่าเราเรียนเรื่องอะไรไปแล้ว?" / "Can you remember what we learned before?"
+- Start with: ${lang === 'Swedish' ? `"Ska vi repetera lite? 🎮 Kommer du ihåg vad vi lärde oss sist, ${name}?"` : `"มาทบทวนกันก่อนนะ 🎮 ${name} จำได้ไหมว่าเราเรียนเรื่องอะไรไปแล้ว?" / "Can you remember what we learned before?"`}
 - Use simple yes/no or point-to-it recall — not written tests
-- After teaching: "ลองบอกฉันอีกทีได้ไหม?" / "Can you tell me again in your own words?"
+- After teaching: ${lang === 'Swedish' ? `"Kan du berätta för mig en gång till med dina egna ord?"` : `"ลองบอกฉันอีกทีได้ไหม?" / "Can you tell me again in your own words?"`}
 
 ### Why Questions (Simple)
-- Ask "ทำไม?" / "Why do you think that happens?" — keep it fun, like a guessing game
-- Celebrate wrong answers: "เกือบแล้ว! ลองคิดใหม่อีกทีนะ 😊" / "Nearly! Let's think again"
+- Ask ${lang === 'Swedish' ? `"Varför tror du att det blir så?"` : `"ทำไม?" / "Why do you think that happens?"`} — keep it fun, like a guessing game
+- Celebrate wrong answers: ${lang === 'Swedish' ? `"Nästan! Ska vi prova att tänka igen? 😊"` : `"เกือบแล้ว! ลองคิดใหม่อีกทีนะ 😊" / "Nearly! Let's think again"`}
 
 ### Confidence Check (Visual)
-- Use: "ชอบเรื่องนี้ไหม? รู้สึกเข้าใจแค่ไหน? 👍 หรือ 🤔?"
+- Use: ${lang === 'Swedish' ? `"Tycker du om det här ämnet? Hur känns det? 👍 eller 🤔?"` : `"ชอบเรื่องนี้ไหม? รู้สึกเข้าใจแค่ไหน? 👍 หรือ 🤔?"`}
 - Keep responses very SHORT — max 3–4 sentences
 - Always end with a fun question or mini game prompt
 
@@ -489,9 +511,19 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
 
     if (!response?.ok) {
       const errText = await response?.text?.() ?? 'Unknown error';
-      console.error('LLM API error:', errText);
-      return new Response(JSON.stringify({ error: `LLM API error: ${response?.status}` }), {
-        status: 502,
+      console.error('LLM API error:', response?.status, errText);
+
+      let customErrMsg = `LLM API error: ${response?.status}`;
+      if (response?.status === 401) {
+        if (model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL) {
+          customErrMsg = 'Invalid or missing Google Gemini API Key. Please get a free key at https://aistudio.google.com/app/apikey and update GEMINI_API_KEY in your .env file.';
+        } else {
+          customErrMsg = 'Invalid API key for the selected LLM service.';
+        }
+      }
+
+      return new Response(JSON.stringify({ error: customErrMsg }), {
+        status: response?.status ?? 502,
         headers: { 'Content-Type': 'application/json' },
       });
     }

@@ -476,6 +476,7 @@ export default function ChatPage() {
     else if (savedModel === 'qwen') setModelName('Qwen-3-Next');
     else if (savedModel === 'cloud') setModelName('Llama-3.3-70B');
     else if (savedModel === 'llama-8b') setModelName('Llama-3.1-8B');
+    else if (savedModel === 'gemini') setModelName('Google Gemini 2.0');
     else if (savedModel === 'gemma-4b') setModelName('Gemma-3-4B');
     else if (savedModel === 'sea-lion') setModelName('Sea-Lion (Local)');
     else if (savedModel === 'nemotron') setModelName('nemotron-mini');
@@ -961,6 +962,7 @@ const STOP_WORDS = new Set([
     else if (modelId === 'qwen') setModelName('Qwen-3-Next');
     else if (modelId === 'cloud') setModelName('Llama-3.3-70B');
     else if (modelId === 'llama-8b') setModelName('Llama-3.1-8B');
+    else if (modelId === 'gemini') setModelName('Google Gemini 2.0');
     else if (modelId === 'gemma-4b') setModelName('Gemma-3-4B');
     else if (modelId === 'sea-lion') setModelName('Sea-Lion (Local)');
     else if (modelId === 'nemotron') setModelName('nemotron-mini');
@@ -972,6 +974,7 @@ const STOP_WORDS = new Set([
       'qwen': 'Qwen 3 Next',
       'cloud': 'Llama 3.3',
       'llama-8b': 'Llama 3.1 8B',
+      'gemini': 'Google Gemini 2.0',
       'gemma-4b': 'Gemma 3 4B',
       'sea-lion': 'Sea-Lion',
       'nemotron': 'Nemotron-mini',
@@ -1146,6 +1149,7 @@ const STOP_WORDS = new Set([
                     {(() => {
                       const isSv = locale === 'sv';
                       const badges: Record<string, { label: string; color: string; tip: string }> = {
+                        'gemini':         { label: isSv ? '🇸🇪 Bäst för Florence' : '🤖 Google Gemini', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 font-bold', tip: isSv ? 'Google Gemini 2.0 Flash — Bäst för svenska och förklaringar till 7-åringar.' : 'Google Gemini 2.0 Flash — Excellent native Swedish fluency & fast responses.' },
                         'llama-8b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
                         'gemma-4b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
                         'nvidia':         { label: isSv ? '⚡ Snabb' : '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: isSv ? 'Snabb och effektiv.' : 'Fast and efficient. Good balance of speed and quality for most subjects.' },
@@ -1189,6 +1193,10 @@ const STOP_WORDS = new Set([
                   <DropdownMenuItem onClick={() => handleModelChange('qwen')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.qwen')}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">Qwen-3-Next (Nvidia)</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleModelChange('gemini')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
+                    <span className="font-semibold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400">{t('model.gemini')}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">gemini-2.0-flash (Google Free Tier) — Best for Florence 🇸🇪</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('cloud')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.cloud')}</span>
