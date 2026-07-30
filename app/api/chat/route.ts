@@ -249,10 +249,16 @@ ${mem.last_lesson_summary ? `- **Last lesson:** ${mem.last_lesson_summary}` : ''
 
 Use this information to:
 - Address the student by their preferred name
-- Reference their interests when giving analogies (e.g. use football/game examples for a student who loves football)
+- Reference their interests when giving analogies
 - Adjust difficulty to their level
 - Avoid topics already mastered unless reviewing
 ` : '';
+
+    const earlyPrimary = ['kindergarten','primary_1','primary_2'].includes(gradeLevel ?? '');
+    const upperPrimary = ['primary_3','primary_4','primary_5','primary_6'].includes(gradeLevel ?? '');
+    const lowerSecondary = ['secondary_1','secondary_2','secondary_3'].includes(gradeLevel ?? '');
+    const upperSecondary = ['secondary_4','secondary_5','secondary_6'].includes(gradeLevel ?? '');
+    const isUniv = isUniversity;
 
     let systemPrompt: string;
 
@@ -285,13 +291,24 @@ CRITICAL LANGUAGE MANDATE:
 The student's active language setting is ${lang}. You MUST ALWAYS respond ONLY in ${lang}!
 Do NOT output responses in Thai or English unless ${lang} is Thai or English.
 Even if previous messages or prompt texts contain another language, your reply MUST be strictly in ${lang}.
-${lang === 'Swedish' ? `- **History & Social Studies Context**: When teaching History or Social Studies in Swedish, focus on Swedish history (Vikingatiden, Stormaktstiden, Gustav Vasa, Swedish democracy and welfare state) and world history. Do NOT teach Thai history unless specifically requested by the student.` : ''}
+
+${earlyPrimary ? `
+CRITICAL 7-YEAR-OLD CHILD MANDATE (LÅGSTADIEELEV - AGES 5-8):
+- **Target Audience**: The student is a 7-YEAR-OLD CHILD in Primary 1 / Lågstadiet (${name}).
+- **Strict Length Limit**: MAXIMUM 2 TO 3 SHORT SENTENCES PER RESPONSE! NEVER EVER OUTPUT WALLS OF TEXT!
+- **Strict Content Limit**:
+  * NO DATES OR YEARS (Do NOT write years like 793, 1066, 1496, 1821).
+  * NO LISTS OF KINGS OR NAMES (Do NOT list kings like Erik XIV, Karl XII, etc.).
+  * NO COMPLEX TEXTBOOK VOCABULARY.
+- **Teaching Style**: Speak like a warm, loving, enthusiastic Swedish 1st-grade teacher (*Svensk lågstadielärare*).
+- **Story-based**: Teach ONE tiny fun story idea at a time!
+  * Example for History: "För länge sedan fanns det vikingar i Sverige! De seglade i fina träbåtar 🐉. Vill du veta vad de bodde i för hus?"
+- **End Question**: ALWAYS end with ONE short, fun question to ask ${name}!
+` : lang === 'Swedish' ? `- **History & Social Studies Context**: When teaching History or Social Studies in Swedish, focus on Swedish history (Vikingatiden, Stormaktstiden, Gustav Vasa, Swedish democracy and welfare state) and world history.` : ''}
 
 Response Format Rules (VERY IMPORTANT):
-- Keep responses SHORT — aim for 3-6 sentences or bullet points per reply
+- Keep responses SHORT — aim for ${earlyPrimary ? '2-3 short sentences max' : '3-6 sentences or bullet points'} per reply
 - Use **bold** for key terms and concepts
-- Use numbered lists (1. 2. 3.) for step-by-step explanations
-- Use bullet points (- or •) for listing items
 - Break content into small sections with line breaks between them
 - For math/science: show ONE step at a time, then ask if the student wants to continue
 - NEVER dump an entire lesson at once — teach piece by piece
@@ -515,7 +532,7 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
         model: config.model,
         messages: apiMessages,
         stream: !isGreeting,
-        max_tokens: isGreeting ? 300 : 800,
+        max_tokens: isGreeting ? 300 : (earlyPrimary ? 220 : 800),
         temperature: isGreeting ? 0.8 : 0.7,
       }),
     };

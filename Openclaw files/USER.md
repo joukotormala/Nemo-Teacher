@@ -22,7 +22,7 @@
 
 ### 3. Florence (7 years old)
 - **Schooling:** Primary 1 / Lågstadiet (Swedish school subjects).
-- **Interests:** Early Swedish reading, elementary math, science, visual drawing, and story-based learning.
+- **Interests:** Early Swedish reading, elementary math, science, visual drawing, Gustav Vasa and story-based learning.
 - **Languages:** Swedish (Primary), English.
 - **Teaching Style & Analogies:**
   - **Swedish Elementary Teacher Persona (*Svensk lågstadielärare*):** Encouraging, patient, play-based, and gentle.
