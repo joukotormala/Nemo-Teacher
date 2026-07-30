@@ -215,7 +215,7 @@ export const subjects: SubjectInfo[] = [
     minGradeIndex: 1,
     maxGradeIndex: 17,
     suggestions: [
-      { label_th: 'ประวัติศาสตร์ไทย', label_en: 'Thai History', label_sv: 'Thailändsk historia', prompt_th: 'สอนเรื่องประวัติศาสตร์ไทย ตั้งแต่อาณาจักรโบราณจนถึงปัจจุบัน', prompt_en: 'Teach me Thai history from ancient kingdoms to modern times', prompt_sv: 'Lär mig thailändsk historia från gamla riken till nutid' },
+      { label_th: 'ประวัติศาสตร์ไทย', label_en: 'Thai History', label_sv: 'Svensk historia', prompt_th: 'สอนเรื่องประวัติศาสตร์ไทย ตั้งแต่อาณาจักรโบราณจนถึงปัจจุบัน', prompt_en: 'Teach me Thai history from ancient kingdoms to modern times', prompt_sv: 'Lär mig om Sveriges historia från vikingatiden till modern tid' },
       { label_th: 'ประวัติศาสตร์โลก', label_en: 'World History', label_sv: 'Världshistoria', prompt_th: 'สอนเรื่องประวัติศาสตร์โลกที่สำคัญ เช่น สงครามโลก การปฏิวัติ', prompt_en: 'Teach me key events in world history: wars, revolutions, empires', prompt_sv: 'Lär mig viktiga händelser i världshistorien: krig, revolutioner och riken' },
       { label_th: 'ภูมิศาสตร์', label_en: 'Geography', label_sv: 'Geografi', prompt_th: 'สอนเรื่องภูมิศาสตร์ไทยและโลก ภูมิประเทศ ภูมิอากาศ', prompt_en: 'Teach me geography: landforms, climate, and countries of the world', prompt_sv: 'Lär mig geografi: landformer, klimat och världens länder' },
       { label_th: 'เศรษฐศาสตร์', label_en: 'Economics', label_sv: 'Ekonomi', prompt_th: 'สอนเรื่องเศรษฐศาสตร์เบื้องต้น อุปสงค์ อุปทาน และระบบเศรษฐกิจ', prompt_en: 'Teach me basic economics: supply, demand, and economic systems', prompt_sv: 'Lär mig grundläggande ekonomi: utbud, efterfrågan och ekonomiska system' },
@@ -260,14 +260,14 @@ export const subjects: SubjectInfo[] = [
     bgColor: 'bg-yellow-50 dark:bg-yellow-950/30',
     description_th: 'ประวัติศาสตร์ไทยและโลก เหตุการณ์สำคัญในอดีต',
     description_en: 'Thai and world history, key events and civilizations',
-    description_sv: 'Thailändsk och världshistoria, viktiga händelser i det förflutna',
+    description_sv: 'Svensk och världshistoria, viktiga händelser i det förflutna',
     minGradeIndex: 1,
     maxGradeIndex: 17,
     suggestions: [
-      { label_th: 'อาณาจักรไทยโบราณ', label_en: 'Ancient Thai Kingdoms', label_sv: 'Antika thailändska riken', prompt_th: 'สอนเรื่องสุโขทัย อยุธยา ธนบุรี และรัตนโกสินทร์', prompt_en: 'Teach me about Sukhothai, Ayutthaya, Thonburi, and Rattanakosin kingdoms', prompt_sv: 'Lär mig om Sukhothai, Ayutthaya, Thonburi och Rattanakosin' },
+      { label_th: 'อาณาจักรไทยโบราณ', label_en: 'Ancient Thai Kingdoms', label_sv: 'Sveriges äldre historia', prompt_th: 'สอนเรื่องสุโขทัย อยุธยา ธนบุรี และรัตนโกสินทร์', prompt_en: 'Teach me about Sukhothai, Ayutthaya, Thonburi, and Rattanakosin kingdoms', prompt_sv: 'Lär mig om Sveriges historia: Vikingatiden, medeltiden och Gustav Vasa' },
       { label_th: 'ประวัติศาสตร์โลกยุคใหม่', label_en: 'Modern World History', label_sv: 'Världshistoria i modern tid', prompt_th: 'สอนเรื่องสงครามโลก การปฏิวัติอุตสาหกรรม และสงครามเย็น', prompt_en: 'Teach me about World Wars, Industrial Revolution, and Cold War', prompt_sv: 'Lär mig om världskrigen, industriella revolutionen och kalla kriget' },
       { label_th: 'อารยธรรมโลก', label_en: 'World Civilizations', label_sv: 'Världens civilisationer', prompt_th: 'สอนเรื่องอารยธรรมกรีก โรมัน อียิปต์ และจีน', prompt_en: 'Teach me about Greek, Roman, Egyptian, and Chinese civilizations', prompt_sv: 'Lär mig om grekiska, romerska, egyptiska och kinesiska civilisationer' },
-      { label_th: 'ประวัติศาสตร์ไทยยุคใหม่', label_en: 'Modern Thai History', label_sv: 'Modern thailändsk historia', prompt_th: 'สอนเรื่องไทยในยุคปัจจุบัน การเปลี่ยนแปลงทางการเมืองและสังคม', prompt_en: 'Teach me about modern Thailand: political and social changes', prompt_sv: 'Lär mig om det moderna Thailand: politiska och sociala förändringar' },
+      { label_th: 'ประวัติศาสตร์ไทยยุคใหม่', label_en: 'Modern Thai History', label_sv: 'Sveriges moderna historia', prompt_th: 'สอนเรื่องไทยในยุคปัจจุบัน การเปลี่ยนแปลงทางการเมืองและสังคม', prompt_en: 'Teach me about modern Thailand: political and social changes', prompt_sv: 'Lär mig om Sveriges moderna historia, demokrati och välfärdsstaten' },
     ],
   },
   {
