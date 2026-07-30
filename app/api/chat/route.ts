@@ -516,8 +516,8 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
       let customErrMsg = `LLM API error: ${response?.status}`;
       const isGemini = model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL;
 
-      if (isGemini && (response?.status === 400 || response?.status === 401 || errText.includes('valid API key'))) {
-        customErrMsg = 'Google Gemini API Key is invalid or expired. Please check your GEMINI_API_KEY in Vercel settings (must start with AIzaSy...).';
+      if (isGemini && (response?.status === 400 || response?.status === 401 || errText.includes('valid API key') || errText.includes('AUTHENTICATED') || errText.includes('UNAUTHENTICATED'))) {
+        customErrMsg = 'Google Gemini API Key authentication error. Please go to https://aistudio.google.com/app/apikey, click "+ Create API Key" -> "Create API Key in new project" to get a key starting with AIzaSy...';
       } else if (response?.status === 401) {
         customErrMsg = 'Invalid API key for the selected LLM service.';
       } else {
