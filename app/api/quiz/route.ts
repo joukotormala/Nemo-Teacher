@@ -36,6 +36,7 @@ Rules:
 - Only one option is correct
 - Questions should be clear and age-appropriate
 - Write questions in ${lang}
+- CRITICAL: Write ALL questions, options, and explanations strictly in ${lang}! Do NOT use English or Thai if ${lang} is Swedish.
 - Return ONLY valid JSON, no markdown, no explanation outside the JSON
 
 Return this exact JSON structure:

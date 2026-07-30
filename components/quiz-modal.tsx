@@ -24,11 +24,11 @@ interface QuizModalProps {
 }
 
 const CONFIDENCE_OPTIONS = [
-  { value: 1, emoji: '😕', labelEn: 'Not really', labelTh: 'ยังไม่เข้าใจ' },
-  { value: 2, emoji: '😐', labelEn: 'A little',   labelTh: 'เข้าใจนิดหน่อย' },
-  { value: 3, emoji: '🙂', labelEn: 'Mostly',     labelTh: 'เข้าใจส่วนใหญ่' },
-  { value: 4, emoji: '😊', labelEn: 'Well',       labelTh: 'เข้าใจดี' },
-  { value: 5, emoji: '🤩', labelEn: 'Perfectly!', labelTh: 'เข้าใจมาก!' },
+  { value: 1, emoji: '😕', labelEn: 'Not really', labelTh: 'ยังไม่เข้าใจ', labelSv: 'Inte direkt' },
+  { value: 2, emoji: '😐', labelEn: 'A little',   labelTh: 'เข้าใจนิดหน่อย', labelSv: 'Lite grann' },
+  { value: 3, emoji: '🙂', labelEn: 'Mostly',     labelTh: 'เข้าใจส่วนใหญ่', labelSv: 'Mestadelen' },
+  { value: 4, emoji: '😊', labelEn: 'Well',       labelTh: 'เข้าใจดี',       labelSv: 'Bra' },
+  { value: 5, emoji: '🤩', labelEn: 'Perfectly!', labelTh: 'เข้าใจมาก!',    labelSv: 'Perfekt!' },
 ];
 
 type Step = 'confidence' | 'loading' | 'quiz' | 'result';
@@ -38,6 +38,7 @@ export function QuizModal({
   messages, subject, subjectEmoji, studentName, locale, numQuestions = 3,
 }: QuizModalProps) {
   const th = locale === 'th';
+  const sv = locale === 'sv';
 
   const [step, setStep] = useState<Step>('confidence');
   const [confidence, setConfidence] = useState(0);
@@ -112,10 +113,10 @@ export function QuizModal({
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
 
   const scoreMsg = () => {
-    if (pct === 100) return th ? '🏆 เยี่ยมมาก! คะแนนเต็ม!' : '🏆 Perfect score!';
-    if (pct >= 66)  return th ? '🎉 ดีมาก! เกือบเต็มเลย!'  : '🎉 Great job!';
-    if (pct >= 33)  return th ? '💪 ไม่เป็นไร ลองทบทวนอีกครั้ง!' : '💪 Keep going, review and try again!';
-    return th ? '📚 ทบทวนบทเรียนนี้อีกครั้งนะ!' : '📚 Review this lesson and try again!';
+    if (pct === 100) return th ? '🏆 เยี่ยมมาก! คะแนนเต็ม!' : sv ? '🏆 Perfekt resultat!' : '🏆 Perfect score!';
+    if (pct >= 66)  return th ? '🎉 ดีมาก! เกือบเต็มเลย!'  : sv ? '🎉 Bra jobbat!' : '🎉 Great job!';
+    if (pct >= 33)  return th ? '💪 ไม่เป็นไร ลองทบทวนอีกครั้ง!' : sv ? '💪 Fortsätt så, repetera och försök igen!' : '💪 Keep going, review and try again!';
+    return th ? '📚 ทบทวนบทเรียนนี้อีกครั้งนะ!' : sv ? '📚 Repetera denna läxa och försök igen!' : '📚 Review this lesson and try again!';
   };
 
   const q = questions[currentQ];
@@ -146,10 +147,10 @@ export function QuizModal({
                 {subjectEmoji ? `${subjectEmoji} ` : ''}{subject}
               </p>
               <h2 className="text-white text-xl font-bold">
-                {step === 'confidence' && (th ? 'เข้าใจบทเรียนนี้แค่ไหน?' : 'How well did you understand?')}
-                {step === 'loading'    && (th ? 'กำลังสร้างแบบทดสอบ...' : 'Creating your quiz...')}
-                {step === 'quiz'       && (th ? `ข้อที่ ${currentQ + 1} จาก ${questions.length}` : `Question ${currentQ + 1} of ${questions.length}`)}
-                {step === 'result'     && (th ? 'ผลการทดสอบ 🎯' : 'Quiz Results 🎯')}
+                {step === 'confidence' && (th ? 'เข้าใจบทเรียนนี้แค่ไหน?' : sv ? 'Hur väl förstod du?' : 'How well did you understand?')}
+                {step === 'loading'    && (th ? 'กำลังสร้างแบบทดสอบ...' : sv ? 'Skapar ditt prov...' : 'Creating your quiz...')}
+                {step === 'quiz'       && (th ? `ข้อที่ ${currentQ + 1} จาก ${questions.length}` : sv ? `Fråga ${currentQ + 1} av ${questions.length}` : `Question ${currentQ + 1} of ${questions.length}`)}
+                {step === 'result'     && (th ? 'ผลการทดสอบ 🎯' : sv ? 'Provresultat 🎯' : 'Quiz Results 🎯')}
               </h2>
               {/* Progress bar for quiz */}
               {step === 'quiz' && (
@@ -169,7 +170,11 @@ export function QuizModal({
               {step === 'confidence' && (
                 <div className="space-y-5">
                   <p className="text-sm text-muted-foreground text-center">
-                    {th ? `${studentName} เข้าใจสิ่งที่เรียนวันนี้แค่ไหน?` : `How well do you understand what you learned today, ${studentName}?`}
+                    {th
+                      ? `${studentName} เข้าใจสิ่งที่เรียนวันนี้แค่ไหน?`
+                      : sv
+                      ? `Hur väl förstår du det du har lärt dig idag, ${studentName}?`
+                      : `How well do you understand what you learned today, ${studentName}?`}
                   </p>
                   <div className="flex justify-center gap-3">
                     {CONFIDENCE_OPTIONS.map(opt => (
@@ -184,7 +189,7 @@ export function QuizModal({
                       >
                         <span className="text-3xl">{opt.emoji}</span>
                         <span className="text-[10px] font-medium text-muted-foreground">
-                          {th ? opt.labelTh : opt.labelEn}
+                          {th ? opt.labelTh : sv ? opt.labelSv : opt.labelEn}
                         </span>
                       </button>
                     ))}
@@ -196,11 +201,11 @@ export function QuizModal({
                     className="w-full h-12 rounded-2xl font-semibold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-40 transition-all"
                     style={{ background: 'linear-gradient(135deg,#7c3aed,#db2777)' }}
                   >
-                    {th ? 'ต่อไป — ทำแบบทดสอบ' : 'Next — Take the quiz'}
+                    {th ? 'ต่อไป — ทำแบบทดสอบ' : sv ? 'Nästa — Ta provet' : 'Next — Take the quiz'}
                     <ChevronRight className="w-4 h-4" />
                   </button>
                   <button onClick={handleClose} className="w-full text-xs text-muted-foreground hover:text-foreground text-center">
-                    {th ? 'ข้ามการทดสอบ' : 'Skip quiz'}
+                    {th ? 'ข้ามการทดสอบ' : sv ? 'Hoppa över provet' : 'Skip quiz'}
                   </button>
                 </div>
               )}
@@ -210,7 +215,7 @@ export function QuizModal({
                 <div className="flex flex-col items-center gap-4 py-8">
                   <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
                   <p className="text-sm text-muted-foreground">
-                    {th ? 'Nemo กำลังสร้างคำถามสำหรับคุณ...' : 'Nemo is creating questions just for you...'}
+                    {th ? 'Nemo กำลังสร้างคำถามสำหรับคุณ...' : sv ? 'Nemo skapar frågor åt dig...' : 'Nemo is creating questions just for you...'}
                   </p>
                 </div>
               )}
@@ -252,7 +257,7 @@ export function QuizModal({
                         animate={{ opacity: 1, height: 'auto' }}
                         className={`rounded-xl px-4 py-3 text-sm ${isCorrect ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'}`}
                       >
-                        <span className="font-semibold">{isCorrect ? (th ? '✅ ถูกต้อง! ' : '✅ Correct! ') : (th ? '❌ ไม่ถูก — ' : '❌ Not quite — ')}</span>
+                        <span className="font-semibold">{isCorrect ? (th ? '✅ ถูกต้อง! ' : sv ? '✅ Rätt! ' : '✅ Correct! ') : (th ? '❌ ไม่ถูก — ' : sv ? '❌ Inte riktigt — ' : '❌ Not quite — ')}</span>
                         {q.explanation}
                       </motion.div>
                     )}
@@ -267,8 +272,8 @@ export function QuizModal({
                       style={{ background: 'linear-gradient(135deg,#7c3aed,#db2777)' }}
                     >
                       {currentQ + 1 >= questions.length
-                        ? (th ? 'ดูผลลัพธ์ 🎯' : 'See results 🎯')
-                        : (th ? 'ข้อถัดไป →' : 'Next →')}
+                        ? (th ? 'ดูผลลัพธ์ 🎯' : sv ? 'Visa resultat 🎯' : 'See results 🎯')
+                        : (th ? 'ข้อถัดไป →' : sv ? 'Nästa →' : 'Next →')}
                     </motion.button>
                   )}
                 </div>
@@ -307,6 +312,8 @@ export function QuizModal({
                     <p className="text-sm text-muted-foreground mt-1">
                       {th
                         ? `คุณตอบถูก ${score} จาก ${total} ข้อ (${pct}%)`
+                        : sv
+                        ? `Du fick ${score} av ${total} rätt (${pct}%)`
                         : `You got ${score} out of ${total} correct (${pct}%)`}
                     </p>
                   </div>
@@ -325,7 +332,7 @@ export function QuizModal({
                     className="w-full h-11 rounded-2xl font-semibold text-sm text-white"
                     style={{ background: 'linear-gradient(135deg,#7c3aed,#db2777)' }}
                   >
-                    {th ? 'เสร็จสิ้น! ดูความก้าวหน้า 📊' : 'Done! View my progress 📊'}
+                    {th ? 'เสร็จสิ้น! ดูความก้าวหน้า 📊' : sv ? 'Klar! Visa mina framsteg 📊' : 'Done! View my progress 📊'}
                   </button>
                 </div>
               )}
