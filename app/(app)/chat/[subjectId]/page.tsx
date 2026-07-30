@@ -473,6 +473,8 @@ export default function ChatPage() {
 
     // Update local model name placeholder instantly
     if (savedModel === 'nvidia') setModelName('Nemotron-3-nano');
+    else if (savedModel === 'llama-3b') setModelName('Llama-3.2-3B');
+    else if (savedModel === 'llama-vision') setModelName('Llama-3.2-Vision');
     else if (savedModel === 'qwen') setModelName('Qwen-3-Next');
     else if (savedModel === 'cloud') setModelName('Llama-3.3-70B');
     else if (savedModel === 'llama-8b') setModelName('Llama-3.1-8B');
@@ -959,6 +961,8 @@ const STOP_WORDS = new Set([
     }
     // Update local model name instantly
     if (modelId === 'nvidia') setModelName('Nemotron-3-nano');
+    else if (modelId === 'llama-3b') setModelName('Llama-3.2-3B');
+    else if (modelId === 'llama-vision') setModelName('Llama-3.2-Vision');
     else if (modelId === 'qwen') setModelName('Qwen-3-Next');
     else if (modelId === 'cloud') setModelName('Llama-3.3-70B');
     else if (modelId === 'llama-8b') setModelName('Llama-3.1-8B');
@@ -971,6 +975,8 @@ const STOP_WORDS = new Set([
 
     const displayMap: Record<string, string> = {
       'nvidia': 'Nemotron-3-nano',
+      'llama-3b': 'Llama 3.2 3B',
+      'llama-vision': 'Llama 3.2 Vision',
       'qwen': 'Qwen 3 Next',
       'cloud': 'Llama 3.3',
       'llama-8b': 'Llama 3.1 8B',
@@ -1149,6 +1155,8 @@ const STOP_WORDS = new Set([
                     {(() => {
                       const isSv = locale === 'sv';
                       const badges: Record<string, { label: string; color: string; tip: string }> = {
+                        'llama-3b':       { label: isSv ? '⚡⚡⚡ Blixtsnabb' : '⚡⚡⚡ Ultra Fast', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 font-bold', tip: isSv ? 'Llama 3.2 3B — Svarar direkt utan väntetid (< 0.3s).' : 'Llama 3.2 3B — Ultra fast sub-second streaming responses.' },
+                        'llama-vision':   { label: isSv ? '📷 Läxhjälp / Bild' : '📷 Vision',        color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300 font-bold', tip: isSv ? 'Llama 3.2 11B Vision — Bäst för foton på läxor och grafer.' : 'Llama 3.2 11B Vision — Excellent image and photo reasoning.' },
                         'gemini':         { label: isSv ? '🇸🇪 Bäst för Florence' : '🤖 Google Gemini', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 font-bold', tip: isSv ? 'Google Gemini 2.0 Flash — Bäst för svenska och förklaringar till 7-åringar.' : 'Google Gemini 2.0 Flash — Excellent native Swedish fluency & fast responses.' },
                         'llama-8b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
                         'gemma-4b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
@@ -1186,6 +1194,14 @@ const STOP_WORDS = new Set([
                     <span className="text-[10px] text-muted-foreground font-mono">deepseek-ai/deepseek-r1 (Nvidia) — Deep reasoning</span>
                   </DropdownMenuItem>
                   <div className="px-2 py-1 mt-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-t border-border/50">Standard Models</div>
+                  <DropdownMenuItem onClick={() => handleModelChange('llama-3b')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
+                    <span className="font-semibold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400">{t('model.llama3b')}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">meta/llama-3.2-3b-instruct (Nvidia) — Sub-second instant response ⚡⚡⚡</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleModelChange('llama-vision')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+                    <span className="font-semibold text-xs sm:text-sm text-purple-700 dark:text-purple-400">{t('model.llamaVision')}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">meta/llama-3.2-11b-vision-instruct (Nvidia) — Vision & Photo analysis 📷</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('nvidia')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.nvidia')}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">Nemotron-3-nano (Nvidia)</span>

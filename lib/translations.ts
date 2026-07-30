@@ -137,6 +137,8 @@ export const translations: Record<string, Record<Locale, string>> = {
   'model.cloud': { th: 'คลาวด์ลามะ 70B 🟢 (NVIDIA - ดีที่สุดสำหรับทุกวิชา/ภาษาสวีเดน)', en: 'Llama Cloud - Llama 3.3 70B 🟢 (Nvidia - Best Overall & Swedish)', sv: 'Llama Cloud - Llama 3.3 70B 🟢 (Nvidia - Bäst för alla ämnen & svenska)' },
   'model.nemotronSuper': { th: 'เนโมทราน ซูเปอร์ 49B ⭐ (NVIDIA - วิทยาศาสตร์)', en: 'Nemotron Super 49B ⭐ (Nvidia - Best for Science)', sv: 'Nemotron Super 49B ⭐ (Nvidia - Bäst för vetenskap & matematik)' },
   'model.deepseekR1': { th: 'ดีพซีค R1 🧠 (NVIDIA - การคิดเชิงลึก)', en: 'DeepSeek R1 🧠 (Nvidia - Deep Reasoning)', sv: 'DeepSeek R1 🧠 (Nvidia - Djupstegsresonemang)' },
+  'model.llama3b': { th: 'คลาวด์ลามะ 3B ⚡⚡⚡ (NVIDIA - เร็วที่สุดแบบเรียลไทม์)', en: 'Llama Cloud - Llama 3.2 3B ⚡⚡⚡ (Nvidia - Ultra Fast)', sv: 'Llama Cloud - Llama 3.2 3B ⚡⚡⚡ (Nvidia - Blixtsnabb)' },
+  'model.llamaVision': { th: 'คลาวด์ลามะ วิชั่น 11B 📷 (NVIDIA - อ่านภาพถ่าย/โจทย์ภาพ)', en: 'Llama Cloud - Llama 3.2 11B Vision 📷 (Nvidia - Image & Photo Homework)', sv: 'Llama Cloud - Llama 3.2 11B Vision 📷 (Nvidia - Bild & Läxhjälp)' },
   'model.llama8b': { th: 'คลาวด์ลามะ 8B ⚡ (NVIDIA - ตอบเร็ว)', en: 'Llama Cloud - Llama 8B ⚡ (Nvidia - Fastest)', sv: 'Llama Cloud - Llama 8B ⚡ (Nvidia - Snabbast)' },
   'model.gemma4b': { th: 'คลาวด์เจมม่า 4B ⚡ (NVIDIA)', en: 'Gemma Cloud - Gemma 4B ⚡', sv: 'Gemma Cloud - Gemma 4B ⚡' },
   'model.gemini': { th: 'กูเกิล เจมินาย 2.0 แฟลช 🤖 (Google Gemini - ฟรี/ดีที่สุดสำหรับ Florence)', en: 'Google Gemini 2.0 Flash 🤖 (Google Free Tier - Best for Florence)', sv: 'Google Gemini 2.0 Flash 🤖 (Google gratis - Bäst för Florence 🇸🇪)' },

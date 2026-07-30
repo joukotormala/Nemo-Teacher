@@ -7,6 +7,8 @@ const OLLAMA_URL = process.env.OLLAMA_URL; // e.g. http://localhost:11434
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'aisingapore/Gemma-SEA-LION-v4-4B-VL';
 const LLAMA_MODEL = process.env.CLOUD_LLM_MODEL || 'meta/llama-3.3-70b-instruct';
 const LLAMA_8B_MODEL = 'meta/llama-3.1-8b-instruct';
+const LLAMA_3B_MODEL = 'meta/llama-3.2-3b-instruct';
+const LLAMA_VISION_MODEL = 'meta/llama-3.2-11b-vision-instruct';
 const GEMMA_4B_MODEL = 'google/gemma-3n-e4b-it';
 const NVIDIA_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
 const QWEN_MODEL = 'qwen/qwen3-next-80b-a3b-instruct';
@@ -18,6 +20,28 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 function getEndpointConfig(modelChoice?: string): { url: string; model: string; headers: Record<string, string> } | null {
   const choice = modelChoice || 'llama-8b';
+
+  if (choice === 'llama-3b') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: LLAMA_3B_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'llama-vision') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: LLAMA_VISION_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
 
   if (choice === 'gemini' || choice === 'google-gemini') {
     const cleanKey = (process.env.GEMINI_API_KEY || '').trim();

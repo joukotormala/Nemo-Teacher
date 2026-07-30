@@ -901,6 +901,8 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {(() => {
               const allModels = [
+                { id: 'llama-3b', label: t('model.llama3b'), desc: 'Llama-3.2-3B (Nvidia Cloud) — Ultra Fast & Instant Streaming ⚡⚡⚡', star: true },
+                { id: 'llama-vision', label: t('model.llamaVision'), desc: 'Llama-3.2-11B-Vision (Nvidia Cloud) — Photo & Homework Analysis 📷', star: true },
                 { id: 'gemini', label: t('model.gemini'), desc: 'gemini-2.0-flash (Google Free Tier) — Best for Florence 🇸🇪', star: true },
                 { id: 'cloud', label: t('model.cloud'), desc: 'Llama-3.3-70B (Nvidia Cloud) — Best Overall & Swedish', star: true },
                 { id: 'nemotron-super', label: t('model.nemotronSuper'), desc: 'llama-3.3-nemotron-super-49b (Nvidia) — Best for Science & Math', star: true },
