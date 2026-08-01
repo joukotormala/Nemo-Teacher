@@ -141,7 +141,7 @@ export const translations: Record<string, Record<Locale, string>> = {
   'model.llamaVision': { th: 'คลาวด์ลามะ วิชั่น 11B 📷 (NVIDIA - อ่านภาพถ่าย/โจทย์ภาพ)', en: 'Llama Cloud - Llama 3.2 11B Vision 📷 (Nvidia - Image & Photo Homework)', sv: 'Llama Cloud - Llama 3.2 11B Vision 📷 (Nvidia - Bild & Läxhjälp)' },
   'model.llama8b': { th: 'คลาวด์ลามะ 8B ⚡ (NVIDIA - ตอบเร็ว)', en: 'Llama Cloud - Llama 8B ⚡ (Nvidia - Fastest)', sv: 'Llama Cloud - Llama 8B ⚡ (Nvidia - Snabbast)' },
   'model.gemma4b': { th: 'คลาวด์เจมม่า 4B ⚡ (NVIDIA)', en: 'Gemma Cloud - Gemma 4B ⚡', sv: 'Gemma Cloud - Gemma 4B ⚡' },
-  'model.gemini': { th: 'กูเกิล เจมินาย 2.0 แฟลช 🤖 (Google Gemini - ฟรี/ดีที่สุดสำหรับ Florence)', en: 'Google Gemini 2.0 Flash 🤖 (Google Free Tier - Best for Florence)', sv: 'Google Gemini 2.0 Flash 🤖 (Google gratis - Bäst för Florence 🇸🇪)' },
+  'model.gemini': { th: 'กูเกิล เจมินาย 3.6 แฟลช 🤖 (Google Gemini - ฟรี/ดีที่สุดสำหรับ Florence)', en: 'Google Gemini 3.6 Flash 🤖 (Google Free Tier - Best for Florence)', sv: 'Google Gemini 3.6 Flash 🤖 (Google gratis - Bäst för Florence 🇸🇪)' },
   'model.seaLion': { th: 'เนโมโลคอล - Sea-Lion (Ollama/LM Studio) 🇸🇬', en: 'Local Tutor - Sea-Lion (Ollama/LM Studio) 🇸🇬', sv: 'Lokal lärare - Sea-Lion (Ollama/LM Studio) 🇸🇬' },
   'model.nemotron': { th: 'เนโมโลคอล - Nemotron 🟢', en: 'Local Tutor - Nemotron 🟢', sv: 'Lokal lärare - Nemotron 🟢' },
 };
