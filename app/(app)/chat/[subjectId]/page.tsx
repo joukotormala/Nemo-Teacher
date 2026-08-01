@@ -492,7 +492,7 @@ export default function ChatPage() {
     else if (savedModel === 'cloud') setModelName('Llama-3.3-70B');
     else if (savedModel === 'llama-8b') setModelName('Llama-3.1-8B');
     else if (savedModel === 'gemini') setModelName('Google Gemini 2.0');
-    else if (savedModel === 'gemini15') setModelName('Google Gemini 1.5 Pro');
+    else if (savedModel === 'gemini15') setModelName('Google Gemini 2.5 Pro');
     else if (savedModel === 'gemma-4b') setModelName('Gemma-3-4B');
     else if (savedModel === 'sea-lion') setModelName('Sea-Lion (Local)');
     else if (savedModel === 'nemotron') setModelName('nemotron-mini');
@@ -981,7 +981,7 @@ const STOP_WORDS = new Set([
     else if (modelId === 'cloud') setModelName('Llama-3.3-70B');
     else if (modelId === 'llama-8b') setModelName('Llama-3.1-8B');
     else if (modelId === 'gemini') setModelName('Google Gemini 2.0');
-    else if (modelId === 'gemini15') setModelName('Google Gemini 1.5 Pro');
+    else if (modelId === 'gemini15') setModelName('Google Gemini 2.5 Pro');
     else if (modelId === 'gemma-4b') setModelName('Gemma-3-4B');
     else if (modelId === 'sea-lion') setModelName('Sea-Lion (Local)');
     else if (modelId === 'nemotron') setModelName('nemotron-mini');
@@ -996,7 +996,7 @@ const STOP_WORDS = new Set([
       'cloud': 'Llama 3.3',
       'llama-8b': 'Llama 3.1 8B',
       'gemini': 'Google Gemini 2.0',
-      'gemini15': 'Google Gemini 1.5 Pro',
+      'gemini15': 'Google Gemini 2.5 Pro',
       'gemma-4b': 'Gemma 3 4B',
       'sea-lion': 'Sea-Lion',
       'nemotron': 'Nemotron-mini',
@@ -1174,7 +1174,7 @@ const STOP_WORDS = new Set([
                         'llama-3b':       { label: isSv ? '⚡⚡⚡ Blixtsnabb' : '⚡⚡⚡ Ultra Fast', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 font-bold', tip: isSv ? 'Llama 3.2 3B — Svarar direkt utan väntetid (< 0.3s).' : 'Llama 3.2 3B — Ultra fast sub-second streaming responses.' },
                         'llama-vision':   { label: isSv ? '📷 Läxhjälp / Bild' : '📷 Vision',        color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300 font-bold', tip: isSv ? 'Llama 3.2 11B Vision — Bäst för foton på läxor och grafer.' : 'Llama 3.2 11B Vision — Excellent image and photo reasoning.' },
                         'gemini':         { label: isSv ? '🇸🇪 Bäst för Florence' : '🤖 Google Gemini', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 font-bold', tip: isSv ? 'Google Gemini 2.0 Flash — Bäst för svenska och förklaringar till 7-åringar.' : 'Google Gemini 2.0 Flash — Excellent native Swedish fluency & fast responses.' },
-                        'gemini15':       { label: isSv ? '🤖 Gemini Pro' : '🤖 Gemini Pro', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 font-bold', tip: isSv ? 'Google Gemini 1.5 Pro — Avancerad logik.' : 'Google Gemini 1.5 Pro — Premium reasoning.' },
+                        'gemini15':       { label: isSv ? '🤖 Gemini Pro' : '🤖 Gemini Pro', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 font-bold', tip: isSv ? 'Google Gemini 2.5 Pro — Avancerad logik.' : 'Google Gemini 2.5 Pro — Premium reasoning.' },
                         'llama-8b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
                         'gemma-4b':       { label: isSv ? '⚡⚡ Snabbast' : '⚡⚡ Fastest',  color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',     tip: isSv ? 'Mycket snabb — bra för snabba frågor.' : 'Very fast — great for quick questions. Smaller model, so answers may be simpler.' },
                         'nvidia':         { label: isSv ? '⚡ Snabb' : '⚡ Fast',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',         tip: isSv ? 'Snabb och effektiv.' : 'Fast and efficient. Good balance of speed and quality for most subjects.' },
@@ -1233,7 +1233,7 @@ const STOP_WORDS = new Set([
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('gemini15')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md border border-blue-200 dark:border-blue-800">
                     <span className="font-semibold text-xs sm:text-sm text-blue-700 dark:text-blue-400">{t('model.gemini15')}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">gemini-1.5-pro (Premium)</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">gemini-2.5-pro (Premium)</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('cloud')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.cloud')}</span>
