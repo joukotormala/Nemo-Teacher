@@ -55,6 +55,18 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
     };
   }
 
+  if (choice === 'gemini15') {
+    const cleanKey = (process.env.GEMINI_API_KEY || '').trim();
+    return {
+      url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      model: 'gemini-1.5-pro',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cleanKey}`,
+      },
+    };
+  }
+
   if (choice === 'nvidia') {
     return {
       url: 'https://integrate.api.nvidia.com/v1/chat/completions',
