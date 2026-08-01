@@ -59,7 +59,7 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
     const cleanKey = (process.env.GEMINI_API_KEY || '').trim();
     return {
       url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-      model: 'gemini-2.5-pro',
+      model: 'gemini-pro-latest',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${cleanKey}`,
