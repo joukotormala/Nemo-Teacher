@@ -491,7 +491,7 @@ export default function ChatPage() {
     else if (savedModel === 'qwen') setModelName('Qwen-3-Next');
     else if (savedModel === 'cloud') setModelName('Llama-3.3-70B');
     else if (savedModel === 'llama-8b') setModelName('Llama-3.1-8B');
-    else if (savedModel === 'gemini') setModelName('Google Gemini 2.0');
+    else if (savedModel === 'gemini') setModelName('Google Gemini 3.6');
     else if (savedModel === 'gemma-4b') setModelName('Gemma-3-4B');
     else if (savedModel === 'sea-lion') setModelName('Sea-Lion (Local)');
     else if (savedModel === 'nemotron') setModelName('nemotron-mini');
@@ -979,7 +979,7 @@ const STOP_WORDS = new Set([
     else if (modelId === 'qwen') setModelName('Qwen-3-Next');
     else if (modelId === 'cloud') setModelName('Llama-3.3-70B');
     else if (modelId === 'llama-8b') setModelName('Llama-3.1-8B');
-    else if (modelId === 'gemini') setModelName('Google Gemini 2.0');
+    else if (modelId === 'gemini') setModelName('Google Gemini 3.6');
     else if (modelId === 'gemma-4b') setModelName('Gemma-3-4B');
     else if (modelId === 'sea-lion') setModelName('Sea-Lion (Local)');
     else if (modelId === 'nemotron') setModelName('nemotron-mini');
@@ -993,7 +993,7 @@ const STOP_WORDS = new Set([
       'qwen': 'Qwen 3 Next',
       'cloud': 'Llama 3.3',
       'llama-8b': 'Llama 3.1 8B',
-      'gemini': 'Google Gemini 2.0',
+      'gemini': 'Google Gemini 3.6',
       'gemma-4b': 'Gemma 3 4B',
       'sea-lion': 'Sea-Lion',
       'nemotron': 'Nemotron-mini',
