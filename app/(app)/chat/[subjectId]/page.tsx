@@ -509,8 +509,12 @@ export default function ChatPage() {
       setTopicSuggestions(predefined);
     }
 
-    setGreetingLoading(true);
+    const hasPredefined = (subject?.suggestions?.length ?? 0) > 0;
+    if (!hasPredefined) {
+      setGreetingLoading(true);
+    }
     const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
 
     (async () => {
       try {
@@ -571,11 +575,15 @@ export default function ChatPage() {
           console.error('Greeting fetch error:', err);
         }
       } finally {
+        clearTimeout(timeoutId);
         setGreetingLoading(false);
       }
     })();
 
-    return () => { controller.abort(); };
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [subject, activeStudent]);
 
   // Load a past conversation
