@@ -701,6 +701,14 @@ export default function SettingsPage() {
                 className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">{locale === 'th' ? 'เลือกโปรแกรม' : 'Select program'}</option>
+                <optgroup label={locale === 'th' ? '── ระดับปฐมวัย / ประถมศึกษา ──' : locale === 'sv' ? '── Förskola & Lågstadiet (Sverige) ──' : '── Preschool & Primary (Sweden) ──'}>
+                  <option value="Lpfö18">{locale === 'sv' ? 'Svensk förskola Lpfö 18 (1–5 år)' : locale === 'th' ? 'หลักสูตรสวีเดน — อนุบาล (1–5 ขวบ)' : 'Swedish Preschool (Lpfö 18, ages 1–5)'}</option>
+                  <option value="Lgr22_FK">{locale === 'sv' ? 'Svensk förskoleklass Lgr22 (6 år / Åk F)' : locale === 'th' ? 'หลักสูตรสวีเดน — Förskoleklass (6 ขวบ)' : 'Swedish Kindergarten / Åk F (6 years)'}</option>
+                  <option value="Lgr22 (Svensk Grundskola - Åk 1-3)">{locale === 'sv' ? 'Svensk grundskola Lgr22 — Lågstadiet (Åk 1–3)' : locale === 'th' ? 'หลักสูตรสวีเดน (Lgr22) — ชั้น ป.1–ป.3' : 'Swedish Primary (Lgr22) — Grades 1–3'}</option>
+                  <option value="Lgr22_P1">{locale === 'sv' ? 'Svensk grundskola Lgr22 — Årskurs 1' : locale === 'th' ? 'หลักสูตรสวีเดน (Lgr22) — ชั้น ป.1' : 'Swedish Primary (Lgr22) — Grade 1'}</option>
+                  <option value="Lgr22_P2">{locale === 'sv' ? 'Svensk grundskola Lgr22 — Årskurs 2' : locale === 'th' ? 'หลักสูตรสวีเดน (Lgr22) — ชั้น ป.2' : 'Swedish Primary (Lgr22) — Grade 2'}</option>
+                  <option value="Lgr22_P3">{locale === 'sv' ? 'Svensk grundskola Lgr22 — Årskurs 3' : locale === 'th' ? 'หลักสูตรสวีเดน (Lgr22) — ชั้น ป.3' : 'Swedish Primary (Lgr22) — Grade 3'}</option>
+                </optgroup>
                 <optgroup label={locale === 'th' ? '── ระดับมัธยม ──' : '── High School ──'}>
                   <option value="Thai">{locale === 'th' ? 'หลักสูตรปกติ (ภาษาไทย)' : 'Thai Program (Regular)'}</option>
                   <option value="EP">English Program (EP)</option>

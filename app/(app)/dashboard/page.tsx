@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { SubjectCard } from '@/components/subject-card';
-import { subjects, getSubjectsForGrade } from '@/lib/subjects';
+import { subjects, getSubjectsForGrade, isFlorence } from '@/lib/subjects';
 import { motion } from 'framer-motion';
 import { Sparkles, BarChart2, Flame } from 'lucide-react';
 import Link from 'next/link';
@@ -16,7 +16,9 @@ export default function DashboardPage() {
   const th = locale === 'th';
   const displayName = activeStudent?.nickname_thai ?? activeStudent?.nickname_english ?? activeStudent?.name_english ?? activeStudent?.name_thai ?? user?.user_metadata?.full_name ?? user?.email?.split?.('@')?.[0] ?? '';
   const gradeLevel = activeStudent?.current_grade;
-  const filteredSubjects = gradeLevel ? getSubjectsForGrade(gradeLevel) : subjects;
+  const filteredSubjects = gradeLevel
+    ? getSubjectsForGrade(gradeLevel, activeStudent ?? displayName)
+    : subjects.filter(s => isFlorence(activeStudent ?? displayName) ? (s.id !== 'computer_science' && s.id !== 'thai') : true);
 
   // Quick streak for dashboard badge
   const [streak, setStreak] = useState(0);

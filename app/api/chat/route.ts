@@ -181,6 +181,8 @@ export async function POST(request: NextRequest) {
 
     // School / curriculum context
     const isEP = schoolProgram?.toLowerCase().includes('ep') || schoolProgram?.toLowerCase().includes('english');
+    const isLpfö = schoolProgram?.toLowerCase().includes('lpfö') || schoolProgram?.toLowerCase().includes('förskola');
+    const isLgr22 = schoolProgram?.toLowerCase().includes('lgr22') || schoolProgram?.toLowerCase().includes('svensk') || schoolProgram?.toLowerCase().includes('swedish');
     const isUniversity = gradeLevel?.startsWith('university') || gradeLevel === 'graduate';
     const isSUT = schoolName?.includes('สุรนารี') || schoolName?.toLowerCase().includes('suranaree') || schoolName?.toLowerCase().includes('sut');
     const isMedScience = schoolProgram?.includes('Medical Science') || schoolProgram?.includes('วิทยาศาสตร์การแพทย์') || schoolProgram?.includes('med_science');
@@ -191,6 +193,10 @@ export async function POST(request: NextRequest) {
 - Program: ${schoolProgram || (isUniversity ? 'University Program' : 'Thai program')}
 ${isUniversity
   ? `- UNIVERSITY-LEVEL student. Use academic depth appropriate for undergraduate/graduate level. Expect prior high school science knowledge.`
+  : isLpfö
+  ? `- **Swedish Preschool (Lpfö 18)**: Follows the Swedish preschool curriculum (Lpfö 18, ages 1-5). Focus on play, curiosity, language development, and storytelling in Swedish.`
+  : isLgr22
+  ? `- **Swedish Grundskola (Lgr22)**: Follows the Swedish national curriculum (Skolverket Lgr22) for Lågstadiet / Förskoleklass. Primary language of instruction is Swedish (*Svenska*). Use Swedish elementary pedagogy (*Svensk lågstadielärare*: warm, encouraging, play-based, short sentences).`
   : `- This school follows the Thai Ministry of Education Basic Education Core Curriculum (Revised 2017)`}
 ${isSUT && isMedScience ? `- **SUT Medical Science Program (วิทยาศาสตร์การแพทย์ มทส.)**: 4-year B.Sc. under the Institute of Science. Core curriculum: Medical Biochemistry, Cell Biology, Microbiology & Parasitology, Immunology, Basic Hematology, Basic Pathology, Research Methodology, Bioinformatics, Quality Management & Biosafety. This student's goal is to become a researcher (นักวิจัย). Use correct scientific terminology in both Thai and English. Encourage research thinking.` : ''}
 ${isEP ? `- **English Program (EP)**: Core subjects (Math, Science) are taught IN ENGLISH. Use English for ${subjectName} unless student writes Thai.` : ''}

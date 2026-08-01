@@ -248,6 +248,29 @@ export const subjects: SubjectInfo[] = [
     ],
   },
   {
+    id: 'swedish',
+    slug: 'swedish',
+    code: 'swedish',
+    name_th: 'ภาษาสวีเดน',
+    name_en: 'Swedish Language',
+    name_sv: 'Svenska',
+    icon: BookText,
+    illustrationUrl: '/illustrations/reading_kid.png',
+    color: '#0284C7',
+    bgColor: 'bg-sky-50 dark:bg-sky-950/30',
+    description_th: 'เรียนรู้ภาษาสวีเดน ไวยากรณ์ การอ่าน และการเขียน',
+    description_en: 'Learn Swedish language, grammar, reading and writing',
+    description_sv: 'Lär dig svenska språket, grammatik, läsa och skriva',
+    minGradeIndex: 0,
+    maxGradeIndex: 17,
+    suggestions: [
+      { label_th: 'การอ่าน (Läsning)', label_en: 'Reading (Läsning)', label_sv: 'Läsning', prompt_th: 'ฝึกการอ่านภาษาสวีเดน', prompt_en: 'Practice Swedish reading', prompt_sv: 'Öva på att läsa svenska ord och meningar' },
+      { label_th: 'การเขียน (Skrivning)', label_en: 'Writing (Skrivning)', label_sv: 'Skrivning', prompt_th: 'ฝึกการเขียนภาษาสวีเดน', prompt_en: 'Practice Swedish writing', prompt_sv: 'Öva på att skriva bokstäver och ord på svenska' },
+      { label_th: 'ไวยากรณ์ (Grammatik)', label_en: 'Grammar (Grammatik)', label_sv: 'Grammatik', prompt_th: 'สอนไวยากรณ์สวีเดน', prompt_en: 'Teach me Swedish grammar', prompt_sv: 'Lär mig grundläggande svensk grammatik och meningsbyggnad' },
+      { label_th: 'คำศัพท์ (Ordförråd)', label_en: 'Vocabulary (Ordförråd)', label_sv: 'Ordförråd', prompt_th: 'สอนคำศัพท์สวีเดนใหม่ๆ', prompt_en: 'Teach me new Swedish vocabulary', prompt_sv: 'Lär mig nya svenska ord och begrepp' },
+    ],
+  },
+  {
     id: 'history',
     slug: 'history',
     code: 'history',
@@ -446,11 +469,32 @@ export const subjects: SubjectInfo[] = [
   },
 ];
 
+export function isFlorence(
+  student?: string | { name_english?: string | null; nickname_english?: string | null; name_thai?: string | null; nickname_thai?: string | null } | null
+): boolean {
+  if (!student) return false;
+  if (typeof student === 'string') {
+    return student.toLowerCase().includes('florence');
+  }
+  const names = [student.name_english, student.nickname_english, student.name_thai, student.nickname_thai];
+  return names.some(n => n && n.toLowerCase().includes('florence'));
+}
+
 export function getSubjectBySlug(slug: string): SubjectInfo | undefined {
   return subjects?.find?.((s: SubjectInfo) => s?.slug === slug);
 }
 
-export function getSubjectsForGrade(grade: string): SubjectInfo[] {
+export function getSubjectsForGrade(
+  grade: string,
+  student?: string | { name_english?: string | null; nickname_english?: string | null; name_thai?: string | null; nickname_thai?: string | null } | null
+): SubjectInfo[] {
   const gradeIdx = getGradeIndex(grade);
-  return subjects.filter(s => gradeIdx >= s.minGradeIndex && gradeIdx <= s.maxGradeIndex);
+  let filtered = subjects.filter(s => gradeIdx >= s.minGradeIndex && gradeIdx <= s.maxGradeIndex);
+
+  if (isFlorence(student)) {
+    const swedishKlass1Subjects = ['swedish', 'math', 'science', 'social', 'english', 'reading', 'history'];
+    filtered = filtered.filter(s => swedishKlass1Subjects.includes(s.id));
+  }
+
+  return filtered;
 }

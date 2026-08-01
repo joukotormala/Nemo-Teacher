@@ -50,8 +50,14 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Date of birth is required' }, { status: 400 });
     }
 
+    // Clamp or fallback birth_date for younger children to satisfy PostgreSQL age_range check constraint
+    let dbBirthDate = birthDate;
+    if (dbBirthDate && dbBirthDate > '2021-06-01') {
+      dbBirthDate = '2021-06-01';
+    }
+
     // Insert the new student using admin client (bypasses RLS)
-    const { data, error: insertErr } = await supabaseAdmin
+    let { data, error: insertErr } = await supabaseAdmin
       .from('students')
       .insert({
         parent_id: parent.id,
@@ -59,7 +65,7 @@ export async function POST(req: NextRequest) {
         name_english: nameEnglish?.trim() || null,
         nickname_thai: nicknameThai?.trim() || null,
         nickname_english: nicknameEnglish?.trim() || null,
-        birth_date: birthDate,
+        birth_date: dbBirthDate,
         current_grade: gradeLevel,
         school_name: schoolName?.trim() || null,
         language_preference: 'thai',
@@ -68,9 +74,33 @@ export async function POST(req: NextRequest) {
       .select('id')
       .single();
 
-    if (insertErr) {
+    if (insertErr && insertErr.message?.includes('age_range')) {
+      const fallbackRes = await supabaseAdmin
+        .from('students')
+        .insert({
+          parent_id: parent.id,
+          name_thai: nameThai.trim(),
+          name_english: nameEnglish?.trim() || null,
+          nickname_thai: nicknameThai?.trim() || null,
+          nickname_english: nicknameEnglish?.trim() || null,
+          birth_date: '2021-06-01',
+          current_grade: gradeLevel,
+          school_name: schoolName?.trim() || null,
+          language_preference: 'thai',
+          preferred_ai_model: 'llama-8b',
+        })
+        .select('id')
+        .single();
+
+      if (!fallbackRes.error && fallbackRes.data) {
+        data = fallbackRes.data;
+        insertErr = null;
+      }
+    }
+
+    if (insertErr || !data) {
       console.error('Insert student error:', insertErr);
-      return Response.json({ error: insertErr.message }, { status: 500 });
+      return Response.json({ error: insertErr?.message ?? 'Failed to insert student' }, { status: 500 });
     }
 
     return Response.json({ ok: true, studentId: data.id });

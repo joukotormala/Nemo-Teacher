@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { getSubjectBySlug } from '@/lib/subjects';
+import { getSubjectBySlug, isFlorence } from '@/lib/subjects';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -149,6 +149,19 @@ export default function ChatPage() {
   const { t, locale } = useLanguage();
 
   const subjectSlug = (params?.subjectId as string) ?? '';
+
+  useEffect(() => {
+    if (activeStudent && isFlorence(activeStudent) && (subjectSlug === 'computer_science' || subjectSlug === 'thai')) {
+      toast.error(
+        locale === 'sv'
+          ? 'Detta ämne är inte tillgängligt för Florence.'
+          : locale === 'th'
+          ? 'วิชานี้ไม่อนุญาตสำหรับ Florence'
+          : 'This subject is not available for Florence.'
+      );
+      router.push('/dashboard');
+    }
+  }, [activeStudent, subjectSlug, router, locale]);
   const subject = getSubjectBySlug(subjectSlug);
   const SubjectIcon = subject?.icon;
 
