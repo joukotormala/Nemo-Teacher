@@ -1225,7 +1225,7 @@ const STOP_WORDS = new Set([
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('gemini')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
                     <span className="font-semibold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400">{t('model.gemini')}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">gemini-2.0-flash (Google Free Tier) — Best for Florence 🇸🇪</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">gemini-3.6-flash (Google Free Tier) — Best for Florence 🇸🇪</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('cloud')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.cloud')}</span>

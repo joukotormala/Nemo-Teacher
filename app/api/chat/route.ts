@@ -14,7 +14,7 @@ const NVIDIA_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
 const QWEN_MODEL = 'qwen/qwen3-next-80b-a3b-instruct';
 const NEMOTRON_SUPER_MODEL = 'nvidia/llama-3.3-nemotron-super-49b-v1';
 const DEEPSEEK_R1_MODEL = 'deepseek-ai/deepseek-r1';
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-3.6-flash';
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
