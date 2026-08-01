@@ -550,7 +550,7 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
         model: config.model,
         messages: apiMessages,
         stream: !isGreeting,
-        max_tokens: isGreeting ? 300 : (earlyPrimary ? 220 : 800),
+        max_tokens: isGreeting ? 300 : 800,
         temperature: isGreeting ? 0.8 : 0.7,
       }),
     };
