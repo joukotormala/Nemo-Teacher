@@ -480,13 +480,22 @@ export function isFlorence(
   return names.some(n => n && n.toLowerCase().includes('florence'));
 }
 
+export function isSwedish(
+  student?: string | { language_preference?: string | null; school_program?: string | null } | null
+): boolean {
+  if (!student || typeof student === 'string') return false;
+  const isSwedishLang = student.language_preference === 'swedish';
+  const isSwedishProg = student.school_program && (student.school_program.toLowerCase().includes('lgr22') || student.school_program.toLowerCase().includes('lpfö') || student.school_program.toLowerCase().includes('svensk'));
+  return Boolean(isSwedishLang || isSwedishProg);
+}
+
 export function getSubjectBySlug(slug: string): SubjectInfo | undefined {
   return subjects?.find?.((s: SubjectInfo) => s?.slug === slug);
 }
 
 export function getSubjectsForGrade(
   grade: string,
-  student?: string | { name_english?: string | null; nickname_english?: string | null; name_thai?: string | null; nickname_thai?: string | null } | null
+  student?: string | { name_english?: string | null; nickname_english?: string | null; name_thai?: string | null; nickname_thai?: string | null; language_preference?: string | null; school_program?: string | null } | null
 ): SubjectInfo[] {
   const gradeIdx = getGradeIndex(grade);
   let filtered = subjects.filter(s => gradeIdx >= s.minGradeIndex && gradeIdx <= s.maxGradeIndex);
@@ -494,6 +503,8 @@ export function getSubjectsForGrade(
   if (isFlorence(student)) {
     const swedishKlass1Subjects = ['swedish', 'math', 'science', 'social', 'english', 'reading', 'history'];
     filtered = filtered.filter(s => swedishKlass1Subjects.includes(s.id));
+  } else if (isSwedish(student)) {
+    filtered = filtered.filter(s => s.id !== 'thai');
   }
 
   return filtered;
