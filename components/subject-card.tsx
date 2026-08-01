@@ -145,7 +145,7 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
                 <div className="p-3 space-y-1 max-h-[60vh] overflow-y-auto">
                   {subject?.suggestions?.map((s, idx) => {
                     const label = locale === 'th' ? s.label_th : (locale === 'sv' && s.label_sv) ? s.label_sv : s.label_en;
-                    const sublabel = locale === 'th' ? s.label_en : s.label_th;
+                    const sublabel = locale === 'sv' ? s.label_en : locale === 'th' ? s.label_en : (s.label_sv || s.label_th);
                     return (
                       <motion.button
                         key={idx}
