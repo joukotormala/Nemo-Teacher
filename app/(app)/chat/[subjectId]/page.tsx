@@ -238,17 +238,20 @@ export default function ChatPage() {
     // Stop any current speech
     window.speechSynthesis.cancel();
 
-    // Strip markdown formatting for cleaner speech
+    // Strip markdown formatting, images, and emojis for clean speech
     const clean = text
-      .replace(/```[\s\S]*?```/g, '') // code blocks
-      .replace(/`([^`]+)`/g, '$1')     // inline code
-      .replace(/\*\*([^*]+)\*\*/g, '$1') // bold
-      .replace(/\*([^*]+)\*/g, '$1')    // italic
-      .replace(/#+\s/g, '')            // headings
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links
-      .replace(/[\-\*]\s/g, '')        // list items
-      .replace(/\n{2,}/g, '. ')        // double newlines to pause
-      .replace(/\n/g, ' ')             // single newlines
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '')  // markdown images
+      .replace(/```[\s\S]*?```/g, '')          // code blocks
+      .replace(/`([^`]+)`/g, '$1')              // inline code
+      .replace(/\*\*([^*]+)\*\*/g, '$1')        // bold
+      .replace(/\*([^*]+)\*/g, '$1')             // italic
+      .replace(/#+\s/g, '')                     // headings
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // links
+      .replace(/[\-\*]\s/g, '')                 // list items
+      .replace(/\n{2,}/g, '. ')                 // double newlines to pause
+      .replace(/\n/g, ' ')                      // single newlines
+      .replace(/\p{Extended_Pictographic}/gu, '') // strip emojis & smileys!
+      .replace(/\s{2,}/g, ' ')                  // collapse extra spaces
       .trim();
 
     const utterance = new SpeechSynthesisUtterance(clean);
