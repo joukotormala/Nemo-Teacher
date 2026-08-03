@@ -85,9 +85,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    fs.mkdirSync(targetDir, { recursive: true });
-    fs.writeFileSync(filePath, buffer);
-    console.log(`[generate-image] Saved: ${filePath}`);
+    try {
+      fs.mkdirSync(targetDir, { recursive: true });
+      fs.writeFileSync(filePath, buffer);
+      console.log(`[generate-image] Saved: ${filePath}`);
+    } catch (fsErr: any) {
+      console.warn(`[generate-image] Could not save to disk (read-only FS?): ${fsErr.message}`);
+    }
 
     return new Response(buffer, {
       headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=31536000, immutable' },
