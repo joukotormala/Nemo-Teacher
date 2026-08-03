@@ -69,6 +69,44 @@ export default function DashboardPage() {
           </p>
         ) : null}
         <p className="text-muted-foreground mt-1">{t('dashboard.selectSubject')}</p>
+        
+        {/* Global XP & Level System */}
+        {(() => {
+          const completedTopicsObj = activeStudent?.nemo_memory?.completed_topics || {};
+          const totalTopicsCompleted = Object.values(completedTopicsObj).reduce((acc: number, topics: any) => acc + (Array.isArray(topics) ? topics.length : 0), 0);
+          const totalXP = totalTopicsCompleted * 100;
+          let currentLevel = 1;
+          let currentLevelXP = totalXP;
+          let xpNeeded = currentLevel * 200;
+
+          while (currentLevelXP >= xpNeeded) {
+            currentLevelXP -= xpNeeded;
+            currentLevel++;
+            xpNeeded = currentLevel * 200;
+          }
+          const xpPercent = Math.round((currentLevelXP / xpNeeded) * 100);
+
+          return (
+            <div className="mt-4 max-w-sm">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-bold text-yellow-600 dark:text-yellow-500 flex items-center gap-1">
+                  <span className="text-lg">⭐</span> {th ? 'เลเวล' : locale === 'sv' ? 'Nivå' : 'Level'} {currentLevel}
+                </span>
+                <span className="text-xs text-muted-foreground font-semibold">
+                  {currentLevelXP} / {xpNeeded} XP
+                </span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-3 overflow-hidden shadow-inner">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${xpPercent}%` }}
+                  transition={{ duration: 1, delay: 0.2 }}
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-3 rounded-full"
+                />
+              </div>
+            </div>
+          );
+        })()}
       </motion.div>
 
       {/* Nemo Memory & Progress Card — Reads student memory every login */}

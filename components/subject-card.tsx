@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useAuth } from '@/lib/contexts/auth-context';
 import type { SubjectInfo } from '@/lib/subjects';
-import { ArrowRight, X, ChevronRight, Sparkles } from 'lucide-react';
+import { ArrowRight, X, ChevronRight, Sparkles, Lock, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SubjectCardProps {
@@ -14,6 +15,7 @@ interface SubjectCardProps {
 
 export function SubjectCard({ subject, index }: SubjectCardProps) {
   const { locale, t } = useLanguage();
+  const { activeStudent } = useAuth();
   const router = useRouter();
   const [showPicker, setShowPicker] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -146,31 +148,49 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
                   {subject?.suggestions?.map((s, idx) => {
                     const label = locale === 'th' ? s.label_th : (locale === 'sv' && s.label_sv) ? s.label_sv : s.label_en;
                     const sublabel = locale === 'sv' ? s.label_en : locale === 'th' ? s.label_en : (s.label_sv || s.label_th);
+                    
+                    const subjKey = subject?.id?.toLowerCase() || '';
+                    const completedTopics = (activeStudent?.nemo_memory?.completed_topics?.[subjKey] as string[]) || [];
+                    const isCompleted = completedTopics.includes(s.label_en) || completedTopics.includes(s.label_th) || completedTopics.includes(s.label_sv || '');
+                    
+                    const prevTopic = idx > 0 ? subject.suggestions[idx - 1] : null;
+                    const isPrevCompleted = prevTopic ? (completedTopics.includes(prevTopic.label_en) || completedTopics.includes(prevTopic.label_th) || completedTopics.includes(prevTopic.label_sv || '')) : true;
+                    
+                    const isUnlocked = idx === 0 || isCompleted || isPrevCompleted;
+
                     return (
                       <motion.button
                         key={idx}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.04, duration: 0.2 }}
-                        onClick={() => handleTopicClick(s.label_en, s.label_th, s.label_sv)}
-                        className="w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl text-left
-                          hover:bg-muted/80 active:scale-[0.98] transition-all duration-150 group"
+                        onClick={() => isUnlocked ? handleTopicClick(s.label_en, s.label_th, s.label_sv) : undefined}
+                        className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl text-left transition-all duration-150 group
+                          ${isUnlocked ? 'hover:bg-muted/80 active:scale-[0.98] cursor-pointer' : 'opacity-50 grayscale cursor-not-allowed'}`}
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: `${subject?.color ?? '#8B5CF6'}15` }}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0`}
+                            style={{ backgroundColor: isUnlocked ? `${subject?.color ?? '#8B5CF6'}15` : 'transparent' }}
                           >
-                            <Sparkles className="w-4 h-4" style={{ color: subject?.color ?? '#8B5CF6' }} />
+                            {!isUnlocked ? (
+                                <Lock className="w-4 h-4 text-muted-foreground" />
+                            ) : isCompleted ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                            ) : (
+                                <Sparkles className="w-4 h-4" style={{ color: subject?.color ?? '#8B5CF6' }} />
+                            )}
                           </div>
                           <div>
                             <p className="font-semibold text-sm text-foreground">{label}</p>
                             <p className="text-xs text-muted-foreground">{sublabel}</p>
                           </div>
                         </div>
-                        <ChevronRight
-                          className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all flex-shrink-0"
-                        />
+                        {isUnlocked && (
+                          <ChevronRight
+                            className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all flex-shrink-0"
+                          />
+                        )}
                       </motion.button>
                     );
                   })}
