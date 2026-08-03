@@ -3,13 +3,172 @@ export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+// Configuration: if OLLAMA_URL is set, use local Ollama; otherwise use NVIDIA API
+const OLLAMA_URL = process.env.OLLAMA_URL; // e.g. http://localhost:11434
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'aisingapore/Gemma-SEA-LION-v4-4B-VL';
+const LLAMA_MODEL = process.env.CLOUD_LLM_MODEL || 'meta/llama-3.3-70b-instruct';
+const LLAMA_8B_MODEL = 'meta/llama-3.1-8b-instruct';
+const LLAMA_3B_MODEL = 'meta/llama-3.2-3b-instruct';
+const LLAMA_VISION_MODEL = 'meta/llama-3.2-11b-vision-instruct';
+const GEMMA_4B_MODEL = 'google/gemma-3n-e4b-it';
+const NVIDIA_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
+const QWEN_MODEL = 'qwen/qwen3-next-80b-a3b-instruct';
+const NEMOTRON_SUPER_MODEL = 'nvidia/llama-3.3-nemotron-super-49b-v1';
+const DEEPSEEK_R1_MODEL = 'deepseek-ai/deepseek-r1';
 const GEMINI_MODEL = 'gemini-3.6-flash';
+const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+
+function getEndpointConfig(modelChoice?: string): { url: string; model: string; headers: Record<string, string> } | null {
+  const choice = modelChoice || 'llama-8b';
+
+  if (choice === 'llama-3b') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: LLAMA_3B_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'llama-vision') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: LLAMA_VISION_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'gemini' || choice === 'google-gemini') {
+    const cleanKey = (process.env.GEMINI_API_KEY || '').trim();
+    return {
+      url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      model: GEMINI_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cleanKey}`,
+      },
+    };
+  }
+
+  if (choice === 'gemini15') {
+    const cleanKey = (process.env.GEMINI_API_KEY || '').trim();
+    return {
+      url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      model: 'gemini-pro-latest',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cleanKey}`,
+      },
+    };
+  }
+
+  if (choice === 'nvidia') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: NVIDIA_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'qwen') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: QWEN_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'llama-8b') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: LLAMA_8B_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'gemma-4b') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: GEMMA_4B_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'cloud') { // Now maps to Llama-3.3-70B on Nvidia!
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: LLAMA_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if ((choice === 'sea-lion' || choice === 'nemotron') && OLLAMA_URL) {
+    const selectedModel = choice === 'sea-lion' ? OLLAMA_MODEL : 'nemotron-mini:latest';
+    return {
+      url: `${OLLAMA_URL}/v1/chat/completions`,
+      model: selectedModel,
+      headers: { 'Content-Type': 'application/json' },
+    };
+  }
+
+  if (choice === 'nemotron-super') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: NEMOTRON_SUPER_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'deepseek-r1') {
+    return {
+      url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      model: DEEPSEEK_R1_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  // Fallback
+  return {
+    url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+    model: LLAMA_MODEL,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+    },
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, subject, locale, studentName, gradeLevel, isGreeting, studentMemory, schoolName, schoolProgram } = body ?? {};
+    const { messages, subject, locale, studentName, gradeLevel, isGreeting, model, studentMemory, schoolName, schoolProgram } = body ?? {};
 
     if (!messages || !Array.isArray(messages) || (messages?.length ?? 0) === 0) {
       return new Response(JSON.stringify({ error: 'Messages are required' }), {
@@ -18,8 +177,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (!GEMINI_API_KEY) {
-      return new Response(JSON.stringify({ error: 'Gemini API key is required. Please set GEMINI_API_KEY in .env' }), {
+    const config = getEndpointConfig(model);
+    if (!config) {
+      return new Response(JSON.stringify({ error: 'No LLM API configured. Set NVIDIA_API_KEY or OLLAMA_URL in .env' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -69,6 +229,7 @@ ${gradeLevel === 'secondary_6' ? `- Grade 12 (Matthayom 6): **CRITICAL exam year
 - Celebrate when something works: "🎉 เยี่ยม! ลองทำตามดูเลย!"
 - When troubleshooting: help them check basic iPad settings (Wi-Fi, Bluetooth, App updates) before giving up.
 ` : '';
+
 
     // Build USER.md-style memory block if available
     const mem = studentMemory ?? {};
@@ -183,6 +344,13 @@ Teaching Style (Evidence-Based Pedagogy — Grade-Adaptive):
 - Never lie or make things up — say so honestly if unsure
 - Always teach ONE concept at a time — never dump a full lesson at once
 ${(() => {
+  // ── Determine grade tier ──────────────────────────────────────────────────
+  const earlyPrimary  = ['kindergarten','primary_1','primary_2'].includes(gradeLevel ?? '');
+  const upperPrimary  = ['primary_3','primary_4','primary_5','primary_6'].includes(gradeLevel ?? '');
+  const lowerSecondary = ['secondary_1','secondary_2','secondary_3'].includes(gradeLevel ?? '');
+  const upperSecondary = ['secondary_4','secondary_5','secondary_6'].includes(gradeLevel ?? '');
+  const isUniv = isUniversity;
+
   if (earlyPrimary) return `
 ## Teaching Approach: Early Primary (Ages 5–8) — Play-Based & Gentle
 ${lang === 'Swedish' ? `
@@ -339,39 +507,158 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
 - End every topic with a recall question, not "do you understand?"
 `;
 })()}`;
+
+
     }
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const geminiModel = genAI.getGenerativeModel({
-      model: GEMINI_MODEL,
-      systemInstruction: systemPrompt,
-      tools: [{ googleSearch: {} } as any]
-    });
 
-    const formattedHistory = messages.slice(0, -1).map((m: any) => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content || '' }]
-    }));
-    
-    let userMsg = '';
-    if (isGreeting) {
-      userMsg = `Greet me and suggest what we can learn in ${subjectName}`;
-    } else {
-      userMsg = messages[messages.length - 1]?.content || '';
+    const isGemini = model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL || config.model === 'gemini-pro-latest';
+
+    if (isGemini) {
+      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+      const geminiModel = genAI.getGenerativeModel({
+        model: GEMINI_MODEL,
+        systemInstruction: systemPrompt,
+        tools: [{ googleSearch: {} } as any]
+      });
+
+      const formattedHistory = messages.slice(0, -1).map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content || '' }]
+      }));
+      
+      let userMsg = '';
+      if (isGreeting) {
+        userMsg = `Greet me and suggest what we can learn in ${subjectName}`;
+      } else {
+        userMsg = messages[messages.length - 1]?.content || '';
+      }
+
+      const chat = geminiModel.startChat({ history: formattedHistory });
+
+      if (isGreeting) {
+        try {
+          const result = await chat.sendMessage(userMsg);
+          const raw = result.response.text();
+          let greeting = '';
+          let suggestions: string[] = [];
+          try {
+            let jsonStr = raw.trim();
+            const codeBlockMatch = jsonStr.match(/\`\`\`(?:json)?\s*([\s\S]*?)\`\`\`/);
+            if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
+            const parsed = JSON.parse(jsonStr);
+            greeting = parsed?.greeting ?? raw;
+            suggestions = Array.isArray(parsed?.suggestions) ? parsed.suggestions : [];
+          } catch {
+            greeting = raw;
+          }
+          return Response.json({ greeting, suggestions, model: config.model });
+        } catch (err) {
+          console.error('Greeting error:', err);
+          return Response.json({ greeting: '', suggestions: [], model: config.model });
+        }
+      }
+
+      const result = await chat.sendMessageStream(userMsg);
+      const stream = new ReadableStream({
+        async start(controller) {
+          const encoder = new TextEncoder();
+          try {
+            for await (const chunk of result.stream) {
+              const textChunk = chunk.text();
+              if (textChunk) {
+                const sseChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: textChunk } }] })}\n\n`;
+                controller.enqueue(encoder.encode(sseChunk));
+              }
+            }
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          } catch (error: any) {
+            console.error('Stream error:', error);
+            controller.error(error);
+          } finally {
+            controller.close();
+          }
+        }
+      });
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        }
+      });
     }
 
-    const chat = geminiModel.startChat({ history: formattedHistory });
+    const formattedMsgs = isGreeting
+      ? [{ role: 'user', content: `Greet me and suggest what we can learn in ${subjectName}` }]
+      : (messages ?? []).map((m: any) => ({
+          role: m?.role ?? 'user',
+          content: m?.content ?? '',
+        }));
+
+    const apiMessages = [
+      { role: 'system', content: systemPrompt },
+      ...formattedMsgs,
+    ];
+
+    const fetchOptions: RequestInit = {
+      method: 'POST',
+      headers: config.headers,
+      body: JSON.stringify({
+        model: config.model,
+        messages: apiMessages,
+        stream: !isGreeting,
+        max_tokens: isGreeting ? 300 : 800,
+        temperature: isGreeting ? 0.8 : 0.7,
+      }),
+    };
+
+    const timeoutMs = 300000;
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), timeoutMs);
+    fetchOptions.signal = timeoutController.signal;
+
+    let response: Response;
+    try {
+      response = await fetch(config.url, fetchOptions);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response?.ok) {
+      const errText = await response?.text?.() ?? 'Unknown error';
+      console.error('LLM API error:', response?.status, errText);
+
+      let customErrMsg = `LLM API error: ${response?.status}`;
+      const isGeminiError = model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL;
+
+      if (isGeminiError && (response?.status === 400 || response?.status === 401 || errText.includes('valid API key') || errText.includes('AUTHENTICATED') || errText.includes('UNAUTHENTICATED'))) {
+        customErrMsg = 'Google Gemini API Key authentication error. Please go to https://aistudio.google.com/app/apikey, click "+ Create API Key" -> "Create API Key in new project" to get a key starting with AIzaSy...';
+      } else if (response?.status === 401) {
+        customErrMsg = 'Invalid API key for the selected LLM service.';
+      } else {
+        try {
+          const parsedErr = JSON.parse(errText);
+          const msg = parsedErr?.error?.message || parsedErr?.[0]?.error?.message;
+          if (msg) customErrMsg = `LLM Error: ${msg}`;
+        } catch {}
+      }
+
+      return new Response(JSON.stringify({ error: customErrMsg }), {
+        status: response?.status ?? 502,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     if (isGreeting) {
       try {
-        const result = await chat.sendMessage(userMsg);
-        const raw = result.response.text();
-        
+        const data = await response.json();
+        const raw = data?.choices?.[0]?.message?.content ?? '';
         let greeting = '';
-        let suggestions: string[] = [];
+        let suggestions = [];
         try {
           let jsonStr = raw.trim();
-          const codeBlockMatch = jsonStr.match(/\`\`\`(?:json)?\\s*([\\s\\S]*?)\`\`\`/);
+          const codeBlockMatch = jsonStr.match(/\`\`\`(?:json)?\s*([\s\S]*?)\`\`\`/);
           if (codeBlockMatch) {
             jsonStr = codeBlockMatch[1].trim();
           }
@@ -381,22 +668,28 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
         } catch {
           greeting = raw;
         }
-        return Response.json({ greeting, suggestions, model: GEMINI_MODEL });
+        return Response.json({ greeting, suggestions, model: config.model });
       } catch (err) {
-        console.error('Greeting error:', err);
-        return Response.json({ greeting: '', suggestions: [], model: GEMINI_MODEL });
+        console.error('Greeting parse error:', err);
+        return Response.json({ greeting: '', suggestions: [], model: config.model });
       }
     }
 
-    // Streaming Response
-    const result = await chat.sendMessageStream(userMsg);
-    
     const stream = new ReadableStream({
       async start(controller) {
+        const reader = response?.body?.getReader();
+        const decoder = new TextDecoder();
         const encoder = new TextEncoder();
+        if (!reader) {
+          controller.close();
+          return;
+        }
         try {
-          for await (const chunk of result.stream) {
-            controller.enqueue(encoder.encode(chunk.text()));
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            controller.enqueue(encoder.encode(chunk));
           }
         } catch (error: any) {
           console.error('Stream error:', error);
@@ -404,12 +697,12 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
         } finally {
           controller.close();
         }
-      },
+      }
     });
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       },
