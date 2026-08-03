@@ -196,6 +196,32 @@ export default function ChatPage() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const greetingDoneRef = useRef(false);
 
+  // --- Auto Speech & Listening for Young Kids ---
+  const [autoSpeak, _setAutoSpeak] = useState(false);
+  const autoSpeakRef = useRef(false);
+  const setAutoSpeak = useCallback((val: boolean) => {
+    _setAutoSpeak(val);
+    autoSpeakRef.current = val;
+  }, []);
+
+  const [autoListen, _setAutoListen] = useState(false);
+  const autoListenRef = useRef(false);
+  const setAutoListen = useCallback((val: boolean) => {
+    _setAutoListen(val);
+    autoListenRef.current = val;
+  }, []);
+
+  const initializedAutoRef = useRef(false);
+  useEffect(() => {
+    if (activeStudent && !initializedAutoRef.current) {
+      const young = ['kindergarten', 'primary_1', 'primary_2', 'Lgr22_P1', 'Lgr22_P2'].includes(activeStudent.current_grade ?? '');
+      setAutoSpeak(young);
+      setAutoListen(young);
+      initializedAutoRef.current = true;
+    }
+  }, [activeStudent, setAutoSpeak, setAutoListen]);
+
+
   // --- Text-to-Speech (TTS) state ---
   const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
 
@@ -232,11 +258,13 @@ export default function ChatPage() {
     if (speakingIdx === idx) {
       window.speechSynthesis.cancel();
       setSpeakingIdx(null);
+      setAutoSpeak(false);
       return;
     }
 
     // Stop any current speech
     window.speechSynthesis.cancel();
+    setAutoSpeak(true);
 
     // Strip markdown formatting, images, and emojis for clean speech
     const clean = text
@@ -270,8 +298,9 @@ export default function ChatPage() {
 
     setSpeakingIdx(idx);
     window.speechSynthesis.speak(utterance);
-  }, [speakingIdx, getSpeechLang]);
+  }, [speakingIdx, getSpeechLang, setAutoSpeak]);
 
+  
   // Stop TTS when leaving the page
   useEffect(() => {
     return () => {
@@ -296,6 +325,7 @@ export default function ChatPage() {
     if (isListening && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsListening(false);
+      setAutoListen(false);
       return;
     }
 
@@ -314,6 +344,7 @@ export default function ChatPage() {
 
     // Step 2: Start speech recognition
     try {
+      setAutoListen(true);
       const recognition = new SpeechRecognition();
       recognition.lang = getSpeechLang();
       recognition.continuous = true;
@@ -362,7 +393,22 @@ export default function ChatPage() {
         : 'Could not start speech recognition');
       setIsListening(false);
     }
-  }, [isListening, getSpeechLang, locale]);
+  }, [isListening, getSpeechLang, locale, setAutoListen]);
+
+  const prevSpeakingIdx = useRef<number | null>(null);
+  useEffect(() => {
+    // Only auto-listen if we just finished speaking and autoListen is true
+    if (prevSpeakingIdx.current !== null && speakingIdx === null) {
+      if (autoListenRef.current && !isListening) {
+        // Delay slightly before turning on mic so it doesn't pick up the last bit of TTS
+        setTimeout(() => {
+          if (!isListening) toggleListening();
+        }, 800);
+      }
+    }
+    prevSpeakingIdx.current = speakingIdx;
+  }, [speakingIdx, isListening, toggleListening]);
+
 
   // --- Web Search handler ---
   const handleSearch = useCallback(async (query?: string) => {
@@ -515,6 +561,9 @@ export default function ChatPage() {
       ? `Hej ${studentName}! 😊 Välkommen till ${subjectName}. Skriv din fråga nedan för att komma igång!`
       : `Hi ${studentName}! 😊 Welcome to ${subjectName}. Type your question below to get started!`;
     setMessages([{ role: 'assistant', content: quickGreeting }]);
+    if (autoSpeakRef.current) {
+      setTimeout(() => handleSpeak(quickGreeting, 0), 500);
+    }
 
     if (subject?.suggestions?.length) {
       const subjKey = subject?.id?.toLowerCase() || '';
@@ -834,6 +883,10 @@ export default function ChatPage() {
           }
           // Refresh history list
           fetchPastConversations();
+          // Trigger auto-speak of the new assistant message
+          if (autoSpeakRef.current && assistantContent) {
+             handleSpeak(assistantContent, newMessages.length);
+          }
         } catch (err) {
           console.error('Failed to save conversation:', err);
         }
