@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, BarChart2, Flame } from 'lucide-react';
 import Link from 'next/link';
 import { FeedbackButton } from '@/components/feedback-button';
+import { NemoMemoryCard } from '@/components/nemo-memory-card';
 
 export default function DashboardPage() {
   const { activeStudent, user } = useAuth();
@@ -69,6 +70,9 @@ export default function DashboardPage() {
         ) : null}
         <p className="text-muted-foreground mt-1">{t('dashboard.selectSubject')}</p>
       </motion.div>
+
+      {/* Nemo Memory & Progress Card — Reads student memory every login */}
+      <NemoMemoryCard />
 
       {/* Progress card */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">

@@ -32,6 +32,48 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: error.message }, { status: 500 });
     }
 
+    // Auto-update student's nemo_memory with latest progress & last lesson summary
+    try {
+      const { data: student } = await supabaseAdmin
+        .from('students')
+        .select('nemo_memory')
+        .eq('id', studentId)
+        .single();
+
+      if (student) {
+        const mem = student.nemo_memory ?? {};
+        let updatedSummary = mem.last_lesson_summary ?? '';
+
+        if (eventType === 'quiz' && typeof score === 'number' && typeof total === 'number') {
+          const pct = Math.round((score / total) * 100);
+          updatedSummary = `Scored ${score}/${total} (${pct}%) on ${subject} quiz`;
+        } else if (eventType === 'confidence' && typeof confidence === 'number') {
+          updatedSummary = `Rated confidence ${confidence}/5 in ${subject}`;
+        }
+
+        const subjKey = subject.toLowerCase();
+        const completedMap = mem.completed_topics ?? {};
+        const subjTopics = completedMap[subjKey] ?? [];
+
+        const updatedMem = {
+          ...mem,
+          last_lesson_summary: updatedSummary || mem.last_lesson_summary,
+          last_active_at: new Date().toISOString(),
+          completed_topics: {
+            ...completedMap,
+            [subjKey]: Array.from(new Set([...subjTopics, details?.topic || subject])),
+          },
+        };
+
+        await supabaseAdmin
+          .from('students')
+          .update({ nemo_memory: updatedMem })
+          .eq('id', studentId);
+      }
+    } catch (memErr) {
+      console.error('Auto memory update error:', memErr);
+    }
+
     return Response.json({ ok: true });
   } catch (err: any) {
     return Response.json({ error: err?.message }, { status: 500 });

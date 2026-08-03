@@ -192,12 +192,16 @@ export default function MemoryPage() {
             </div>
           </div>
           <div className="bg-white/10 rounded-xl p-3 text-sm space-y-1 text-white/90">
+            {memory.last_lesson_summary && <p>📖 Last lesson: {memory.last_lesson_summary}</p>}
             {memory.interests.length > 0 && <p>⭐ Loves: {memory.interests.slice(0, 4).join(', ')}</p>}
             {memory.learning_style && <p>🧠 Learns best by: {memory.learning_style}</p>}
             {memory.strengths.length > 0 && <p>💪 Strong in: {memory.strengths.slice(0, 3).join(', ')}</p>}
             {memory.struggles.length > 0 && <p>📈 Working on: {memory.struggles.slice(0, 3).join(', ')}</p>}
             {memory.languages_spoken.length > 0 && <p>🌍 Languages: {memory.languages_spoken.join(', ')}</p>}
-            {(!memory.interests.length && !memory.learning_style) && (
+            {memory.completed_topics && Object.keys(memory.completed_topics).length > 0 && (
+              <p>🎯 Completed Topics: {Object.entries(memory.completed_topics).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.length : 0}`).join(' | ')}</p>
+            )}
+            {(!memory.interests.length && !memory.learning_style && !memory.last_lesson_summary) && (
               <p className="text-white/60 italic">No memory yet — fill in the sections below!</p>
             )}
           </div>

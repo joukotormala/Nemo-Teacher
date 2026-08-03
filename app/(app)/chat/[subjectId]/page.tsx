@@ -411,7 +411,16 @@ export default function ChatPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentId: activeStudent.id, subject: subjectName || subjectSlug, eventType: 'quiz', score, total }),
     });
-    toast.success(locale === 'th' ? `🎯 บันทึกผลแล้ว! คุณได้ ${score}/${total} 🎉` : locale === 'sv' ? `🎯 Sparat! Du fick ${score}/${total} 🎉` : `🎯 Saved! You scored ${score}/${total}`);
+    await fetch('/api/memory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentId: activeStudent.id,
+        quizResult: { subject: subjectName || subjectSlug, score, total },
+        completedTopic: { subject: subjectName || subjectSlug, topic: `${subjectName || subjectSlug} Quiz` },
+      }),
+    }).catch(() => {});
+    toast.success(locale === 'th' ? `🎯 บันทึกผลและข้อมูลความทรงจำแล้ว! คุณได้ ${score}/${total} 🎉` : locale === 'sv' ? `🎯 Sparat minne & resultat! Du fick ${score}/${total} 🎉` : `🎯 Memory & Quiz saved! You scored ${score}/${total}`);
   }, [activeStudent?.id, subjectName, subjectSlug, locale]);
 
   const userMessageCount = useMemo(() => messages.filter(m => m.role === 'user').length, [messages]);
