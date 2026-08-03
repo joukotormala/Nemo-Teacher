@@ -353,8 +353,8 @@ Response Format Rules (VERY IMPORTANT):
     * Centrifuge: ![Centrifuge](/illustrations/lab_tech/centrifuge.jpg)
     * Bunsen burner: ![Bunsen Burner](/illustrations/lab_tech/bunsen.jpg)
     * Burner: ![Burner](/illustrations/lab_tech/burner.jpg)
-  * For other complex concepts, if they explicitly ask for an illustration or diagram, generate one dynamically:
-    ![Description](/api/generate-image?prompt=detailed_visual_prompt_description&name=short_snake_case_name)
+  * For other complex concepts, if they explicitly ask for a picture or illustration, use the search API to find a real picture from the internet:
+    ![Description](/api/search-image?q=search_query)
 
 
 Teaching Style (Evidence-Based Pedagogy — Grade-Adaptive):

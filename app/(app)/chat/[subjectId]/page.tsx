@@ -629,15 +629,14 @@ export default function ChatPage() {
       if (match) {
         const rawPrompt = match[2].trim();
         const safeName = rawPrompt.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase() || `img_${Math.random().toString(36).substring(7)}`;
-        const visualPrompt = encodeURIComponent(`A clear, colorful educational illustration of "${rawPrompt}" for kids, 3D claymation style, isolated on a light gray background`);
-        const imageUrl = `/api/generate-image?prompt=${visualPrompt}&name=${safeName}`;
+        const imageUrl = `/api/search-image?q=${encodeURIComponent(rawPrompt)}`;
         
         const userMsg: ChatMessage = { role: 'user', content: trimmed };
-        let introText = `Here is the illustration for "${rawPrompt}":`;
+        let introText = `Here is a picture of "${rawPrompt}":`;
         if (locale === 'th') {
-          introText = `นี่คือภาพประกอบสำหรับ "${rawPrompt}":`;
+          introText = `นี่คือรูปภาพของ "${rawPrompt}":`;
         } else if (locale === 'sv') {
-          introText = `Här är illustrationen för "${rawPrompt}":`;
+          introText = `Här är en bild på "${rawPrompt}":`;
         }
         const assistantMsg: ChatMessage = {
           role: 'assistant',
