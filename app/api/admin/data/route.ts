@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     console.time('[Admin Data API] Supabase Query Time');
     const [parentsRes, studentsRes, conversationsRes, sessionsRes] = await Promise.all([
       supabaseAdmin.from('parents').select('id, name_thai, name_english, phone, email, language_preference, created_at'),
-      supabaseAdmin.from('students').select('id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, created_at'),
+      supabaseAdmin.from('students').select('id, parent_id, name_thai, name_english, nickname_thai, nickname_english, birth_date, current_grade, school_name, language_preference, preferred_ai_model, nemo_memory, interests, learning_style, personality_notes, created_at'),
       supabaseAdmin.from('conversations').select('id, student_id, title, message_count, updated_at'),
       supabaseAdmin.from('learning_sessions').select('id, student_id, subject_id, started_at, ended_at, duration_minutes')
     ]);

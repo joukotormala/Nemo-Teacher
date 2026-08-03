@@ -7,7 +7,7 @@ import {
   Calendar, Clock, Download, LogOut, RefreshCw, 
   UserCheck, Smile, BookOpen, ChevronRight, X,
   ImagePlus, Sparkles, FolderOpen, Copy, CheckCheck, Loader2, Trash2,
-  Reply, Star, BarChart2
+  Reply, Star, BarChart2, Brain
 } from 'lucide-react';
 
 interface ParentData {
@@ -40,6 +40,10 @@ interface KidData {
   school_name: string | null;
   language_preference: string;
   preferred_ai_model: string;
+  nemo_memory?: Record<string, any> | null;
+  interests?: string[] | null;
+  learning_style?: string | null;
+  personality_notes?: string | null;
   created_at: string;
   parent: {
     id: string;
@@ -1596,6 +1600,49 @@ export default function AdminPage() {
                   <div className="text-xl font-black text-indigo-400 mt-1 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-indigo-400" />
                     <span>{Math.round(selectedKid.stats.studyMinutes)} minutes</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nemo AI Memory & Progress */}
+              <div className="bg-gradient-to-br from-purple-950/60 to-slate-950/80 p-4 rounded-2xl border border-purple-800/40 text-xs space-y-3">
+                <div className="flex items-center gap-2 text-purple-300 font-bold text-sm">
+                  <Brain className="w-4 h-4 text-purple-400" />
+                  <span>Nemo AI Memory</span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider block">Last Lesson Summary</span>
+                  <p className="text-zinc-200 mt-0.5 italic">
+                    {selectedKid.nemo_memory?.last_lesson_summary ? `"${selectedKid.nemo_memory.last_lesson_summary}"` : 'No lesson summary recorded yet'}
+                  </p>
+                </div>
+
+                {selectedKid.nemo_memory?.completed_topics && Object.keys(selectedKid.nemo_memory.completed_topics).length > 0 && (
+                  <div>
+                    <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider block">Completed Topics</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {Object.entries(selectedKid.nemo_memory.completed_topics).map(([subj, topics]: [string, any]) => (
+                        <span key={subj} className="bg-purple-900/40 text-purple-200 border border-purple-700/50 rounded-md px-2 py-0.5 text-[10px]">
+                          {subj.toUpperCase()}: {Array.isArray(topics) ? topics.length : 0} topics
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-purple-900/30">
+                  <div>
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Interests</span>
+                    <span className="text-zinc-300 font-medium">
+                      {(selectedKid.nemo_memory?.interests?.length ? selectedKid.nemo_memory.interests : selectedKid.interests)?.join(', ') || 'Not set'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Learning Style</span>
+                    <span className="text-zinc-300 font-medium capitalize">
+                      {selectedKid.nemo_memory?.learning_style || selectedKid.learning_style || 'Not set'}
+                    </span>
                   </div>
                 </div>
               </div>
