@@ -1450,15 +1450,21 @@ export default function AdminPage() {
                     )}
 
                     {/* Nemo AI Memory Summary - Always show if available */}
-                    {kid.nemo_memory?.last_lesson_summary && (
+                    {(kid.nemo_memory?.last_lesson_summary || kid.nemo_memory?.interests?.length || kid.interests?.length) ? (
                       <div className="mt-3 p-3 rounded-xl bg-purple-950/40 border border-purple-800/40 text-[11px]">
-                        <div className="flex items-center gap-1.5 text-purple-300 font-bold mb-0.5">
+                        <div className="flex items-center gap-1.5 text-purple-300 font-bold mb-1">
                           <Brain className="w-3.5 h-3.5 text-purple-400" />
                           <span>Nemo AI Memory</span>
                         </div>
-                        <p className="text-zinc-300 italic">"{kid.nemo_memory.last_lesson_summary}"</p>
+                        {kid.nemo_memory?.last_lesson_summary ? (
+                          <p className="text-zinc-300 italic">"{kid.nemo_memory.last_lesson_summary}"</p>
+                        ) : (
+                          <p className="text-zinc-300">
+                            Likes: {(kid.nemo_memory?.interests?.length ? kid.nemo_memory.interests : kid.interests).join(', ')}
+                          </p>
+                        )}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 );
               })}

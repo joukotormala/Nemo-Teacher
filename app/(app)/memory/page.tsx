@@ -83,8 +83,28 @@ export default function MemoryPage() {
   const [newLang, setNewLang] = useState('');
 
   useEffect(() => {
-    if (activeStudent?.nemo_memory) {
-      setMemory({ ...memory, ...activeStudent.nemo_memory });
+    if (activeStudent) {
+      const defaultMemory = { ...memory };
+      
+      if (activeStudent.interests && activeStudent.interests.length > 0) {
+        defaultMemory.interests = activeStudent.interests;
+      }
+      if (activeStudent.learning_style) {
+        defaultMemory.learning_style = activeStudent.learning_style;
+      }
+      if (activeStudent.personality_notes) {
+        defaultMemory.personality = activeStudent.personality_notes;
+      }
+
+      const nemo = activeStudent.nemo_memory || {};
+      
+      setMemory({
+        ...defaultMemory,
+        ...nemo,
+        interests: nemo.interests?.length ? nemo.interests : defaultMemory.interests,
+        learning_style: nemo.learning_style || defaultMemory.learning_style,
+        personality: nemo.personality || defaultMemory.personality,
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStudent]);
