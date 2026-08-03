@@ -28,41 +28,69 @@ interface NemoMemory {
   last_lesson_summary: string;
 }
 
-const INTEREST_OPTIONS = [
-  { label: 'Football ⚽', value: 'football', icon: '⚽' },
-  { label: 'Gaming 🎮', value: 'gaming', icon: '🎮' },
-  { label: 'Music 🎵', value: 'music', icon: '🎵' },
-  { label: 'Art 🎨', value: 'art', icon: '🎨' },
-  { label: 'Reading 📚', value: 'reading', icon: '📚' },
-  { label: 'Science 🔬', value: 'science', icon: '🔬' },
-  { label: 'Cooking 🍳', value: 'cooking', icon: '🍳' },
-  { label: 'Swimming 🏊', value: 'swimming', icon: '🏊' },
-  { label: 'Dance 💃', value: 'dance', icon: '💃' },
-  { label: 'Animals 🐾', value: 'animals', icon: '🐾' },
-  { label: 'Fishing 🎣', value: 'fishing', icon: '🎣' },
-  { label: 'Drawing ✏️', value: 'drawing', icon: '✏️' },
-  { label: 'Minecraft ⛏️', value: 'Minecraft', icon: '⛏️' },
-  { label: 'YouTube 📺', value: 'youtube', icon: '📺' },
-  { label: 'Cooking 👨‍🍳', value: 'cooking2', icon: '👨‍🍳' },
-  { label: 'Cars 🚗', value: 'cars', icon: '🚗' },
-];
+const getInterestOptions = (locale: string) => {
+  const th = locale === 'th';
+  const sv = locale === 'sv';
+  return [
+    { label: th ? 'ฟุตบอล ⚽' : sv ? 'Fotboll ⚽' : 'Football ⚽', value: 'football' },
+    { label: th ? 'เกมมิ่ง 🎮' : sv ? 'Spel 🎮' : 'Gaming 🎮', value: 'gaming' },
+    { label: th ? 'ดนตรี 🎵' : sv ? 'Musik 🎵' : 'Music 🎵', value: 'music' },
+    { label: th ? 'ศิลปะ 🎨' : sv ? 'Konst 🎨' : 'Art 🎨', value: 'art' },
+    { label: th ? 'อ่านหนังสือ 📚' : sv ? 'Läsa 📚' : 'Reading 📚', value: 'reading' },
+    { label: th ? 'วิทยาศาสตร์ 🔬' : sv ? 'Vetenskap 🔬' : 'Science 🔬', value: 'science' },
+    { label: th ? 'ทำอาหาร 🍳' : sv ? 'Laga mat 🍳' : 'Cooking 🍳', value: 'cooking' },
+    { label: th ? 'ว่ายน้ำ 🏊' : sv ? 'Simning 🏊' : 'Swimming 🏊', value: 'swimming' },
+    { label: th ? 'เต้น 💃' : sv ? 'Dans 💃' : 'Dance 💃', value: 'dance' },
+    { label: th ? 'สัตว์ 🐾' : sv ? 'Djur 🐾' : 'Animals 🐾', value: 'animals' },
+    { label: th ? 'ตกปลา 🎣' : sv ? 'Fiska 🎣' : 'Fishing 🎣', value: 'fishing' },
+    { label: th ? 'วาดรูป ✏️' : sv ? 'Rita ✏️' : 'Drawing ✏️', value: 'drawing' },
+    { label: 'Minecraft ⛏️', value: 'Minecraft' },
+    { label: 'YouTube 📺', value: 'youtube' },
+    { label: th ? 'รถยนต์ 🚗' : sv ? 'Bilar 🚗' : 'Cars 🚗', value: 'cars' },
+  ];
+};
 
-const LEARNING_STYLES = [
-  { value: 'visual', label: 'Pictures & videos 🖼️', desc: 'I learn best by seeing things' },
-  { value: 'reading', label: 'Reading & writing 📖', desc: 'I like reading explanations' },
-  { value: 'hands-on', label: 'Doing it myself 🔧', desc: 'I learn by trying things out' },
-  { value: 'listening', label: 'Listening 🎧', desc: 'I prefer hearing explanations' },
-];
+const getLearningStyles = (locale: string) => {
+  const th = locale === 'th';
+  const sv = locale === 'sv';
+  return [
+    { value: 'visual', label: th ? 'รูปภาพและวิดีโอ 🖼️' : sv ? 'Bilder & videor 🖼️' : 'Pictures & videos 🖼️', desc: th ? 'ฉันเรียนรู้ได้ดีที่สุดจากการเห็นภาพ' : sv ? 'Jag lär mig bäst genom att se saker' : 'I learn best by seeing things' },
+    { value: 'reading', label: th ? 'การอ่านและการเขียน 📖' : sv ? 'Läsa & skriva 📖' : 'Reading & writing 📖', desc: th ? 'ฉันชอบอ่านคำอธิบาย' : sv ? 'Jag gillar att läsa förklaringar' : 'I like reading explanations' },
+    { value: 'hands-on', label: th ? 'ลงมือทำเอง 🔧' : sv ? 'Göra det själv 🔧' : 'Doing it myself 🔧', desc: th ? 'ฉันเรียนรู้โดยการลงมือทำ' : sv ? 'Jag lär mig genom att prova' : 'I learn by trying things out' },
+    { value: 'listening', label: th ? 'การฟัง 🎧' : sv ? 'Lyssna 🎧' : 'Listening 🎧', desc: th ? 'ฉันชอบฟังคำอธิบาย' : sv ? 'Jag föredrar att höra förklaringar' : 'I prefer hearing explanations' },
+  ];
+};
 
 const SUBJECT_OPTIONS = [
   'Math', 'Science', 'English', 'Thai', 'History', 'Geography',
   'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Art', 'Music',
 ];
 
+const translateSubject = (s: string, locale: string) => {
+  const map: Record<string, Record<string, string>> = {
+    'Math': { th: 'คณิตศาสตร์', sv: 'Matematik' },
+    'Science': { th: 'วิทยาศาสตร์', sv: 'Naturvetenskap' },
+    'English': { th: 'ภาษาอังกฤษ', sv: 'Engelska' },
+    'Thai': { th: 'ภาษาไทย', sv: 'Thailändska' },
+    'History': { th: 'ประวัติศาสตร์', sv: 'Historia' },
+    'Geography': { th: 'ภูมิศาสตร์', sv: 'Geografi' },
+    'Physics': { th: 'ฟิสิกส์', sv: 'Fysik' },
+    'Chemistry': { th: 'เคมี', sv: 'Kemi' },
+    'Biology': { th: 'ชีววิทยา', sv: 'Biologi' },
+    'Computer Science': { th: 'วิทยาการคอมพิวเตอร์', sv: 'Datavetenskap' },
+    'Art': { th: 'ศิลปะ', sv: 'Bild' },
+    'Music': { th: 'ดนตรี', sv: 'Musik' },
+  };
+  return map[s]?.[locale] || s;
+};
+
 export default function MemoryPage() {
   const { activeStudent, refreshProfile } = useAuth();
   const { locale } = useLanguage();
   const router = useRouter();
+  
+  const th = locale === 'th';
+  const sv = locale === 'sv';
 
   const [memory, setMemory] = useState<NemoMemory>({
     interests: [],
@@ -147,7 +175,7 @@ export default function MemoryPage() {
         .eq('id', activeStudent.id);
       if (error) throw error;
       await refreshProfile();
-      toast.success(locale === 'th' ? '🧠 เนโมจำข้อมูลแล้ว!' : '🧠 Nemo updated memory!');
+      toast.success(th ? '🧠 เนโมจำข้อมูลแล้ว!' : sv ? '🧠 Nemo uppdaterade minnet!' : '🧠 Nemo updated memory!');
     } catch (err: any) {
       toast.error(err?.message ?? 'Failed to save');
     } finally {
@@ -177,7 +205,7 @@ export default function MemoryPage() {
             <div className="flex items-center gap-2">
               <Brain className="w-5 h-5 text-purple-500" />
               <h1 className="font-display font-bold text-base">
-                {locale === 'th' ? `เนโมรู้จัก ${nickname}` : `Nemo Knows ${nickname}`}
+                {th ? `เนโมรู้จัก ${nickname}` : sv ? `Nemos minnen om ${nickname}` : `Nemo Knows ${nickname}`}
               </h1>
             </div>
           </div>
@@ -188,7 +216,7 @@ export default function MemoryPage() {
             className="rounded-full bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-semibold text-xs px-4"
           >
             {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
-            {locale === 'th' ? 'บันทึก' : 'Save'}
+            {th ? 'บันทึก' : sv ? 'Spara' : 'Save'}
           </Button>
         </div>
       </div>
@@ -203,34 +231,36 @@ export default function MemoryPage() {
           <div className="flex items-center gap-3 mb-3">
             <img src="/nemo_avatar.jpg" alt="Nemo" className="w-12 h-12 rounded-full border-2 border-white/30 object-cover" />
             <div>
-              <p className="font-display font-bold text-lg">Nemo's Memory</p>
+              <p className="font-display font-bold text-lg">{sv ? 'Nemos Minne' : 'Nemo\'s Memory'}</p>
               <p className="text-white/70 text-sm">
-                {locale === 'th'
+                {th
                   ? `สิ่งที่เนโมรู้เกี่ยวกับ ${nickname}`
+                  : sv
+                  ? `Allt Nemo vet om ${nickname}`
                   : `Everything Nemo knows about ${nickname}`}
               </p>
             </div>
           </div>
           <div className="bg-white/10 rounded-xl p-3 text-sm space-y-1 text-white/90">
-            {memory.last_lesson_summary && <p>📖 Last lesson: {memory.last_lesson_summary}</p>}
-            {memory.interests.length > 0 && <p>⭐ Loves: {memory.interests.slice(0, 4).join(', ')}</p>}
-            {memory.learning_style && <p>🧠 Learns best by: {memory.learning_style}</p>}
-            {memory.strengths.length > 0 && <p>💪 Strong in: {memory.strengths.slice(0, 3).join(', ')}</p>}
-            {memory.struggles.length > 0 && <p>📈 Working on: {memory.struggles.slice(0, 3).join(', ')}</p>}
-            {memory.languages_spoken.length > 0 && <p>🌍 Languages: {memory.languages_spoken.join(', ')}</p>}
+            {memory.last_lesson_summary && <p>📖 {th ? 'บทเรียนล่าสุด:' : sv ? 'Senaste läxan:' : 'Last lesson:'} {memory.last_lesson_summary}</p>}
+            {memory.interests.length > 0 && <p>⭐ {th ? 'สิ่งที่ชอบ:' : sv ? 'Älskar:' : 'Loves:'} {memory.interests.slice(0, 4).join(', ')}</p>}
+            {memory.learning_style && <p>🧠 {th ? 'สไตล์การเรียน:' : sv ? 'Lär sig bäst genom att:' : 'Learns best by:'} {getLearningStyles(locale).find(s => s.value === memory.learning_style)?.label || memory.learning_style}</p>}
+            {memory.strengths.length > 0 && <p>💪 {th ? 'วิชาที่เก่ง:' : sv ? 'Stark i:' : 'Strong in:'} {memory.strengths.slice(0, 3).map(s => translateSubject(s, locale)).join(', ')}</p>}
+            {memory.struggles.length > 0 && <p>📈 {th ? 'วิชาที่ต้องพัฒนา:' : sv ? 'Övar på:' : 'Working on:'} {memory.struggles.slice(0, 3).map(s => translateSubject(s, locale)).join(', ')}</p>}
+            {memory.languages_spoken.length > 0 && <p>🌍 {th ? 'ภาษา:' : sv ? 'Språk:' : 'Languages:'} {memory.languages_spoken.join(', ')}</p>}
             {memory.completed_topics && Object.keys(memory.completed_topics).length > 0 && (
-              <p>🎯 Completed Topics: {Object.entries(memory.completed_topics).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.length : 0}`).join(' | ')}</p>
+              <p>🎯 {th ? 'บทเรียนที่ผ่านแล้ว:' : sv ? 'Avklarade ämnen:' : 'Completed Topics:'} {Object.entries(memory.completed_topics).map(([k, v]) => `${translateSubject(k, locale)}: ${Array.isArray(v) ? v.length : 0}`).join(' | ')}</p>
             )}
             {(!memory.interests.length && !memory.learning_style && !memory.last_lesson_summary) && (
-              <p className="text-white/60 italic">No memory yet — fill in the sections below!</p>
+              <p className="text-white/60 italic">{th ? 'ยังไม่มีความทรงจำ — กรอกข้อมูลด้านล่างเลย!' : sv ? 'Inga minnen än — fyll i sektionerna nedan!' : 'No memory yet — fill in the sections below!'}</p>
             )}
           </div>
         </motion.div>
 
         {/* Interests */}
-        <Section icon={<Star className="w-4 h-4 text-yellow-500" />} title={locale === 'th' ? 'ความสนใจและงานอดิเรก' : 'Interests & Hobbies'}>
+        <Section icon={<Star className="w-4 h-4 text-yellow-500" />} title={th ? 'ความสนใจและงานอดิเรก' : sv ? 'Intressen & Hobbies' : 'Interests & Hobbies'}>
           <div className="flex flex-wrap gap-2">
-            {INTEREST_OPTIONS.map(opt => (
+            {getInterestOptions(locale).map(opt => (
               <button
                 key={opt.value}
                 onClick={() => toggleInterest(opt.value)}
@@ -245,7 +275,7 @@ export default function MemoryPage() {
             ))}
           </div>
           {/* Custom interests */}
-          {memory.interests.filter(i => !INTEREST_OPTIONS.find(o => o.value === i)).map(i => (
+          {memory.interests.filter(i => !getInterestOptions(locale).find(o => o.value === i)).map(i => (
             <span key={i} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
               {i}
               <button onClick={() => removeTag('interests', i)}><X className="w-3 h-3" /></button>
@@ -256,7 +286,7 @@ export default function MemoryPage() {
               value={newInterest}
               onChange={e => setNewInterest(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { toggleInterest(newInterest); setNewInterest(''); } }}
-              placeholder={locale === 'th' ? 'เพิ่มความสนใจอื่น...' : 'Add another interest...'}
+              placeholder={th ? 'เพิ่มความสนใจอื่น...' : sv ? 'Lägg till intresse...' : 'Add another interest...'}
               className="flex-1 text-sm px-3 py-1.5 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
@@ -269,9 +299,9 @@ export default function MemoryPage() {
         </Section>
 
         {/* Learning Style */}
-        <Section icon={<Brain className="w-4 h-4 text-purple-500" />} title={locale === 'th' ? 'สไตล์การเรียน' : 'Learning Style'}>
+        <Section icon={<Brain className="w-4 h-4 text-purple-500" />} title={th ? 'สไตล์การเรียน' : sv ? 'Inlärningsstil' : 'Learning Style'}>
           <div className="grid grid-cols-2 gap-2">
-            {LEARNING_STYLES.map(style => (
+            {getLearningStyles(locale).map(style => (
               <button
                 key={style.value}
                 onClick={() => setMemory(m => ({ ...m, learning_style: style.value }))}
@@ -289,7 +319,7 @@ export default function MemoryPage() {
         </Section>
 
         {/* Strengths */}
-        <Section icon={<Trophy className="w-4 h-4 text-green-500" />} title={locale === 'th' ? 'วิชาที่เก่ง' : 'Strong Subjects'}>
+        <Section icon={<Trophy className="w-4 h-4 text-green-500" />} title={th ? 'วิชาที่เก่ง' : sv ? 'Starka ämnen' : 'Strong Subjects'}>
           <div className="flex flex-wrap gap-2">
             {SUBJECT_OPTIONS.map(s => (
               <button
@@ -301,14 +331,14 @@ export default function MemoryPage() {
                     : 'bg-muted/50 text-foreground border-border hover:bg-muted'
                 }`}
               >
-                {s}
+                {translateSubject(s, locale)}
               </button>
             ))}
           </div>
         </Section>
 
         {/* Struggles */}
-        <Section icon={<Target className="w-4 h-4 text-orange-500" />} title={locale === 'th' ? 'วิชาที่ต้องพัฒนา' : 'Needs Improvement'}>
+        <Section icon={<Target className="w-4 h-4 text-orange-500" />} title={th ? 'วิชาที่ต้องพัฒนา' : sv ? 'Behöver öva mer på' : 'Needs Improvement'}>
           <div className="flex flex-wrap gap-2">
             {SUBJECT_OPTIONS.map(s => (
               <button
@@ -320,14 +350,14 @@ export default function MemoryPage() {
                     : 'bg-muted/50 text-foreground border-border hover:bg-muted'
                 }`}
               >
-                {s}
+                {translateSubject(s, locale)}
               </button>
             ))}
           </div>
         </Section>
 
         {/* Languages */}
-        <Section icon={<Languages className="w-4 h-4 text-blue-500" />} title={locale === 'th' ? 'ภาษาที่พูดได้' : 'Languages Spoken'}>
+        <Section icon={<Languages className="w-4 h-4 text-blue-500" />} title={th ? 'ภาษาที่พูดได้' : sv ? 'Språk' : 'Languages Spoken'}>
           <div className="flex flex-wrap gap-2 mb-2">
             {(['Thai', 'English', 'Swedish', 'Chinese', 'Japanese', 'French', 'German'] as string[]).map(lang => (
               <button
@@ -354,7 +384,7 @@ export default function MemoryPage() {
               value={newLang}
               onChange={e => setNewLang(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addTag('languages_spoken', newLang, setNewLang); }}
-              placeholder={locale === 'th' ? 'เพิ่มภาษาอื่น...' : 'Add another language...'}
+              placeholder={th ? 'เพิ่มภาษาอื่น...' : sv ? 'Lägg till språk...' : 'Add another language...'}
               className="flex-1 text-sm px-3 py-1.5 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
@@ -367,12 +397,14 @@ export default function MemoryPage() {
         </Section>
 
         {/* Favourites / personality */}
-        <Section icon={<Heart className="w-4 h-4 text-pink-500" />} title={locale === 'th' ? 'สิ่งที่ชอบ / บุคลิกภาพ' : 'Favourites & Personality'}>
+        <Section icon={<Heart className="w-4 h-4 text-pink-500" />} title={th ? 'สิ่งที่ชอบ / บุคลิกภาพ' : sv ? 'Favoriter & Personlighet' : 'Favourites & Personality'}>
           <textarea
             value={memory.favourites}
             onChange={e => setMemory(m => ({ ...m, favourites: e.target.value }))}
-            placeholder={locale === 'th'
+            placeholder={th
               ? 'เช่น ชอบเกม Minecraft, แมวชื่อ Mochi, อยากเป็นวิศวกร...'
+              : sv
+              ? 't.ex. Älskar Minecraft, har en katt som heter Mochi, vill bli ingenjör...'
               : 'e.g. Loves Minecraft, has a cat named Mochi, wants to be an engineer...'}
             rows={3}
             className="w-full text-sm px-3 py-2 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
@@ -380,7 +412,7 @@ export default function MemoryPage() {
         </Section>
 
         {/* Fun facts */}
-        <Section icon={<Sparkles className="w-4 h-4 text-yellow-400" />} title={locale === 'th' ? 'เรื่องสนุก / ความทรงจำ' : 'Fun Facts & Notes'}>
+        <Section icon={<Sparkles className="w-4 h-4 text-yellow-400" />} title={th ? 'เรื่องสนุก / ความทรงจำ' : sv ? 'Roliga fakta' : 'Fun Facts & Notes'}>
           <div className="flex flex-wrap gap-2 mb-2">
             {memory.fun_facts.map(fact => (
               <span key={fact} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700">
@@ -394,7 +426,7 @@ export default function MemoryPage() {
               value={newFact}
               onChange={e => setNewFact(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addTag('fun_facts', newFact, setNewFact); }}
-              placeholder={locale === 'th' ? 'เช่น ชนะแข่งวาดรูป, มีน้องชาย...' : 'e.g. won an art contest, has a little brother...'}
+              placeholder={th ? 'เช่น ชนะแข่งวาดรูป, มีน้องชาย...' : sv ? 't.ex. vann en rittävling, har en lillebror...' : 'e.g. won an art contest, has a little brother...'}
               className="flex-1 text-sm px-3 py-1.5 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
@@ -413,12 +445,14 @@ export default function MemoryPage() {
           className="w-full rounded-2xl py-6 bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold text-base shadow-xl shadow-purple-500/20 hover:from-purple-700 hover:to-cyan-700"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Brain className="w-5 h-5 mr-2" />}
-          {locale === 'th' ? '🧠 บันทึกความทรงจำของเนโม' : '🧠 Save Nemo\'s Memory'}
+          {th ? '🧠 บันทึกความทรงจำของเนโม' : sv ? '🧠 Spara Nemos Minne' : '🧠 Save Nemo\'s Memory'}
         </Button>
 
         <p className="text-center text-xs text-muted-foreground pb-8">
-          {locale === 'th'
+          {th
             ? 'เนโมจะใช้ข้อมูลนี้เพื่อสอนคุณได้ดีขึ้น 🎓'
+            : sv
+            ? 'Nemo använder detta för att anpassa varje lektion till dig 🎓'
             : 'Nemo uses this to personalise every lesson for you 🎓'}
         </p>
       </div>
