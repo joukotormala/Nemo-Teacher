@@ -73,8 +73,8 @@ export default function SignupPage() {
           transition={{ duration: 0.6 }}
           className="relative z-10 text-center px-12"
         >
-          <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-8">
-            <GraduationCap className="w-14 h-14 text-white" />
+          <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl p-1 shadow-2xl mx-auto mb-8 overflow-hidden">
+            <img src="/nemo_avatar.jpg" alt="Nemo Logo" className="w-full h-full object-cover rounded-2xl" />
           </div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight mb-4">{t('app.name')}</h1>
           <p className="text-lg text-white/80">{t('app.tagline')}</p>
@@ -124,8 +124,8 @@ export default function SignupPage() {
           </div>
 
           <div className="lg:hidden text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <GraduationCap className="w-9 h-9 text-white" />
+            <div className="w-16 h-16 bg-white shadow-xl rounded-2xl p-0.5 mx-auto mb-4 overflow-hidden">
+              <img src="/nemo_avatar.jpg" alt="Nemo Logo" className="w-full h-full object-cover rounded-xl" />
             </div>
             <h1 className="text-2xl font-display font-bold tracking-tight">{t('app.name')}</h1>
           </div>

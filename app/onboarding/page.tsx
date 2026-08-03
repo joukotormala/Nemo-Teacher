@@ -460,9 +460,9 @@ export default function OnboardingPage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-                className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg"
+                className="w-16 h-16 bg-white shadow-xl rounded-2xl p-0.5 mx-auto mb-4 overflow-hidden"
               >
-                <GraduationCap className="w-8 h-8 text-white" />
+                <img src="/nemo_avatar.jpg" alt="Nemo Logo" className="w-full h-full object-cover rounded-xl" />
               </motion.div>
               <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">
                 {t('onboarding.title')}
@@ -600,9 +600,9 @@ export default function OnboardingPage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-                className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg"
+                className="w-16 h-16 bg-white shadow-xl rounded-2xl p-0.5 mx-auto mb-4 overflow-hidden"
               >
-                <GraduationCap className="w-8 h-8 text-white" />
+                <img src="/nemo_avatar.jpg" alt="Nemo Logo" className="w-full h-full object-cover rounded-xl" />
               </motion.div>
               <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">
                 {t('onboarding.title')}

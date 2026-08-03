@@ -38,8 +38,8 @@ export function DashboardNav() {
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-background/80 backdrop-blur-md border-b border-border/50">
       <div className="max-w-[1200px] mx-auto h-full flex items-center justify-between px-4">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow-sm border border-border/50">
+            <img src="/nemo_avatar.jpg" alt="Nemo Logo" className="w-full h-full object-cover" />
           </div>
           <span className="font-display font-bold text-lg tracking-tight hidden sm:inline">
             {t('app.name')}
