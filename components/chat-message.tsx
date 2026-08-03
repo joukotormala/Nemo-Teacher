@@ -108,6 +108,21 @@ export function ChatMessageContent({ content, onWordClick }: ChatMessageContentP
 
   if (!content) return null;
 
+  // Pre-process content to fix mangled markdown images with spaces (caused by LLM tokenizer hallucinations)
+  // E.g. ![ Kanin ]( / api / generate - image ? prompt = ... )
+  let cleanContent = content.replace(/!\s*\[\s*(.*?)\s*\]\s*\(\s*(.+?)\s*\)/g, (match, alt, url) => {
+    let cleanUrl = url;
+    if (cleanUrl.match(/\/?\s*api\s*\/\s*generate\s*-\s*image/i)) {
+      cleanUrl = cleanUrl.replace(/\/?\s*api\s*\/\s*generate\s*-\s*image\s*\?\s*prompt\s*=\s*/i, '/api/generate-image?prompt=');
+      cleanUrl = cleanUrl.replace(/\s*&\s*name\s*=\s*/i, '&name=');
+    } else if (cleanUrl.match(/\/?\s*api\s*\/\s*search\s*-\s*image/i)) {
+      cleanUrl = cleanUrl.replace(/\/?\s*api\s*\/\s*search\s*-\s*image\s*\?\s*q\s*=\s*/i, '/api/search-image?q=');
+    } else if (cleanUrl.match(/\/?\s*illustrations\s*\//i)) {
+      cleanUrl = cleanUrl.replace(/\s+/g, '');
+    }
+    return `![${alt}](${cleanUrl})`;
+  });
+
   return (
     <div className="chat-markdown select-text">
       <ReactMarkdown
@@ -198,7 +213,7 @@ export function ChatMessageContent({ content, onWordClick }: ChatMessageContentP
           td: ({ children }) => <td className="border border-border/50 px-2 py-1">{makeNodesClickable(children, onWordClick)}</td>,
         }}
       >
-        {content}
+        {cleanContent}
       </ReactMarkdown>
     </div>
   );
