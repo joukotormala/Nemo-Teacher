@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const isUniversity = gradeLevel?.startsWith('university') || gradeLevel === 'graduate';
     const isSUT = schoolName?.includes('สุรนารี') || schoolName?.toLowerCase().includes('suranaree') || schoolName?.toLowerCase().includes('sut');
     const isMedScience = schoolProgram?.includes('Medical Science') || schoolProgram?.includes('วิทยาศาสตร์การแพทย์') || schoolProgram?.includes('med_science');
-    const isScratch = subject === 'computer_science';
+    const isComputerScience = subject === 'computer_science';
     const schoolBlock = (schoolName || schoolProgram) ? `
 ## School & Curriculum Context
 - School/University: ${schoolName || 'not specified'}${isSUT ? ' (มหาวิทยาลัยเทคโนโลยีสุรนารี — SUT, Nakhon Ratchasima, Thailand)' : ''}
@@ -57,37 +57,17 @@ ${gradeLevel === 'secondary_3' ? `- Grade 9 (Matthayom 3): Key exam this year is
 ${gradeLevel === 'secondary_6' ? `- Grade 12 (Matthayom 6): **CRITICAL exam year** — A-Level and TPAT university entrance exams. Focus on exam preparation, deep understanding, and problem-solving speed.` : ''}
 ` : '';
 
-    const scratchBlock = isScratch ? `
-## Computer Science / Scratch Programming Context
-- The student is learning **Scratch** (scratch.mit.edu) — a visual block-based programming language
-- Scratch runs on **Windows and Mac** in a web browser (no install needed) or as a downloadable app
-- Since you cannot show the actual Scratch interface, describe blocks clearly in text like:
-  - 🟡 **Events**: [when green flag clicked], [when key (space) pressed]
-  - 🔵 **Motion**: [move (10) steps], [turn (15) degrees], [go to x:(0) y:(0)]
-  - 🟣 **Control**: [repeat (10)], [forever], [if <condition> then]
-  - 🟠 **Looks**: [say (Hello!) for (2) seconds], [switch costume to (costume2)]
-  - 🟢 **Sensing**: [touching (edge)?], [ask (What's your name?) and wait]
-  - 🔴 **Operators**: [(x) + (y)], [(x) < (50)]
-  - 🟤 **Variables**: [set (score) to (0)], [change (score) by (1)]
-- Always give step-by-step instructions the student can follow in Scratch right now
-- Build projects progressively — start simple, add features one at a time
-- Celebrate when something works: "🎉 เยี่ยม! ลองกด Green Flag แล้วดูผลเลย!"
-- When debugging: help them think through logic first before giving the fix
-
-## How students can access Scratch — always mention this when relevant:
-### Option 1: Run in a web browser (easiest, no install needed)
-- Open any browser (Chrome, Edge, Firefox, Safari) on Windows or Mac
-- Go to: https://scratch.mit.edu
-- Click **"Start Creating"** or **"Try it Out"** — no account needed to start!
-- To save projects they need a free account: click **"Join Scratch"**
-
-### Option 2: Install the Scratch Desktop app (works offline, no WiFi needed)
-- Windows: Download from https://scratch.mit.edu/download — click the **"Windows"** button, run the .exe installer
-- Mac: Download from https://scratch.mit.edu/download — click the **"macOS"** button, open the .dmg file and drag Scratch to Applications
-- The desktop app works without internet after installation
-- Great for students who want to code at home without WiFi
-
-When a student asks "how do I start Scratch?", "how do I open it?", or "how do I install it?", always give them BOTH options with these exact URLs as clickable links.
+    const ipadBlock = isComputerScience ? `
+## Computer Science / iPad Teaching Context
+- The student is learning how to use an **iPad** for education, creativity, and basic programming (like Swift Playgrounds).
+- Provide step-by-step instructions that are easy to follow on an iPad interface.
+- Mention specific gestures when relevant (e.g., swipe, tap, pinch to zoom, long press).
+- Recommend built-in Apple apps (Notes, Keynote, Pages, Swift Playgrounds) or standard educational apps (GoodNotes, Notability) when appropriate.
+- For programming questions, focus on **Swift Playgrounds**:
+  - Explain concepts like commands, functions, and loops simply.
+  - Encourage them to try running their code to see Byte (the character) move.
+- Celebrate when something works: "🎉 เยี่ยม! ลองทำตามดูเลย!"
+- When troubleshooting: help them check basic iPad settings (Wi-Fi, Bluetooth, App updates) before giving up.
 ` : '';
 
     // Build USER.md-style memory block if available
@@ -140,7 +120,7 @@ Do NOT include any text outside the JSON object.`;
       systemPrompt = `You are "Nemo" (เนโม), a friendly and encouraging AI tutor. You help students learn and understand concepts clearly.
 ${memoryBlock}
 ${schoolBlock}
-${scratchBlock}
+${ipadBlock}
 Context:
 - Subject: ${subjectName}
 - Student: ${name}${grade}
