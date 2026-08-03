@@ -21,6 +21,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, profileComplete, router]);
 
+  // iOS Safari workaround: unlock Web Speech API globally on first interaction
+  useEffect(() => {
+    const unlockSpeech = () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        try {
+          const u = new SpeechSynthesisUtterance('');
+          u.volume = 0;
+          u.rate = 1;
+          window.speechSynthesis.speak(u);
+        } catch (e) {}
+      }
+      document.removeEventListener('touchstart', unlockSpeech);
+      document.removeEventListener('click', unlockSpeech);
+    };
+    document.addEventListener('touchstart', unlockSpeech, { once: true });
+    document.addEventListener('click', unlockSpeech, { once: true });
+    return () => {
+      document.removeEventListener('touchstart', unlockSpeech);
+      document.removeEventListener('click', unlockSpeech);
+    };
+  }, []);
+
   // Refresh profile from DB on every page load so deleted/added students
   // are reflected immediately without requiring a full browser reload
   useEffect(() => {

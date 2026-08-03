@@ -23,6 +23,17 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
 
   function handleCardClick(e: React.MouseEvent) {
     e.preventDefault();
+    
+    // iOS Safari workaround: unlock Web Speech API during a user interaction event
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        const u = new SpeechSynthesisUtterance('');
+        u.volume = 0;
+        u.rate = 1;
+        window.speechSynthesis.speak(u);
+      } catch (err) {}
+    }
+
     router.push(`/chat/${subject?.slug ?? ''}`);
   }
 
