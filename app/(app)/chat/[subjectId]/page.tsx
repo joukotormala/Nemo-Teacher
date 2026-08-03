@@ -517,7 +517,17 @@ export default function ChatPage() {
     setMessages([{ role: 'assistant', content: quickGreeting }]);
 
     if (subject?.suggestions?.length) {
-      const predefined = subject.suggestions.map(s => locale === 'th' ? s.label_th : locale === 'sv' ? (s.label_sv ?? s.label_en) : s.label_en);
+      const subjKey = subject?.id?.toLowerCase() || '';
+      const completedTopics = (activeStudent?.nemo_memory?.completed_topics?.[subjKey] as string[]) || [];
+      const unlockedSuggestions = subject.suggestions.filter((s, idx) => {
+        if (idx === 0) return true;
+        const isCompleted = completedTopics.includes(s.label_en) || completedTopics.includes(s.label_th) || completedTopics.includes(s.label_sv || '');
+        if (isCompleted) return true;
+        const prevTopic = subject.suggestions[idx - 1];
+        const isPrevCompleted = completedTopics.includes(prevTopic.label_en) || completedTopics.includes(prevTopic.label_th) || completedTopics.includes(prevTopic.label_sv || '');
+        return isPrevCompleted;
+      });
+      const predefined = unlockedSuggestions.map(s => locale === 'th' ? s.label_th : locale === 'sv' ? (s.label_sv ?? s.label_en) : s.label_en);
       setTopicSuggestions(predefined);
     }
 
@@ -898,7 +908,17 @@ export default function ChatPage() {
       : `Hi ${studentName}! 😊 Welcome to ${subjectName}. Type your question below to get started!`;
     setMessages([{ role: 'assistant', content: quickGreeting }]);
     if (subject?.suggestions?.length) {
-      const predefined = subject.suggestions.map(s => locale === 'th' ? s.label_th : locale === 'sv' ? (s.label_sv ?? s.label_en) : s.label_en);
+      const subjKey = subject?.id?.toLowerCase() || '';
+      const completedTopics = (activeStudent?.nemo_memory?.completed_topics?.[subjKey] as string[]) || [];
+      const unlockedSuggestions = subject.suggestions.filter((s, idx) => {
+        if (idx === 0) return true;
+        const isCompleted = completedTopics.includes(s.label_en) || completedTopics.includes(s.label_th) || completedTopics.includes(s.label_sv || '');
+        if (isCompleted) return true;
+        const prevTopic = subject.suggestions[idx - 1];
+        const isPrevCompleted = completedTopics.includes(prevTopic.label_en) || completedTopics.includes(prevTopic.label_th) || completedTopics.includes(prevTopic.label_sv || '');
+        return isPrevCompleted;
+      });
+      const predefined = unlockedSuggestions.map(s => locale === 'th' ? s.label_th : locale === 'sv' ? (s.label_sv ?? s.label_en) : s.label_en);
       setTopicSuggestions(predefined);
     } else {
       setTopicSuggestions([]);

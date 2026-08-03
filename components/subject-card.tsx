@@ -15,37 +15,15 @@ interface SubjectCardProps {
 
 export function SubjectCard({ subject, index }: SubjectCardProps) {
   const { locale, t } = useLanguage();
-  const { activeStudent } = useAuth();
   const router = useRouter();
-  const [showPicker, setShowPicker] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
 
   const Icon = subject?.icon;
   const name = locale === 'th' ? (subject?.name_th ?? '') : locale === 'sv' ? (subject?.name_sv ?? subject?.name_en ?? '') : (subject?.name_en ?? '');
   const desc = locale === 'th' ? (subject?.description_th ?? '') : locale === 'sv' ? (subject?.description_sv ?? subject?.description_en ?? '') : (subject?.description_en ?? '');
 
-  const hasSuggestions = (subject?.suggestions?.length ?? 0) > 0;
-
   function handleCardClick(e: React.MouseEvent) {
     e.preventDefault();
-    if (hasSuggestions) {
-      setShowPicker(true);
-    } else {
-      router.push(`/chat/${subject?.slug ?? ''}`);
-    }
-  }
-
-  function handleTopicClick(labelEn: string, labelTh: string, labelSv?: string) {
-    const label = locale === 'th' ? labelTh : (locale === 'sv' && labelSv) ? labelSv : labelEn;
-    router.push(`/chat/${subject?.slug ?? ''}?topic=${encodeURIComponent(label)}`);
-    setShowPicker(false);
-  }
-
-  function handleExploreAll() {
     router.push(`/chat/${subject?.slug ?? ''}`);
-    setShowPicker(false);
   }
 
   return (
@@ -89,146 +67,6 @@ export function SubjectCard({ subject, index }: SubjectCardProps) {
           </div>
       </div>
 
-      {/* Topic Picker Modal — only rendered client-side to avoid SSR hydration mismatch */}
-      {mounted && (
-        <AnimatePresence>
-        {showPicker && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShowPicker(false)}
-            />
-
-            {/* Modal */}
-            <motion.div
-              key="modal"
-              initial={{ opacity: 0, scale: 0.92, y: 24 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 24 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
-            >
-              <div
-                className="w-full max-w-md bg-card border border-border/60 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
-                onClick={e => e.stopPropagation()}
-              >
-                {/* Modal header */}
-                <div
-                  className="px-6 py-5 flex items-center gap-4"
-                  style={{ background: `linear-gradient(135deg, ${subject?.color ?? '#8B5CF6'}18, ${subject?.color ?? '#8B5CF6'}08)` }}
-                >
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${subject?.color ?? '#8B5CF6'}20`, border: `1px solid ${subject?.color ?? '#8B5CF6'}40` }}
-                  >
-                    {Icon ? <Icon className="w-6 h-6" style={{ color: subject?.color ?? '#8B5CF6' }} /> : null}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="font-display font-bold text-lg text-foreground">{name}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {locale === 'th' ? 'เลือกหัวข้อที่ต้องการเรียน' : locale === 'sv' ? 'Välj ett ämne att studera' : 'Choose a topic to study'}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setShowPicker(false)}
-                    className="p-2 rounded-lg hover:bg-muted transition-colors flex-shrink-0"
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-
-                {/* Topic list */}
-                <div className="p-3 space-y-1 max-h-[60vh] overflow-y-auto">
-                  {subject?.suggestions?.map((s, idx) => {
-                    const label = locale === 'th' ? s.label_th : (locale === 'sv' && s.label_sv) ? s.label_sv : s.label_en;
-                    const sublabel = locale === 'sv' ? s.label_en : locale === 'th' ? s.label_en : (s.label_sv || s.label_th);
-                    
-                    const subjKey = subject?.id?.toLowerCase() || '';
-                    const completedTopics = (activeStudent?.nemo_memory?.completed_topics?.[subjKey] as string[]) || [];
-                    const isCompleted = completedTopics.includes(s.label_en) || completedTopics.includes(s.label_th) || completedTopics.includes(s.label_sv || '');
-                    
-                    const prevTopic = idx > 0 ? subject.suggestions[idx - 1] : null;
-                    const isPrevCompleted = prevTopic ? (completedTopics.includes(prevTopic.label_en) || completedTopics.includes(prevTopic.label_th) || completedTopics.includes(prevTopic.label_sv || '')) : true;
-                    
-                    const isUnlocked = idx === 0 || isCompleted || isPrevCompleted;
-
-                    return (
-                      <motion.button
-                        key={idx}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.04, duration: 0.2 }}
-                        onClick={() => isUnlocked ? handleTopicClick(s.label_en, s.label_th, s.label_sv) : undefined}
-                        className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl text-left transition-all duration-150 group
-                          ${isUnlocked ? 'hover:bg-muted/80 active:scale-[0.98] cursor-pointer' : 'opacity-50 grayscale cursor-not-allowed'}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0`}
-                            style={{ backgroundColor: isUnlocked ? `${subject?.color ?? '#8B5CF6'}15` : 'transparent' }}
-                          >
-                            {!isUnlocked ? (
-                                <Lock className="w-4 h-4 text-muted-foreground" />
-                            ) : isCompleted ? (
-                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            ) : (
-                                <Sparkles className="w-4 h-4" style={{ color: subject?.color ?? '#8B5CF6' }} />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm text-foreground">{label}</p>
-                            <p className="text-xs text-muted-foreground">{sublabel}</p>
-                          </div>
-                        </div>
-                        {isUnlocked && (
-                          <ChevronRight
-                            className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all flex-shrink-0"
-                          />
-                        )}
-                      </motion.button>
-                    );
-                  })}
-
-                  {/* Divider */}
-                  <div className="border-t border-border/50 my-2" />
-
-                  {/* Explore all (free chat) option */}
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: (subject?.suggestions?.length ?? 0) * 0.04 + 0.1 }}
-                    onClick={handleExploreAll}
-                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl text-left
-                      hover:bg-muted/80 active:scale-[0.98] transition-all duration-150 group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-muted">
-                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm text-foreground">
-                          {locale === 'th' ? 'สำรวจทุกหัวข้อ' : locale === 'sv' ? 'Utforska alla ämnen' : 'Explore all topics'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {locale === 'th' ? `ถามอะไรก็ได้เกี่ยวกับ${name}` : locale === 'sv' ? `Fråga vad som helst om ${name}` : `Ask anything about ${name}`}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-        </AnimatePresence>
-      )}
     </>
   );
 }
