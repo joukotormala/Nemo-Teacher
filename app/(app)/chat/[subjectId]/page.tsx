@@ -211,6 +211,10 @@ export default function ChatPage() {
     autoListenRef.current = val;
   }, []);
 
+  
+  const currentTranscriptRef = useRef('');
+  const [shouldAutoSend, setShouldAutoSend] = useState(false);
+
   const initializedAutoRef = useRef(false);
   useEffect(() => {
     if (activeStudent && !initializedAutoRef.current) {
@@ -361,11 +365,15 @@ export default function ChatPage() {
           transcript += event.results[i][0].transcript;
         }
         setInput(transcript);
+        currentTranscriptRef.current = transcript;
       };
 
       recognition.onend = () => {
         setIsListening(false);
         recognitionRef.current = null;
+        if (autoListenRef.current && currentTranscriptRef.current.trim().length > 0) {
+          setShouldAutoSend(true);
+        }
       };
 
       recognition.onerror = (event: any) => {
@@ -920,6 +928,16 @@ export default function ChatPage() {
       abortControllerRef.current = null;
     }
   }, [messages, locale, activeStudent, subjectName, conversationId, subjectDbId, studentName, fetchPastConversations, activeModel]);
+
+  useEffect(() => {
+    if (shouldAutoSend && currentTranscriptRef.current.trim().length > 0) {
+      setShouldAutoSend(false);
+      sendMessageCore(currentTranscriptRef.current.trim());
+      currentTranscriptRef.current = '';
+      setInput('');
+    }
+  }, [shouldAutoSend, sendMessageCore]);
+
 
   const sendMessage = useCallback(async () => {
     const trimmed = input?.trim?.() ?? '';
