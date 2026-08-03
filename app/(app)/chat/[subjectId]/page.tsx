@@ -721,6 +721,7 @@ export default function ChatPage() {
 
       // 45-second client-side timeout — don't hang forever waiting for the API
       const timeoutId = setTimeout(() => {
+        abortControllerRef.current = null;
         controller.abort();
       }, 45000);
 

@@ -165,6 +165,81 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
   };
 }
 
+
+async function handleGeminiFallback(systemPrompt: string, messages: any[], isGreeting: boolean, subjectName: string, fallbackModel: string) {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+  const geminiModel = genAI.getGenerativeModel({
+    model: fallbackModel,
+    systemInstruction: systemPrompt,
+    tools: [{ googleSearch: {} } as any]
+  });
+
+  const formattedHistory = messages.slice(0, -1).map((m: any) => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: [{ text: m.content || '' }]
+  }));
+  
+  let userMsg = '';
+  if (isGreeting) {
+    userMsg = `Greet me and suggest what we can learn in ${subjectName}`;
+  } else {
+    userMsg = messages[messages.length - 1]?.content || '';
+  }
+
+  const chat = geminiModel.startChat({ history: formattedHistory });
+
+  if (isGreeting) {
+    try {
+      const result = await chat.sendMessage(userMsg);
+      const raw = result.response.text();
+      let greeting = '';
+      let suggestions = [];
+      try {
+        let jsonStr = raw.trim();
+        const codeBlockMatch = jsonStr.match(/\`\`\`(?:json)?\s*([\s\S]*?)\`\`\`/);
+        if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
+        const parsed = JSON.parse(jsonStr);
+        greeting = parsed?.greeting ?? raw;
+        suggestions = Array.isArray(parsed?.suggestions) ? parsed.suggestions : [];
+      } catch {
+        greeting = raw;
+      }
+      return Response.json({ greeting, suggestions, model: fallbackModel });
+    } catch (err) {
+      console.error('Greeting error:', err);
+      return Response.json({ greeting: '', suggestions: [], model: fallbackModel });
+    }
+  }
+
+  const result = await chat.sendMessageStream(userMsg);
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      try {
+        for await (const chunk of result.stream) {
+          const textChunk = chunk.text();
+          if (textChunk) {
+            const sseChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: textChunk } }] })}\n\n`;
+            controller.enqueue(encoder.encode(sseChunk));
+          }
+        }
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+      } catch (error) {
+        console.error('Stream error:', error);
+        controller.error(error);
+      } finally {
+        controller.close();
+      }
+    }
+  });
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    }
+  });
+}
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -628,6 +703,16 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
     if (!response?.ok) {
       const errText = await response?.text?.() ?? 'Unknown error';
       console.error('LLM API error:', response?.status, errText);
+
+      // Auto-fallback to Gemini if API key expired or unauthorized
+      if (response?.status === 401 || response?.status === 403) {
+        console.warn('Primary LLM API unauthorized/blocked. Falling back to Gemini...');
+        try {
+          return await handleGeminiFallback(systemPrompt, messages, isGreeting, subjectName, 'gemini-1.5-flash');
+        } catch (fbErr) {
+          console.error('Fallback to Gemini failed:', fbErr);
+        }
+      }
 
       let customErrMsg = `LLM API error: ${response?.status}`;
       const isGeminiError = model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL;
