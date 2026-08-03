@@ -23,14 +23,42 @@ function getPlaceholderSvg(reason: string): string {
 }
 
 async function generateImage(prompt: string): Promise<Buffer | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 55_000);
+
+  // Attempt local LM Studio image generation first (flux.1-schnell)
+  try {
+    const lmStudioRes = await fetch('http://localhost:1234/v1/images/generations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'flux.1-schnell',
+        prompt: prompt,
+        n: 1,
+        response_format: 'b64_json'
+      }),
+      signal: controller.signal
+    });
+
+    if (lmStudioRes.ok) {
+      const data = await lmStudioRes.json();
+      if (data?.data?.[0]?.b64_json) {
+        clearTimeout(timer);
+        console.log('[generate-image] Successfully generated via local LM Studio');
+        return Buffer.from(data.data[0].b64_json, 'base64');
+      }
+    }
+  } catch (err) {
+    // Ignore and fallback
+    console.log('[generate-image] Local LM Studio not available, falling back to Pollinations...');
+  }
+
+  // Fallback to Pollinations AI
   const encoded = encodeURIComponent(prompt);
   // Use a random seed so every generation is unique
   const seed = Math.floor(Math.random() * 9999999);
   const url = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&model=flux&seed=${seed}`;
   console.log(`[generate-image] Calling: ${url}`);
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 55_000);
 
   try {
     const response = await fetch(url, { signal: controller.signal });
