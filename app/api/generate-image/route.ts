@@ -93,6 +93,35 @@ export async function GET(request: NextRequest) {
       console.warn(`[generate-image] Could not save to disk (read-only FS?): ${fsErr.message}`);
     }
 
+    // Upload to Supabase Storage so it appears permanently in the Admin Dashboard
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      
+      if (supabaseUrl && serviceKey) {
+        const storagePath = `generated/${cleanName}.jpg`;
+        const uploadRes = await fetch(
+          `${supabaseUrl}/storage/v1/object/illustrations/${storagePath}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${serviceKey}`,
+              'Content-Type': 'image/jpeg',
+              'x-upsert': 'true',
+            },
+            body: buffer,
+          }
+        );
+        if (uploadRes.ok) {
+          console.log(`[generate-image] Saved to Supabase Storage: ${storagePath}`);
+        } else {
+          console.error(`[generate-image] Supabase upload failed:`, await uploadRes.text());
+        }
+      }
+    } catch (err: any) {
+      console.error(`[generate-image] Supabase upload error: ${err.message}`);
+    }
+
     return new Response(buffer, {
       headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=31536000, immutable' },
     });
