@@ -228,9 +228,13 @@ export default function ChatPage() {
 
   // --- Text-to-Speech (TTS) state ---
   const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  // Cache voices so getVoices() works on first call (Chrome loads them async)
+  const [cachedVoices, setCachedVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const ttsKeepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // --- Speech-to-Text (STT) state ---
   const [isListening, setIsListening] = useState(false);
+  const isListeningRef = useRef(false);
   const recognitionRef = useRef<any>(null);
 
   // --- Web Search state ---
@@ -245,7 +249,17 @@ export default function ChatPage() {
   } | null>(null);
 
 
-
+  // Load voices once (Chrome fires voiceschanged, other browsers return them immediately)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    const loadVoices = () => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) setCachedVoices(v);
+    };
+    loadVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+  }, []);
 
   // Get the speech language code from locale
   const getSpeechLang = useCallback(() => {
@@ -257,10 +271,11 @@ export default function ChatPage() {
   // --- TTS handler ---
   const handleSpeak = useCallback((text: string, idx: number) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    
+
     // If already speaking this message, stop
     if (speakingIdx === idx) {
       window.speechSynthesis.cancel();
+      if (ttsKeepAliveRef.current) { clearInterval(ttsKeepAliveRef.current); ttsKeepAliveRef.current = null; }
       setSpeakingIdx(null);
       setAutoSpeak(false);
       return;
@@ -268,46 +283,68 @@ export default function ChatPage() {
 
     // Stop any current speech
     window.speechSynthesis.cancel();
+    if (ttsKeepAliveRef.current) { clearInterval(ttsKeepAliveRef.current); ttsKeepAliveRef.current = null; }
     setAutoSpeak(true);
 
     // Strip markdown formatting, images, and emojis for clean speech
     const clean = text
       .replace(/!\[([^\]]*)\]\([^)]+\)/g, '')  // markdown images
-      .replace(/```[\s\S]*?```/g, '')          // code blocks
-      .replace(/`([^`]+)`/g, '$1')              // inline code
-      .replace(/\*\*([^*]+)\*\*/g, '$1')        // bold
-      .replace(/\*([^*]+)\*/g, '$1')             // italic
-      .replace(/#+\s/g, '')                     // headings
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // links
-      .replace(/[\-\*]\s/g, '')                 // list items
-      .replace(/\n{2,}/g, '. ')                 // double newlines to pause
-      .replace(/\n/g, ' ')                      // single newlines
+      .replace(/```[\s\S]*?```/g, '')           // code blocks
+      .replace(/`([^`]+)`/g, '$1')               // inline code
+      .replace(/\*\*([^*]+)\*\*/g, '$1')         // bold
+      .replace(/\*([^*]+)\*/g, '$1')              // italic
+      .replace(/#+\s/g, '')                      // headings
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')   // links
+      .replace(/[\-\*]\s/g, '')                  // list items
+      .replace(/\n{2,}/g, '. ')                  // double newlines to pause
+      .replace(/\n/g, ' ')                       // single newlines
       .replace(/\p{Extended_Pictographic}/gu, '') // strip emojis & smileys!
-      .replace(/\s{2,}/g, ' ')                  // collapse extra spaces
+      .replace(/\s{2,}/g, ' ')                   // collapse extra spaces
       .trim();
 
     const utterance = new SpeechSynthesisUtterance(clean);
     utterance.lang = getSpeechLang();
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
+    utterance.rate = 0.85;  // slightly slower for young kids
+    utterance.pitch = 1.1;  // slightly higher pitch — friendlier for kids
 
-    // Try to find a matching voice
-    const voices = window.speechSynthesis.getVoices();
-    const langPrefix = utterance.lang.split('-')[0];
-    const matchedVoice = voices.find(v => v.lang.startsWith(langPrefix));
+    // Use cached voices (avoids empty array on first call in Chrome)
+    const langCode = utterance.lang;
+    const langPrefix = langCode.split('-')[0];
+    const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+    // Prefer an exact locale match, fall back to language prefix match
+    const matchedVoice =
+      voices.find(v => v.lang === langCode) ||
+      voices.find(v => v.lang.startsWith(langPrefix));
     if (matchedVoice) utterance.voice = matchedVoice;
 
-    utterance.onend = () => setSpeakingIdx(null);
-    utterance.onerror = () => setSpeakingIdx(null);
+    const cleanup = () => {
+      if (ttsKeepAliveRef.current) { clearInterval(ttsKeepAliveRef.current); ttsKeepAliveRef.current = null; }
+      setSpeakingIdx(null);
+    };
+    utterance.onend = cleanup;
+    utterance.onerror = cleanup;
 
     setSpeakingIdx(idx);
     window.speechSynthesis.speak(utterance);
-  }, [speakingIdx, getSpeechLang, setAutoSpeak]);
 
-  
+    // ── Chrome TTS keep-alive workaround ────────────────────────────────────
+    // Chrome stops speaking silently after ~15s. Calling pause()+resume() every
+    // 10 seconds prevents the bug without audible interruption.
+    ttsKeepAliveRef.current = setInterval(() => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      } else {
+        if (ttsKeepAliveRef.current) { clearInterval(ttsKeepAliveRef.current); ttsKeepAliveRef.current = null; }
+      }
+    }, 10000);
+    // ────────────────────────────────────────────────────────────────────────
+  }, [speakingIdx, getSpeechLang, setAutoSpeak, cachedVoices]);
+
   // Stop TTS when leaving the page
   useEffect(() => {
     return () => {
+      if (ttsKeepAliveRef.current) { clearInterval(ttsKeepAliveRef.current); ttsKeepAliveRef.current = null; }
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
@@ -315,6 +352,11 @@ export default function ChatPage() {
   }, []);
 
   // --- STT handler ---
+
+  // Internal function to start a fresh recognition session (used by both manual toggle and auto-restart).
+  // Uses refs so it's safe to call without depending on stale `isListening` state.
+  const startListeningRef = useRef<((showToast?: boolean) => Promise<void>) | null>(null);
+
   const toggleListening = useCallback(async () => {
     if (typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -325,11 +367,13 @@ export default function ChatPage() {
       return;
     }
 
-    // Stop if already listening
-    if (isListening && recognitionRef.current) {
+    // Stop if already listening — and disable auto-listen so it doesn't restart
+    if (isListeningRef.current && recognitionRef.current) {
       recognitionRef.current.stop();
+      recognitionRef.current = null;
       setIsListening(false);
-      setAutoListen(false);
+      isListeningRef.current = false;
+      setAutoListen(false);   // user explicitly stopped — turn off auto-listen loop
       return;
     }
 
@@ -346,76 +390,104 @@ export default function ChatPage() {
       return;
     }
 
-    // Step 2: Start speech recognition
-    try {
-      setAutoListen(true);
-      const recognition = new SpeechRecognition();
-      recognition.lang = getSpeechLang();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
+    setAutoListen(true);
+    if (startListeningRef.current) await startListeningRef.current(true);
+  }, [isListeningRef, getSpeechLang, locale, setAutoListen]);
 
-      recognition.onstart = () => {
-        toast.success(locale === 'th' ? '🎤 กำลังฟัง... พูดได้เลย!' : '🎤 Listening... speak now!', { duration: 2000 });
-      };
+  // Keep startListeningRef up-to-date so the auto-restart loop can call it safely
+  useEffect(() => {
+    const SpeechRecognition =
+      typeof window !== 'undefined'
+        ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
+        : null;
 
-      recognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        setInput(transcript);
-        currentTranscriptRef.current = transcript;
-      };
+    startListeningRef.current = async (showToast = false) => {
+      if (!SpeechRecognition) return;
+      // Guard: don't start a second instance
+      if (isListeningRef.current || recognitionRef.current) return;
 
-      recognition.onend = () => {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.lang = getSpeechLang();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+          if (showToast) {
+            toast.success(locale === 'th' ? '🎤 กำลังฟัง... พูดได้เลย!' : '🎤 Listening... speak now!', { duration: 2000 });
+          }
+        };
+
+        recognition.onresult = (event: any) => {
+          let transcript = '';
+          for (let i = 0; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+          }
+          setInput(transcript);
+          currentTranscriptRef.current = transcript;
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+          isListeningRef.current = false;
+          recognitionRef.current = null;
+          // Only auto-send if autoListen is still active (user didn't stop it)
+          if (autoListenRef.current && currentTranscriptRef.current.trim().length > 0) {
+            setShouldAutoSend(true);
+          }
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+          isListeningRef.current = false;
+          recognitionRef.current = null;
+          if (event.error === 'not-allowed') {
+            toast.error(locale === 'th' ? 'กรุณาอนุญาตการใช้ไมโครโฟน' : 'Please allow microphone access');
+            setAutoListen(false);
+          } else if (event.error === 'no-speech') {
+            // Chrome fires this on silence — just ignore it for auto-listen sessions
+            if (!autoListenRef.current) {
+              toast.info(locale === 'th' ? 'ไม่ได้ยินเสียง — กรุณาลองพูดอีกครั้ง' : 'No speech detected — please try again');
+            }
+          } else if (event.error === 'network') {
+            toast.error(locale === 'th' ? 'ข้อผิดพลาดเครือข่าย — กรุณาลองอีกครั้ง' : 'Network error — please try again');
+          } else if (event.error !== 'aborted') {
+            toast.error(`Speech recognition failed (${event.error})`);
+          }
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+        setIsListening(true);
+        isListeningRef.current = true;
+      } catch (err: any) {
+        console.error('Failed to start speech recognition:', err);
+        toast.error(locale === 'th'
+          ? 'ไม่สามารถเริ่มฟังเสียงได้'
+          : 'Could not start speech recognition');
         setIsListening(false);
-        recognitionRef.current = null;
-        if (autoListenRef.current && currentTranscriptRef.current.trim().length > 0) {
-          setShouldAutoSend(true);
-        }
-      };
-
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-        recognitionRef.current = null;
-        if (event.error === 'not-allowed') {
-          toast.error(locale === 'th' ? 'กรุณาอนุญาตการใช้ไมโครโฟน' : 'Please allow microphone access');
-        } else if (event.error === 'no-speech') {
-          toast.info(locale === 'th' ? 'ไม่ได้ยินเสียง — กรุณาลองพูดอีกครั้ง' : 'No speech detected — please try again');
-        } else if (event.error === 'network') {
-          toast.error(locale === 'th' ? 'ข้อผิดพลาดเครือข่าย — กรุณาลองอีกครั้ง' : 'Network error — please try again');
-        } else if (event.error !== 'aborted') {
-          toast.error(`Speech recognition failed (${event.error})`);
-        }
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-      setIsListening(true);
-    } catch (err: any) {
-      console.error('Failed to start speech recognition:', err);
-      toast.error(locale === 'th'
-        ? 'ไม่สามารถเริ่มฟังเสียงได้'
-        : 'Could not start speech recognition');
-      setIsListening(false);
-    }
-  }, [isListening, getSpeechLang, locale, setAutoListen]);
+        isListeningRef.current = false;
+      }
+    };
+  }, [getSpeechLang, locale, setAutoListen, setInput]);
 
   const prevSpeakingIdx = useRef<number | null>(null);
   useEffect(() => {
-    // Only auto-listen if we just finished speaking and autoListen is true
+    // Only auto-listen if we just finished speaking and autoListen is still active
     if (prevSpeakingIdx.current !== null && speakingIdx === null) {
-      if (autoListenRef.current && !isListening) {
+      if (autoListenRef.current && !isListeningRef.current) {
         // Delay slightly before turning on mic so it doesn't pick up the last bit of TTS
         setTimeout(() => {
-          if (!isListening) toggleListening();
-        }, 800);
+          if (autoListenRef.current && !isListeningRef.current && startListeningRef.current) {
+            startListeningRef.current(false);
+          }
+        }, 900);
       }
     }
     prevSpeakingIdx.current = speakingIdx;
-  }, [speakingIdx, isListening, toggleListening]);
+  }, [speakingIdx]);
 
 
   // --- Web Search handler ---
@@ -862,6 +934,11 @@ export default function ChatPage() {
         }
       }
 
+      // Auto-speak the completed AI response (fires for all users, not just logged-in with DB)
+      if (autoSpeakRef.current && assistantContent) {
+        handleSpeak(assistantContent, newMessages.length);
+      }
+
       // Save conversation to DB
       if (activeStudent?.id && (assistantContent || assistantReasoning) && subjectDbId) {
         try {
@@ -891,10 +968,6 @@ export default function ChatPage() {
           }
           // Refresh history list
           fetchPastConversations();
-          // Trigger auto-speak of the new assistant message
-          if (autoSpeakRef.current && assistantContent) {
-             handleSpeak(assistantContent, newMessages.length);
-          }
         } catch (err) {
           console.error('Failed to save conversation:', err);
         }
@@ -927,7 +1000,7 @@ export default function ChatPage() {
       setIsStreaming(false);
       abortControllerRef.current = null;
     }
-  }, [messages, locale, activeStudent, subjectName, conversationId, subjectDbId, studentName, fetchPastConversations, activeModel]);
+  }, [messages, locale, activeStudent, subjectName, conversationId, subjectDbId, studentName, fetchPastConversations, activeModel, handleSpeak]);
 
   useEffect(() => {
     if (shouldAutoSend && currentTranscriptRef.current.trim().length > 0) {
