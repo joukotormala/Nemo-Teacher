@@ -329,7 +329,7 @@ export default function ChatPage() {
 
     // ── Chrome TTS keep-alive workaround ────────────────────────────────────
     // Chrome stops speaking silently after ~15s. Calling pause()+resume() every
-    // 10 seconds prevents the bug without audible interruption.
+    // 2 seconds keeps speech alive and prevents any long gap before it resumes.
     ttsKeepAliveRef.current = setInterval(() => {
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.pause();
@@ -337,7 +337,7 @@ export default function ChatPage() {
       } else {
         if (ttsKeepAliveRef.current) { clearInterval(ttsKeepAliveRef.current); ttsKeepAliveRef.current = null; }
       }
-    }, 10000);
+    }, 2000);
     // ────────────────────────────────────────────────────────────────────────
   }, [speakingIdx, getSpeechLang, setAutoSpeak, cachedVoices]);
 
