@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, Loader2, Trophy, ChevronRight, X } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Trophy, ChevronRight, X, Mic, MicOff, Send } from 'lucide-react';
 
 interface QuizQuestion {
   question: string;
@@ -33,6 +33,28 @@ const CONFIDENCE_OPTIONS = [
 
 type Step = 'confidence' | 'loading' | 'quiz' | 'result';
 
+// Check if a typed/spoken answer matches one of the options.
+// Returns the matched option index, or -1 if no match.
+function matchAnswer(input: string, options: string[]): number {
+  const normalise = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9\u0e00-\u0e7f]/gi, '').trim();
+
+  const inp = normalise(input);
+  if (!inp) return -1;
+
+  // Exact letter match: "a", "b", "c", "d"
+  const letterIdx = ['a', 'b', 'c', 'd'].indexOf(inp);
+  if (letterIdx !== -1 && letterIdx < options.length) return letterIdx;
+
+  // Exact number match: "1", "2", "3", "4"
+  const numIdx = parseInt(inp) - 1;
+  if (!isNaN(numIdx) && numIdx >= 0 && numIdx < options.length) return numIdx;
+
+  // Substring match against option text (lowercased)
+  const idx = options.findIndex(opt => normalise(opt).includes(inp) || inp.includes(normalise(opt)));
+  return idx;
+}
+
 export function QuizModal({
   isOpen, onClose, onComplete,
   messages, subject, subjectEmoji, studentName, locale, numQuestions = 3,
@@ -49,6 +71,20 @@ export function QuizModal({
   const [showExplanation, setShowExplanation] = useState(false);
   const [error, setError] = useState('');
 
+  // Typing / STT state
+  const [typedAnswer, setTypedAnswer] = useState('');
+  const [typeError, setTypeError] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const isListeningRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const getSpeechLang = () => {
+    if (locale === 'th') return 'th-TH';
+    if (locale === 'sv') return 'sv-SE';
+    return 'en-US';
+  };
+
   const reset = useCallback(() => {
     setStep('confidence');
     setConfidence(0);
@@ -58,12 +94,38 @@ export function QuizModal({
     setAnswers([]);
     setShowExplanation(false);
     setError('');
+    setTypedAnswer('');
+    setTypeError('');
+    setIsListening(false);
+    isListeningRef.current = false;
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
   }, []);
 
   const handleClose = useCallback(() => {
     reset();
     onClose();
   }, [reset, onClose]);
+
+  // Stop mic when modal closes or step changes away from quiz
+  useEffect(() => {
+    if (!isOpen || step !== 'quiz') {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+      setIsListening(false);
+      isListeningRef.current = false;
+    }
+  }, [isOpen, step]);
+
+  // Reset typed answer when question changes
+  useEffect(() => {
+    setTypedAnswer('');
+    setTypeError('');
+  }, [currentQ]);
 
   const handleConfidenceNext = useCallback(async () => {
     if (!confidence) return;
@@ -89,7 +151,35 @@ export function QuizModal({
     if (selected !== null) return;
     setSelected(idx);
     setShowExplanation(true);
+    setTypedAnswer('');
+    setTypeError('');
+    // Stop mic if active
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+    isListeningRef.current = false;
   }, [selected]);
+
+  // Submit typed / spoken answer
+  const handleSubmitTyped = useCallback(() => {
+    if (selected !== null || !typedAnswer.trim()) return;
+    const q = questions[currentQ];
+    if (!q) return;
+
+    const matchIdx = matchAnswer(typedAnswer, q.options);
+    if (matchIdx === -1) {
+      setTypeError(
+        th ? '❓ ไม่เข้าใจคำตอบ — ลองพิมพ์ A, B, C หรือ D หรือส่วนหนึ่งของคำตอบ'
+          : sv ? '❓ Förstår inte svaret — prova att skriva A, B, C eller D'
+          : '❓ Couldn\'t match your answer — try typing A, B, C or D'
+      );
+      return;
+    }
+    setTypeError('');
+    handleAnswer(matchIdx);
+  }, [selected, typedAnswer, questions, currentQ, th, sv, handleAnswer]);
 
   const handleNextQuestion = useCallback(() => {
     const isCorrect = selected === questions[currentQ]?.correctIndex;
@@ -107,6 +197,82 @@ export function QuizModal({
       setShowExplanation(false);
     }
   }, [selected, questions, currentQ, answers, confidence, onComplete]);
+
+  // Speech recognition toggle
+  const toggleListening = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    // Stop if running
+    if (isListeningRef.current && recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      setIsListening(false);
+      isListeningRef.current = false;
+      return;
+    }
+
+    // Request mic permission
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop());
+    } catch {
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = getSpeechLang();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setTypedAnswer(transcript);
+        setTypeError('');
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        isListeningRef.current = false;
+        recognitionRef.current = null;
+        // Auto-submit after voice input finishes
+        setTimeout(() => {
+          setTypedAnswer(prev => {
+            if (prev.trim()) {
+              const q = questions[currentQ];
+              if (q && selected === null) {
+                const matchIdx = matchAnswer(prev, q.options);
+                if (matchIdx !== -1) {
+                  handleAnswer(matchIdx);
+                }
+              }
+            }
+            return prev;
+          });
+        }, 400);
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+        isListeningRef.current = false;
+        recognitionRef.current = null;
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+      setIsListening(true);
+      isListeningRef.current = true;
+    } catch {
+      setIsListening(false);
+      isListeningRef.current = false;
+    }
+  }, [questions, currentQ, selected, handleAnswer]);
 
   const score = answers.filter(Boolean).length;
   const total = questions.length;
@@ -224,6 +390,8 @@ export function QuizModal({
               {step === 'quiz' && q && (
                 <div className="space-y-4">
                   <p className="font-semibold text-base leading-snug">{q.question}</p>
+
+                  {/* Multiple-choice buttons */}
                   <div className="space-y-2">
                     {q.options.map((opt, idx) => {
                       let variant = 'border-border bg-card/50 hover:bg-muted/30';
@@ -249,6 +417,59 @@ export function QuizModal({
                       );
                     })}
                   </div>
+
+                  {/* ── Type / Speak your answer ── */}
+                  {selected === null && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-2"
+                    >
+                      <p className="text-xs text-muted-foreground text-center">
+                        {th ? '— หรือพิมพ์ / พูดคำตอบ —'
+                          : sv ? '— eller skriv / säg ditt svar —'
+                          : '— or type / speak your answer —'}
+                      </p>
+                      <div className="flex gap-2">
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          value={typedAnswer}
+                          onChange={e => { setTypedAnswer(e.target.value); setTypeError(''); }}
+                          onKeyDown={e => { if (e.key === 'Enter') handleSubmitTyped(); }}
+                          placeholder={th ? 'พิมพ์คำตอบ หรือ A B C D...' : sv ? 'Skriv ditt svar eller A B C D...' : 'Type your answer or A B C D...'}
+                          className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        />
+                        {/* Mic button */}
+                        <button
+                          onClick={toggleListening}
+                          title={isListening
+                            ? (th ? 'หยุดฟัง' : sv ? 'Sluta lyssna' : 'Stop listening')
+                            : (th ? 'พูดคำตอบ' : sv ? 'Tala ditt svar' : 'Speak your answer')}
+                          className={`px-3 py-2 rounded-xl border transition-all flex items-center gap-1 text-sm font-medium ${
+                            isListening
+                              ? 'bg-red-500 border-red-500 text-white animate-pulse'
+                              : 'border-border hover:border-purple-400 hover:text-purple-500'
+                          }`}
+                        >
+                          {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                        </button>
+                        {/* Submit button */}
+                        <button
+                          onClick={handleSubmitTyped}
+                          disabled={!typedAnswer.trim()}
+                          title={th ? 'ส่งคำตอบ' : sv ? 'Skicka svar' : 'Submit answer'}
+                          className="px-3 py-2 rounded-xl text-white disabled:opacity-40 transition-all flex items-center"
+                          style={{ background: 'linear-gradient(135deg,#7c3aed,#db2777)' }}
+                        >
+                          <Send className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {typeError && (
+                        <p className="text-amber-500 text-xs text-center">{typeError}</p>
+                      )}
+                    </motion.div>
+                  )}
 
                   <AnimatePresence>
                     {showExplanation && (
