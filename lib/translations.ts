@@ -133,7 +133,7 @@ export const translations: Record<string, Record<Locale, string>> = {
   'settings.modelDesc': { th: 'เลือกโมเดลที่จะใช้สำหรับครูผู้ช่วยสอนเนโม', en: 'Select the model to use for AI Tutor Nemo', sv: 'Välj den modell som ska användas för AI-läraren Nemo' },
   'settings.ollamaRequired': { th: 'โมเดลโลคอลจำเป็นต้องเปิดใช้งาน Ollama ในเครื่องคอมพิวเตอร์ของคุณ', en: 'Local models require Ollama running on your local machine.', sv: 'Lokala modeller kräver att Ollama körs på din lokala dator.' },
   'model.nvidia': { th: 'คลาวด์เนโมทราน 🟢 (NVIDIA)', en: 'Nvidia Cloud - Nemotron 🟢', sv: 'Nvidia Cloud - Nemotron 🟢' },
-  'model.qwen': { th: 'คลาวด์คิวเวน 🟢 (Qwen 3 Next 80B)', en: 'Qwen Cloud - Qwen 3 Next 80B 🟢', sv: 'Qwen Cloud - Qwen 3 Next 80B 🟢' },
+  'model.qwen': { th: 'มิสทรัล มีเดียม 🟢 (Mistral 128B)', en: 'Mistral Cloud – Mistral Medium 128B 🟢', sv: 'Mistral Cloud – Mistral Medium 128B 🟢' },
   'model.cloud': { th: 'คลาวด์ลามะ 70B 🟢 (NVIDIA - ดีที่สุดสำหรับทุกวิชา/ภาษาสวีเดน)', en: 'Llama Cloud - Llama 3.3 70B 🟢 (Nvidia - Best Overall & Swedish)', sv: 'Llama Cloud - Llama 3.3 70B 🟢 (Nvidia - Bäst för alla ämnen & svenska)' },
   'model.nemotronSuper': { th: 'เนโมทราน ซูเปอร์ 49B ⭐ (NVIDIA - วิทยาศาสตร์)', en: 'Nemotron Super 49B ⭐ (Nvidia - Best for Science)', sv: 'Nemotron Super 49B ⭐ (Nvidia - Bäst för vetenskap & matematik)' },
   'model.deepseekR1': { th: 'ดีพซีค R1 🧠 (NVIDIA - การคิดเชิงลึก)', en: 'DeepSeek R1 🧠 (Nvidia - Deep Reasoning)', sv: 'DeepSeek R1 🧠 (Nvidia - Djupstegsresonemang)' },

@@ -916,7 +916,7 @@ export default function SettingsPage() {
                 { id: 'cloud', label: t('model.cloud'), desc: 'Llama-3.3-70B (Nvidia Cloud) — Best Overall & Swedish', star: true },
                 { id: 'nemotron-super', label: t('model.nemotronSuper'), desc: 'llama-3.3-nemotron-super-49b-v1.5 (Nvidia) — Best for Science & Math', star: true },
                 { id: 'llama-8b', label: t('model.llama8b'), desc: 'Llama-3.1-8B (Nvidia Cloud) — Fast responses' },
-                { id: 'qwen', label: t('model.qwen'), desc: 'Qwen-3-Next-80B (Nvidia Cloud)' },
+                { id: 'qwen', label: t('model.qwen'), desc: 'Mistral-Medium-3.5-128B (Nvidia Cloud)' },
                 { id: 'deepseek-r1', label: t('model.deepseekR1'), desc: 'deepseek-ai/deepseek-r1 (Nvidia)' },
                 { id: 'nvidia', label: t('model.nvidia'), desc: 'Nemotron-3-nano (Nvidia Cloud)' },
                 { id: 'gemma-4b', label: t('model.gemma4b'), desc: 'Gemma-3-4B (Nvidia Cloud)' },
