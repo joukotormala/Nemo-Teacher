@@ -626,7 +626,7 @@ export default function ChatPage() {
     if (savedModel === 'nvidia') setModelName('Nemotron-3-nano');
     else if (savedModel === 'llama-3b') setModelName('Llama-3.2-3B');
     else if (savedModel === 'llama-vision') setModelName('Llama-3.2-Vision');
-    else if (savedModel === 'qwen') setModelName('Qwen-3-Next');
+    else if (savedModel === 'qwen') setModelName('Qwen-3.6');
     else if (savedModel === 'cloud') setModelName('Llama-3.3-70B');
     else if (savedModel === 'llama-8b') setModelName('Llama-3.1-8B');
     else if (savedModel === 'gemini') setModelName('Google Gemini 2.0');
@@ -1162,7 +1162,7 @@ const STOP_WORDS = new Set([
     if (modelId === 'nvidia') setModelName('Nemotron-3-nano');
     else if (modelId === 'llama-3b') setModelName('Llama-3.2-3B');
     else if (modelId === 'llama-vision') setModelName('Llama-3.2-Vision');
-    else if (modelId === 'qwen') setModelName('Qwen-3-Next');
+    else if (modelId === 'qwen') setModelName('Qwen-3.6');
     else if (modelId === 'cloud') setModelName('Llama-3.3-70B');
     else if (modelId === 'llama-8b') setModelName('Llama-3.1-8B');
     else if (modelId === 'gemini') setModelName('Google Gemini 2.0');
@@ -1410,7 +1410,7 @@ const STOP_WORDS = new Set([
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('qwen')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.qwen')}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">Qwen-3-Next (Nvidia)</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">Qwen-3.6 (Nvidia)</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleModelChange('gemini')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
                     <span className="font-semibold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400">{t('model.gemini')}</span>
