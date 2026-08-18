@@ -17,6 +17,7 @@ import { FeedbackButton } from '@/components/feedback-button';
 import { QuizModal } from '@/components/quiz-modal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessageContent } from '@/components/chat-message';
+import { DiscoverThailandView } from '@/components/discover-thailand-view';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -616,7 +617,7 @@ export default function ChatPage() {
 
   // Show instant greeting + fetch AI suggestions in background (non-blocking)
   useEffect(() => {
-    if (greetingDoneRef.current || !subject || !activeStudent) return;
+    if (greetingDoneRef.current || !subject || !activeStudent || subjectSlug === 'discover-thailand' || subjectSlug === 'discover_thailand') return;
     greetingDoneRef.current = true;
 
     const savedModel = (typeof window !== 'undefined' ? localStorage.getItem('nemo_preferred_model') : null) || 'llama-8b';
@@ -1316,6 +1317,10 @@ const STOP_WORDS = new Set([
       return '';
     }
   };
+
+  if (subjectSlug === 'discover-thailand' || subjectSlug === 'discover_thailand') {
+    return <DiscoverThailandView />;
+  }
 
   if (!subject) {
     return (
