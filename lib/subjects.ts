@@ -1,4 +1,4 @@
-import { Calculator, FlaskConical, BookOpen, Languages, BookText, Microscope, Atom, Dna, Globe, Clock, Zap, Brain, Bug, Shield, Activity, Monitor } from 'lucide-react';
+import { Calculator, FlaskConical, BookOpen, Languages, BookText, Microscope, Atom, Dna, Globe, Clock, Zap, Brain, Bug, Shield, Activity, Monitor, Compass } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface SubjectSuggestion {
@@ -466,6 +466,113 @@ export const subjects: SubjectInfo[] = [
       { label_th: 'แก้ปัญหาเบื้องต้น', label_en: 'Troubleshooting', label_sv: 'Felsökning', prompt_th: 'สอนวิธีแก้ปัญหาเบื้องต้นเวลา iPad ค้าง หรือแอพมีปัญหา', prompt_en: 'Teach me how to troubleshoot when iPad freezes or apps have issues', prompt_sv: 'Lär mig hur man felsöker när iPad hänger sig eller appar strular' },
     ],
   },
+  {
+    id: 'discover_thailand',
+    slug: 'discover-thailand',
+    code: 'discover_thailand',
+    name_th: 'ค้นพบเมืองไทย (ทุกช่วงวัย)',
+    name_en: 'Discover Thailand',
+    name_sv: 'Upptäck Thailand',
+    icon: Compass,
+    illustrationUrl: '/illustrations/reading_kid.png',
+    color: '#0EA5E9',
+    bgColor: 'bg-sky-50 dark:bg-sky-950/30',
+    description_th: 'ท่องธรรมชาติ เกาะ Unseen วัฒนธรรม และการผจญภัยกับ Touch Grass Tour',
+    description_en: 'Explore unseen islands, nature, culture, and family adventures across Thailand',
+    description_sv: 'Utforska dolda öar, vacker natur, kultur och familjeäventyr genom Thailand',
+    minGradeIndex: 0,
+    maxGradeIndex: 99,
+    suggestions: [
+      {
+        label_th: '1. เกาะลิบง (พะยูน & เกาะสงบ)',
+        label_en: '1. Koh Libong (Dugongs & Island)',
+        label_sv: '1. Koh Libong (Sjökor & Öliv)',
+        prompt_th: 'สอนเรื่องตอนที่ 1: Koh Libong การตามหาพะยูนและวิถีชีวิตชาวเกาะลิบง จ.ตรัง https://www.youtube.com/watch?v=8jJhoKV_8Os',
+        prompt_en: 'Tell me about Episode 1: Koh Libong island adventure in Trang, spotting wild dugongs, and coastal fishing life (https://www.youtube.com/watch?v=8jJhoKV_8Os)',
+        prompt_sv: 'Berätta om Avsnitt 1: Koh Libong i Trang, hur man letar efter vilda sjökor och hur livet på ön ser ut (https://www.youtube.com/watch?v=8jJhoKV_8Os)',
+      },
+      {
+        label_th: '2. เที่ยวช้าๆ กรุงเทพสู่ภาคใต้',
+        label_en: '2. Slow Travel: Bangkok to South',
+        label_sv: '2. Resa: Bangkok till Södern',
+        prompt_th: 'สอนเรื่องตอนที่ 2: การเดินทางแบบช้าๆ จากกรุงเทพสู่ภาคใต้ด้วยรถไฟและถนน https://www.youtube.com/watch?v=f78IzBXg3J8',
+        prompt_en: 'Tell me about Episode 2: Slow overland and train journey from Bangkok down to Southern Thailand (https://www.youtube.com/watch?v=f78IzBXg3J8)',
+        prompt_sv: 'Berätta om Avsnitt 2: En långsam tåg- och bilresa från Bangkok ner genom södra Thailand (https://www.youtube.com/watch?v=f78IzBXg3J8)',
+      },
+      {
+        label_th: '3. เกาะพระทอง (ทุ่งหญ้าสะวันนา)',
+        label_en: '3. Koh Phra Thong (Savanna Island)',
+        label_sv: '3. Koh Phra Thong (Savann-ön)',
+        prompt_th: 'สอนเรื่องตอนที่ 3: เกาะพระทอง จ.พังงา เกาะทุ่งหญ้าสะวันนา กวางป่า และเต่าทะเล https://www.youtube.com/watch?v=P6L6Z86r4QI',
+        prompt_en: 'Tell me about Episode 3: Koh Phra Thong in Phang Nga, Thailand\'s unique golden savanna island, wild deer, and turtles (https://www.youtube.com/watch?v=P6L6Z86r4QI)',
+        prompt_sv: 'Berätta om Avsnitt 3: Koh Phra Thong i Phang Nga, en unik savann-ö med hjortar och sköldpaddor (https://www.youtube.com/watch?v=P6L6Z86r4QI)',
+      },
+      {
+        label_th: '4. ดำน้ำหมู่เกาะสุรินทร์ & มอแกน',
+        label_en: '4. Surin Snorkeling & Moken',
+        label_sv: '4. Surin Snorkling & Moken',
+        prompt_th: 'สอนเรื่องตอนที่ 4: ดำน้ำดูปะการังที่หมู่เกาะสุรินทร์ และวิถีชีวิตชาวเลมอแกน https://www.youtube.com/watch?v=0adr-8kALn8',
+        prompt_en: 'Tell me about Episode 4: Snorkeling in the Surin Islands, clownfish, coral reefs, and Moken sea nomad culture (https://www.youtube.com/watch?v=0adr-8kALn8)',
+        prompt_sv: 'Berätta om Avsnitt 4: Snorkling i Surin-öarnas nationalpark, korallrev och havsn Nomaderna Moken (https://www.youtube.com/watch?v=0adr-8kALn8)',
+      },
+      {
+        label_th: '5. อันซีนเขาหลักและพังงา',
+        label_en: '5. Beyond Khao Lak Gems',
+        label_sv: '5. Bortom Khao Lak & Natur',
+        prompt_th: 'สอนเรื่องตอนที่ 5: สำรวจธรรมชาติพังงานอกรีสอร์ทเขาหลัก น้ำตกและอาหารท้องถิ่น https://www.youtube.com/watch?v=ubZGsuObwCY',
+        prompt_en: 'Tell me about Episode 5: Leaving resorts behind to discover Phang Nga\'s hidden nature and local gems (https://www.youtube.com/watch?v=ubZGsuObwCY)',
+        prompt_sv: 'Berätta om Avsnitt 5: Att lämna turistresorterna i Khao Lak och hitta Phang Ngas hemliga smultronställen (https://www.youtube.com/watch?v=ubZGsuObwCY)',
+      },
+      {
+        label_th: '6. ล่องเรืออ่าวพังงา & เกาะปันหยี',
+        label_en: '6. Phang Nga Bay & Caves',
+        label_sv: '6. Phang Nga-bukten & Grottor',
+        prompt_th: 'สอนเรื่องตอนที่ 6: ล่องเรือหัวโทงชมเขาหินปูน ถ้ำทะเล และหมู่บ้านลอยน้ำเกาะปันหยี https://www.youtube.com/watch?v=HUtvdXmMZck',
+        prompt_en: 'Tell me about Episode 6: Cruising Phang Nga Bay with kids, limestone karst caves, and Koh Panyee stilt village (https://www.youtube.com/watch?v=HUtvdXmMZck)',
+        prompt_sv: 'Berätta om Avsnitt 6: Båttur i Phang Nga-bukten med barn, kalkstensklippor, havsgrottor och den flytande byn Koh Panyee (https://www.youtube.com/watch?v=HUtvdXmMZck)',
+      },
+      {
+        label_th: '7. ตาน้ำใสกลางป่า สุราษฎร์ธานี',
+        label_en: '7. Surat Thani Jungle Springs',
+        label_sv: '7. Surat Thanis djungelkällor',
+        prompt_th: 'สอนเรื่องตอนที่ 7: ป่าต้นน้ำบ้านน้ำราด สุราษฎร์ธานี พายเรือในธารน้ำใสกลางป่าฝน https://www.youtube.com/watch?v=BE7VPruPpvU',
+        prompt_en: 'Tell me about Episode 7: Ban Nam Rad crystal-clear jungle springs and canoeing in Surat Thani rainforest (https://www.youtube.com/watch?v=BE7VPruPpvU)',
+        prompt_sv: 'Berätta om Avsnitt 7: Ban Nam Rad kristallklara sötvattenskällor mitt i Surat Thanis regnskog (https://www.youtube.com/watch?v=BE7VPruPpvU)',
+      },
+      {
+        label_th: '8. ชายฝั่งระยองและจันทบุรี',
+        label_en: '8. Rayong & Chanthaburi Coast',
+        label_sv: '8. Kusten i Rayong & Chanthaburi',
+        prompt_th: 'สอนเรื่องตอนที่ 8: เที่ยวสวนผลไม้ ตลาดพลอย และชายทะเลระยอง-จันทบุรี https://www.youtube.com/watch?v=XFTLRWvPS0s',
+        prompt_en: 'Tell me about Episode 8: Exploring Rayong and Chanthaburi coast, tropical fruit orchards, and historic gem towns (https://www.youtube.com/watch?v=XFTLRWvPS0s)',
+        prompt_sv: 'Berätta om Avsnitt 8: Fruktodlingar, historiska ädelstensmarknader och lugna stränder i Rayong och Chanthaburi (https://www.youtube.com/watch?v=XFTLRWvPS0s)',
+      },
+      {
+        label_th: '9. กรุงเทพเก่า ริมน้ำ & เยาวราช',
+        label_en: '9. Old Bangkok & Chinatown',
+        label_sv: '9. Gamla Bangkok & Chinatown',
+        prompt_th: 'สอนเรื่องตอนที่ 9: นั่งเรือด่วนเจ้าพระยา ชมวัดอรุณ และสตรีทฟู้ดเยาวราชยามค่ำคืน https://www.youtube.com/watch?v=_sWeq2pMRRU',
+        prompt_en: 'Tell me about Episode 9: Chao Phraya river express boats, historic riverside temples, and Yaowarat Chinatown night street food (https://www.youtube.com/watch?v=_sWeq2pMRRU)',
+        prompt_sv: 'Berätta om Avsnitt 9: Båt på Chao Phraya-floden, vackra tempel och matmarknaden i Chinatowns nattliv (https://www.youtube.com/watch?v=_sWeq2pMRRU)',
+      },
+      {
+        label_th: '10. เพชรบูรณ์ & วัดผาซ่อนแก้ว',
+        label_en: '10. Phetchabun & Mosaic Temple',
+        label_sv: '10. Phetchabun & Mosaiktemplet',
+        prompt_th: 'สอนเรื่องตอนที่ 10: ภูทับเบิก เขาค้อ ทะเลหมอก และวัดพระธาตุผาซ่อนแก้ว เพชรบูรณ์ https://www.youtube.com/watch?v=XBPZcK9w59Y',
+        prompt_en: 'Tell me about Episode 10: Misty mountains of Khao Kho and the stunning Wat Pha Sorn Kaew mosaic temple in Phetchabun (https://www.youtube.com/watch?v=XBPZcK9w59Y)',
+        prompt_sv: 'Berätta om Avsnitt 10: De dimhöljda bergen i Khao Kho och det fantastiska mosaiktemplet Wat Pha Sorn Kaew i Phetchabun (https://www.youtube.com/watch?v=XBPZcK9w59Y)',
+      },
+      {
+        label_th: '11. เดินป่าภูสอยดาว แดนสนสามใบ',
+        label_en: '11. Phu Soi Dao Alpine Trail',
+        label_sv: '11. Phu Soi Dao Vildmark & Berg',
+        prompt_th: 'สอนเรื่องตอนที่ 11: เดินป่าพิชิตลานสนภูสอยดาว ทุ่งดอกหงอนนาค และน้ำตกธรรมชาติ https://www.youtube.com/watch?v=566Z7kfSvZ4',
+        prompt_en: 'Tell me about Episode 11: Hiking to the high-altitude pine plateau of Phu Soi Dao, waterfalls, and alpine wildflowers (https://www.youtube.com/watch?v=566Z7kfSvZ4)',
+        prompt_sv: 'Berätta om Avsnitt 11: Vandring till Phu Soi Daos höghöjdstallskogar, vilda blommor och vackra vattenfall (https://www.youtube.com/watch?v=566Z7kfSvZ4)',
+      },
+    ],
+  },
 ];
 
 export function isFlorence(
@@ -500,7 +607,7 @@ export function getSubjectsForGrade(
   let filtered = subjects.filter(s => gradeIdx >= s.minGradeIndex && gradeIdx <= s.maxGradeIndex);
 
   if (isFlorence(student)) {
-    const swedishKlass1Subjects = ['swedish', 'math', 'science', 'social', 'english', 'reading', 'history'];
+    const swedishKlass1Subjects = ['swedish', 'math', 'science', 'social', 'english', 'reading', 'history', 'discover_thailand'];
     filtered = filtered.filter(s => swedishKlass1Subjects.includes(s.id));
   } else if (isSwedish(student)) {
     filtered = filtered.filter(s => s.id !== 'thai');

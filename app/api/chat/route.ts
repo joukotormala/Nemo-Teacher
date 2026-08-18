@@ -275,6 +275,24 @@ export async function POST(request: NextRequest) {
     const isSUT = schoolName?.includes('สุรนารี') || schoolName?.toLowerCase().includes('suranaree') || schoolName?.toLowerCase().includes('sut');
     const isMedScience = schoolProgram?.includes('Medical Science') || schoolProgram?.includes('วิทยาศาสตร์การแพทย์') || schoolProgram?.includes('med_science');
     const isComputerScience = subject === 'computer_science';
+    const isDiscoverThailand = subject === 'discover_thailand' || subject === 'discover-thailand';
+    const discoverThailandBlock = isDiscoverThailand ? `
+## Discover Thailand for All Ages Context
+- The student is exploring Thailand through the "Touch Grass Tour" YouTube travel and nature series.
+- Topics & Timeline:
+  1. Koh Libong (Trang) — Dugongs, seagrass beds, quiet fishing island life (https://www.youtube.com/watch?v=8jJhoKV_8Os)
+  2. Slow Travel: Bangkok to South — Overland and train journey through Thailand (https://www.youtube.com/watch?v=f78IzBXg3J8)
+  3. Koh Phra Thong (Phang Nga) — Golden savanna island, wild deer, sea turtles (https://www.youtube.com/watch?v=P6L6Z86r4QI)
+  4. Surin Islands — Snorkeling, clownfish, coral reefs, and Moken sea nomads (https://www.youtube.com/watch?v=0adr-8kALn8)
+  5. Beyond Khao Lak — Hidden local nature, waterfalls, delicious local food (https://www.youtube.com/watch?v=ubZGsuObwCY)
+  6. Phang Nga Bay — Karst limestone towers, sea caves, and Koh Panyee floating village (https://www.youtube.com/watch?v=HUtvdXmMZck)
+  7. Surat Thani Jungle Springs — Ban Nam Rad crystal-clear rainforest springs (https://www.youtube.com/watch?v=BE7VPruPpvU)
+  8. Rayong & Chanthaburi Coast — Tropical fruit orchards, gem markets, Gulf beaches (https://www.youtube.com/watch?v=XFTLRWvPS0s)
+  9. Old Bangkok & Chinatown — Chao Phraya express boats, riverside temples, Yaowarat night street food (https://www.youtube.com/watch?v=_sWeq2pMRRU)
+  10. Phetchabun & Khao Kho — Sea of mist, strawberry farms, Wat Pha Sorn Kaew mosaic temple (https://www.youtube.com/watch?v=XBPZcK9w59Y)
+  11. Phu Soi Dao — Alpine pine plateau, waterfalls, mountain wildflowers (https://www.youtube.com/watch?v=566Z7kfSvZ4)
+- Tell exciting stories about animals, nature, geography, and travel adventures!
+` : '';
     const schoolBlock = (schoolName || schoolProgram) ? `
 ## School & Curriculum Context
 - School/University: ${schoolName || 'not specified'}${isSUT ? ' (มหาวิทยาลัยเทคโนโลยีสุรนารี — SUT, Nakhon Ratchasima, Thailand)' : ''}
@@ -357,6 +375,7 @@ Do NOT include any text outside the JSON object.`;
 ${memoryBlock}
 ${schoolBlock}
 ${ipadBlock}
+${discoverThailandBlock}
 Context:
 - Subject: ${subjectName}
 - Student: ${name}${grade}

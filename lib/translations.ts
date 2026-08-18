@@ -44,6 +44,7 @@ export const translations: Record<string, Record<Locale, string>> = {
   'subject.thai': { th: 'ภาษาไทย', en: 'Thai Language', sv: 'Thailändska' },
   'subject.reading': { th: 'การอ่าน', en: 'Reading', sv: 'Läsning' },
   'subject.lab_tech': { th: 'เทคโนโลยีห้องปฏิบัติการ', en: 'Lab Technology', sv: 'Laboratorieteknik' },
+  'subject.discover_thailand': { th: 'ค้นพบเมืองไทย', en: 'Discover Thailand', sv: 'Upptäck Thailand' },
 
   // Chat
   'chat.placeholder': { th: 'พิมพ์คำถามของคุณที่นี่...', en: 'Type your question here...', sv: 'Skriv din fråga här...' },
