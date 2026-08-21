@@ -415,9 +415,11 @@ export default function ChatPage() {
       try {
         const recognition = new SpeechRecognition();
         recognition.lang = getSpeechLang();
-        recognition.continuous = false; // Stop automatically when the user stops talking
+        recognition.continuous = true; // Use custom silence detection instead
         recognition.interimResults = true;
         recognition.maxAlternatives = 1;
+
+        let silenceTimer: any = null;
 
         recognition.onstart = () => {
           if (showToast) {
@@ -432,24 +434,24 @@ export default function ChatPage() {
           }
           setInput(transcript);
           currentTranscriptRef.current = transcript;
+
+          if (silenceTimer) clearTimeout(silenceTimer);
+          silenceTimer = setTimeout(() => {
+            if (recognitionRef.current) {
+              recognitionRef.current.stop();
+            }
+          }, 2000); // 2 seconds of silence after speaking
         };
 
         recognition.onend = () => {
+          if (silenceTimer) clearTimeout(silenceTimer);
           setIsListening(false);
           isListeningRef.current = false;
           recognitionRef.current = null;
           
-          if (autoListenRef.current) {
-            if (currentTranscriptRef.current.trim().length > 0) {
-              setShouldAutoSend(true);
-            } else {
-              // Restart listening if no speech was detected but we are in auto-listen mode
-              setTimeout(() => {
-                if (autoListenRef.current && !isListeningRef.current && startListeningRef.current) {
-                  startListeningRef.current(false);
-                }
-              }, 300);
-            }
+          // Only auto-send if autoListen is still active (user didn't stop it)
+          if (autoListenRef.current && currentTranscriptRef.current.trim().length > 0) {
+            setShouldAutoSend(true);
           }
         };
 
