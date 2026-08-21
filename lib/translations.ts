@@ -132,7 +132,6 @@ export const translations: Record<string, Record<Locale, string>> = {
   'settings.grade': { th: 'ระดับชั้น', en: 'Grade Level', sv: 'Klassnivå' },
   'settings.modelTitle': { th: 'การตั้งค่าโมเดล AI', en: 'AI Model Settings', sv: 'AI-modellinställningar' },
   'settings.modelDesc': { th: 'เลือกโมเดลที่จะใช้สำหรับครูผู้ช่วยสอนเนโม', en: 'Select the model to use for AI Tutor Nemo', sv: 'Välj den modell som ska användas för AI-läraren Nemo' },
-  'settings.ollamaRequired': { th: 'โมเดลโลคอลจำเป็นต้องเปิดใช้งาน Ollama ในเครื่องคอมพิวเตอร์ของคุณ', en: 'Local models require Ollama running on your local machine.', sv: 'Lokala modeller kräver att Ollama körs på din lokala dator.' },
   'model.nvidia': { th: 'คลาวด์เนโมทราน 🟢 (NVIDIA)', en: 'Nvidia Cloud - Nemotron 🟢', sv: 'Nvidia Cloud - Nemotron 🟢' },
   'model.qwen': { th: 'มิสทรัล มีเดียม 🟢 (Mistral 128B)', en: 'Mistral Cloud – Mistral Medium 128B 🟢', sv: 'Mistral Cloud – Mistral Medium 128B 🟢' },
   'model.cloud': { th: 'คลาวด์ลามะ 70B 🟢 (NVIDIA - ดีที่สุดสำหรับทุกวิชา/ภาษาสวีเดน)', en: 'Llama Cloud - Llama 3.3 70B 🟢 (Nvidia - Best Overall & Swedish)', sv: 'Llama Cloud - Llama 3.3 70B 🟢 (Nvidia - Bäst för alla ämnen & svenska)' },
@@ -145,8 +144,6 @@ export const translations: Record<string, Record<Locale, string>> = {
   'model.gemini': { th: 'กูเกิล เจมินาย 2.0 แฟลช 🤖 (Google Gemini - ฟรี/ดีที่สุดสำหรับ Florence)', en: 'Google Gemini 2.0 Flash 🤖 (Google Free Tier - Best for Florence)', sv: 'Google Gemini 2.0 Flash 🤖 (Google gratis - Bäst för Florence 🇸🇪)' },
   'model.gemini37': { th: 'กูเกิล เจมินาย 3.7 แฟลช 🤖 (Google Gemini 3.7 Flash)', en: 'Google Gemini 3.7 Flash 🤖 (Google AI - Hybrid Reasoning)', sv: 'Google Gemini 3.7 Flash 🤖 (Google Gemini 3.7 Flash 🇸🇪)' },
   'model.gemini15': { th: 'กูเกิล เจมินาย 2.5 โปร 🤖 (พรีเมียม)', en: 'Google Gemini 2.5 Pro 🤖 (Premium)', sv: 'Google Gemini 2.5 Pro 🤖 (Premium)' },
-  'model.seaLion': { th: 'เนโมโลคอล - Sea-Lion (Ollama/LM Studio) 🇸🇬', en: 'Local Tutor - Sea-Lion (Ollama/LM Studio) 🇸🇬', sv: 'Lokal lärare - Sea-Lion (Ollama/LM Studio) 🇸🇬' },
-  'model.nemotron': { th: 'เนโมโลคอล - Nemotron 🟢', en: 'Local Tutor - Nemotron 🟢', sv: 'Lokal lärare - Nemotron 🟢' },
 };
 
 export function t(key: string, locale: Locale): string {

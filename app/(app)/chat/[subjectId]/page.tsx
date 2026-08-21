@@ -375,6 +375,11 @@ export default function ChatPage() {
       setIsListening(false);
       isListeningRef.current = false;
       setAutoListen(false);   // user explicitly stopped — turn off auto-listen loop
+      
+      // Auto-send what they already spoke if they manually stopped it
+      if (currentTranscriptRef.current.trim().length > 0) {
+        setShouldAutoSend(true);
+      }
       return;
     }
 
@@ -410,7 +415,7 @@ export default function ChatPage() {
       try {
         const recognition = new SpeechRecognition();
         recognition.lang = getSpeechLang();
-        recognition.continuous = true;
+        recognition.continuous = false; // Stop automatically when the user stops talking
         recognition.interimResults = true;
         recognition.maxAlternatives = 1;
 
@@ -433,9 +438,18 @@ export default function ChatPage() {
           setIsListening(false);
           isListeningRef.current = false;
           recognitionRef.current = null;
-          // Only auto-send if autoListen is still active (user didn't stop it)
-          if (autoListenRef.current && currentTranscriptRef.current.trim().length > 0) {
-            setShouldAutoSend(true);
+          
+          if (autoListenRef.current) {
+            if (currentTranscriptRef.current.trim().length > 0) {
+              setShouldAutoSend(true);
+            } else {
+              // Restart listening if no speech was detected but we are in auto-listen mode
+              setTimeout(() => {
+                if (autoListenRef.current && !isListeningRef.current && startListeningRef.current) {
+                  startListeningRef.current(false);
+                }
+              }, 300);
+            }
           }
         };
 
@@ -620,7 +634,8 @@ export default function ChatPage() {
     if (greetingDoneRef.current || !subject || !activeStudent || subjectSlug === 'discover-thailand' || subjectSlug === 'discover_thailand') return;
     greetingDoneRef.current = true;
 
-    const savedModel = (typeof window !== 'undefined' ? localStorage.getItem('nemo_preferred_model') : null) || 'llama-8b';
+    let savedModel = (typeof window !== 'undefined' ? localStorage.getItem('nemo_preferred_model') : null) || 'llama-8b';
+    if (savedModel === 'sea-lion' || savedModel === 'nemotron') savedModel = 'llama-8b';
     setActiveModel(savedModel);
 
     // Update local model name placeholder instantly
@@ -634,8 +649,6 @@ export default function ChatPage() {
     else if (savedModel === 'gemini') setModelName('Google Gemini 2.0');
     else if (savedModel === 'gemini15') setModelName('Google Gemini 2.5 Pro');
     else if (savedModel === 'gemma-4b') setModelName('Gemma-3-4B');
-    else if (savedModel === 'sea-lion') setModelName('Sea-Lion (Local)');
-    else if (savedModel === 'nemotron') setModelName('nemotron-mini');
 
     const quickGreeting = locale === 'th'
       ? `สวัสดีครับ ${studentName}! 😊 ยินดีต้อนรับสู่วิชา${subjectName} พิมพ์คำถามของคุณได้เลยครับ!`
@@ -1171,8 +1184,6 @@ const STOP_WORDS = new Set([
     else if (modelId === 'gemini') setModelName('Google Gemini 2.0');
     else if (modelId === 'gemini15') setModelName('Google Gemini 2.5 Pro');
     else if (modelId === 'gemma-4b') setModelName('Gemma-3-4B');
-    else if (modelId === 'sea-lion') setModelName('Sea-Lion (Local)');
-    else if (modelId === 'nemotron') setModelName('nemotron-mini');
     else if (modelId === 'nemotron-super') setModelName('Nemotron-Super-49B ⭐');
     else if (modelId === 'deepseek-r1') setModelName('DeepSeek-R1 🧠');
 
@@ -1188,8 +1199,6 @@ const STOP_WORDS = new Set([
       'gemini': 'Google Gemini 2.0',
       'gemini15': 'Google Gemini 2.5 Pro',
       'gemma-4b': 'Gemma 3 4B',
-      'sea-lion': 'Sea-Lion',
-      'nemotron': 'Nemotron-mini',
       'nemotron-super': 'Nemotron Super 49B',
       'deepseek-r1': 'DeepSeek R1',
     };
@@ -1377,8 +1386,6 @@ const STOP_WORDS = new Set([
                         'qwen':           { label: isSv ? '🧠 Smartare' : '🧠 Smarter',    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400', tip: isSv ? 'Större modell för mer detaljerade svar.' : 'Larger model — takes a bit longer but gives more detailed and accurate answers. Best Thai language support.' },
                         'nemotron-super': { label: isSv ? '🧠⭐ Smartast' : '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: isSv ? 'NVIDIAs främsta vetenskapsmodell (49B).' : "NVIDIA's top science model (49 billion parameters). May take 10–30 seconds to think — but gives the most accurate scientific answers." },
                         'deepseek-r1':    { label: isSv ? '🧠⭐ Smartast' : '🧠⭐ Smartest', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700', tip: isSv ? 'Djupstegsresonemang.' : 'Deep reasoning model — thinks step by step before answering. Can take 15–45 seconds, but works through complex problems very carefully.' },
-                        'sea-lion':       { label: '🏠 Lokal',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: isSv ? 'Körs på din dator.' : 'Runs on your own computer — speed depends on your device.' },
-                        'nemotron':       { label: '🏠 Lokal',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',            tip: isSv ? 'Körs lokalt via Ollama.' : 'Runs locally via Ollama — speed depends on your device.' },
                       };
                       const b = badges[activeModel];
                       if (!b) return null;
@@ -1445,14 +1452,6 @@ const STOP_WORDS = new Set([
                   <DropdownMenuItem onClick={() => handleModelChange('gemma-4b')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
                     <span className="font-medium text-xs sm:text-sm">{t('model.gemma4b')}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">Gemma-3-4B (Nvidia)</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleModelChange('sea-lion')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
-                    <span className="font-medium text-xs sm:text-sm">{t('model.seaLion')}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">Sea-Lion MLX / GGUF (LM Studio/Ollama)</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleModelChange('nemotron')} className="flex flex-col items-start gap-0.5 cursor-pointer hover:bg-muted p-2 rounded-md">
-                    <span className="font-medium text-xs sm:text-sm">{t('model.nemotron')}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">nemotron-mini (Ollama)</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

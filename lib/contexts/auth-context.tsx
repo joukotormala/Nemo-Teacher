@@ -334,8 +334,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sync DB preferred AI model to client localStorage on profile load/switch
   useEffect(() => {
     if (activeStudent?.preferred_ai_model) {
-      // Normalize 'sea-lion-8b' to 'sea-lion' to match front-end IDs
-      const model = activeStudent.preferred_ai_model === 'sea-lion-8b' ? 'sea-lion' : activeStudent.preferred_ai_model;
+      let model = activeStudent.preferred_ai_model;
+      if (model === 'sea-lion' || model === 'sea-lion-8b' || model === 'nemotron') {
+        model = 'llama-8b';
+      }
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('nemo_preferred_model');
         if (saved !== model) {

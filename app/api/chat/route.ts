@@ -3,9 +3,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Configuration: if OLLAMA_URL is set, use local Ollama; otherwise use NVIDIA API
-const OLLAMA_URL = process.env.OLLAMA_URL; // e.g. http://localhost:11434
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'aisingapore/Gemma-SEA-LION-v4-4B-VL';
 const LLAMA_MODEL = process.env.CLOUD_LLM_MODEL || 'meta/llama-3.3-70b-instruct';
 const LLAMA_8B_MODEL = 'meta/llama-3.1-8b-instruct';
 const LLAMA_3B_MODEL = 'meta/llama-3.2-3b-instruct';
@@ -136,15 +133,6 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
     };
   }
 
-  if ((choice === 'sea-lion' || choice === 'nemotron') && OLLAMA_URL) {
-    const selectedModel = choice === 'sea-lion' ? OLLAMA_MODEL : 'nemotron-mini:latest';
-    return {
-      url: `${OLLAMA_URL}/v1/chat/completions`,
-      model: selectedModel,
-      headers: { 'Content-Type': 'application/json' },
-    };
-  }
-
   if (choice === 'nemotron-super') {
     return {
       url: 'https://integrate.api.nvidia.com/v1/chat/completions',
@@ -267,7 +255,7 @@ export async function POST(request: NextRequest) {
 
     const config = getEndpointConfig(model);
     if (!config) {
-      return new Response(JSON.stringify({ error: 'No LLM API configured. Set NVIDIA_API_KEY or OLLAMA_URL in .env' }), {
+      return new Response(JSON.stringify({ error: 'No LLM API configured. Set NVIDIA_API_KEY or GEMINI_API_KEY in .env' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });

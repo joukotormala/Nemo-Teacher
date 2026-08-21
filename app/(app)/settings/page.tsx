@@ -249,11 +249,15 @@ export default function SettingsPage() {
   // Populate preferred model from activeStudent or localStorage
   useEffect(() => {
     if (activeStudent?.preferred_ai_model) {
-      const dbModel = activeStudent.preferred_ai_model === 'sea-lion-8b' ? 'sea-lion' : activeStudent.preferred_ai_model;
+      let dbModel = activeStudent.preferred_ai_model;
+      if (dbModel === 'sea-lion' || dbModel === 'sea-lion-8b' || dbModel === 'nemotron') {
+        dbModel = 'llama-8b';
+      }
       setPreferredModel(dbModel);
     } else if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('nemo_preferred_model') || 'llama-8b';
-      setPreferredModel(saved);
+      const cleanModel = (saved === 'sea-lion' || saved === 'nemotron') ? 'llama-8b' : saved;
+      setPreferredModel(cleanModel);
     }
   }, [activeStudent]);
 
@@ -921,8 +925,6 @@ export default function SettingsPage() {
                 { id: 'deepseek-r1', label: t('model.deepseekR1'), desc: 'deepseek-ai/deepseek-r1 (Nvidia)' },
                 { id: 'nvidia', label: t('model.nvidia'), desc: 'Nemotron-3-nano (Nvidia Cloud)' },
                 { id: 'gemma-4b', label: t('model.gemma4b'), desc: 'Gemma-3-4B (Nvidia Cloud)' },
-                { id: 'sea-lion', label: t('model.seaLion'), desc: 'Sea-Lion GGUF/MLX (Ollama/LM Studio)' },
-                { id: 'nemotron', label: t('model.nemotron'), desc: 'nemotron-mini (Local Ollama)' },
               ];
               return allModels.map((m: any) => {
                 const isSelected = preferredModel === m.id;
@@ -946,12 +948,6 @@ export default function SettingsPage() {
               });
             })()}
           </div>
-
-          {(preferredModel === 'sea-lion' || preferredModel === 'nemotron') && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 font-medium bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
-              ⚠️ {t('settings.ollamaRequired')}
-            </p>
-          )}
         </motion.div>
 
         {/* Save button */}
