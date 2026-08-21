@@ -911,6 +911,7 @@ export default function SettingsPage() {
               const allModels = [
                 { id: 'llama-3b', label: t('model.llama3b'), desc: 'Llama-3.2-3B (Nvidia Cloud) — Ultra Fast & Instant Streaming ⚡⚡⚡', star: true },
                 { id: 'llama-vision', label: t('model.llamaVision'), desc: 'Llama-3.2-11B-Vision (Nvidia Cloud) — Photo & Homework Analysis 📷', star: true },
+                { id: 'gemini-3.7-flash', label: t('model.gemini37'), desc: 'gemini-3.7-flash (Google AI) — Next-gen hybrid reasoning ⚡', star: true },
                 { id: 'gemini', label: t('model.gemini'), desc: 'gemini-2.0-flash (Google Free Tier) — Best for Florence 🇸🇪', star: true },
                 { id: 'gemini15', label: t('model.gemini15'), desc: 'gemini-2.5-pro (Premium) — Best for complex logic', star: true },
                 { id: 'cloud', label: t('model.cloud'), desc: 'Llama-3.3-70B (Nvidia Cloud) — Best Overall & Swedish', star: true },

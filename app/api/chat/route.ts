@@ -15,7 +15,8 @@ const NVIDIA_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
 const QWEN_MODEL = 'mistralai/mistral-medium-3.5-128b';  // All Qwen models removed from NVIDIA — replaced with Mistral Medium
 const NEMOTRON_SUPER_MODEL = 'nvidia/llama-3.3-nemotron-super-49b-v1.5';
 const DEEPSEEK_R1_MODEL = 'deepseek-ai/deepseek-r1';
-const GEMINI_MODEL = 'gemini-3.6-flash';
+const GEMINI_MODEL = 'gemini-3.7-flash';
+const GEMINI_37_MODEL = 'gemini-3.7-flash';
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
@@ -40,6 +41,18 @@ function getEndpointConfig(modelChoice?: string): { url: string; model: string; 
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+      },
+    };
+  }
+
+  if (choice === 'gemini-3.7-flash' || choice === 'gemini37') {
+    const cleanKey = (process.env.GEMINI_API_KEY || '').trim();
+    return {
+      url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      model: GEMINI_37_MODEL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cleanKey}`,
       },
     };
   }
@@ -178,7 +191,7 @@ async function handleGeminiFallback(systemPrompt: string, messages: any[], isGre
     role: m.role === 'user' ? 'user' : 'model',
     parts: [{ text: m.content || '' }]
   }));
-  
+
   let userMsg = '';
   if (isGreeting) {
     userMsg = `Greet me and suggest what we can learn in ${subjectName}`;
@@ -298,12 +311,12 @@ export async function POST(request: NextRequest) {
 - School/University: ${schoolName || 'not specified'}${isSUT ? ' (มหาวิทยาลัยเทคโนโลยีสุรนารี — SUT, Nakhon Ratchasima, Thailand)' : ''}
 - Program: ${schoolProgram || (isUniversity ? 'University Program' : 'Thai program')}
 ${isUniversity
-  ? `- UNIVERSITY-LEVEL student. Use academic depth appropriate for undergraduate/graduate level. Expect prior high school science knowledge.`
-  : isLpfö
-  ? `- **Swedish Preschool (Lpfö 18)**: Follows the Swedish preschool curriculum (Lpfö 18, ages 1-5). Focus on play, curiosity, language development, and storytelling in Swedish.`
-  : isLgr22
-  ? `- **Swedish Grundskola (Lgr22)**: Follows the Swedish national curriculum (Skolverket Lgr22) for Lågstadiet / Förskoleklass. Primary language of instruction is Swedish (*Svenska*). Use Swedish elementary pedagogy (*Svensk lågstadielärare*: warm, encouraging, play-based, short sentences).`
-  : `- This school follows the Thai Ministry of Education Basic Education Core Curriculum (Revised 2017)`}
+        ? `- UNIVERSITY-LEVEL student. Use academic depth appropriate for undergraduate/graduate level. Expect prior high school science knowledge.`
+        : isLpfö
+          ? `- **Swedish Preschool (Lpfö 18)**: Follows the Swedish preschool curriculum (Lpfö 18, ages 1-5). Focus on play, curiosity, language development, and storytelling in Swedish.`
+          : isLgr22
+            ? `- **Swedish Grundskola (Lgr22)**: Follows the Swedish national curriculum (Skolverket Lgr22) for Lågstadiet / Förskoleklass. Primary language of instruction is Swedish (*Svenska*). Use Swedish elementary pedagogy (*Svensk lågstadielärare*: warm, encouraging, play-based, short sentences).`
+            : `- This school follows the Thai Ministry of Education Basic Education Core Curriculum (Revised 2017)`}
 ${isSUT && isMedScience ? `- **SUT Medical Science Program (วิทยาศาสตร์การแพทย์ มทส.)**: 4-year B.Sc. under the Institute of Science. Core curriculum: Medical Biochemistry, Cell Biology, Microbiology & Parasitology, Immunology, Basic Hematology, Basic Pathology, Research Methodology, Bioinformatics, Quality Management & Biosafety. This student's goal is to become a researcher (นักวิจัย). Use correct scientific terminology in both Thai and English. Encourage research thinking.` : ''}
 ${isEP ? `- **English Program (EP)**: Core subjects (Math, Science) are taught IN ENGLISH. Use English for ${subjectName} unless student writes Thai.` : ''}
 ${gradeLevel === 'secondary_3' ? `- Grade 9 (Matthayom 3): Key exam this year is **O-NET** (national standardized test in Thai, Math, Science, English, Social Studies). Prioritise O-NET-style practice when relevant.` : ''}
@@ -346,10 +359,10 @@ Use this information to:
 - Avoid topics already mastered unless reviewing
 ` : '';
 
-    const earlyPrimary = ['kindergarten','primary_1','primary_2'].includes(gradeLevel ?? '');
-    const upperPrimary = ['primary_3','primary_4','primary_5','primary_6'].includes(gradeLevel ?? '');
-    const lowerSecondary = ['secondary_1','secondary_2','secondary_3'].includes(gradeLevel ?? '');
-    const upperSecondary = ['secondary_4','secondary_5','secondary_6'].includes(gradeLevel ?? '');
+    const earlyPrimary = ['kindergarten', 'primary_1', 'primary_2'].includes(gradeLevel ?? '');
+    const upperPrimary = ['primary_3', 'primary_4', 'primary_5', 'primary_6'].includes(gradeLevel ?? '');
+    const lowerSecondary = ['secondary_1', 'secondary_2', 'secondary_3'].includes(gradeLevel ?? '');
+    const upperSecondary = ['secondary_4', 'secondary_5', 'secondary_6'].includes(gradeLevel ?? '');
     const isUniv = isUniversity;
 
     let systemPrompt: string;
@@ -438,14 +451,14 @@ Teaching Style (Evidence-Based Pedagogy — Grade-Adaptive):
 - Never lie or make things up — say so honestly if unsure
 - Always teach ONE concept at a time — never dump a full lesson at once
 ${(() => {
-  // ── Determine grade tier ──────────────────────────────────────────────────
-  const earlyPrimary  = ['kindergarten','primary_1','primary_2'].includes(gradeLevel ?? '');
-  const upperPrimary  = ['primary_3','primary_4','primary_5','primary_6'].includes(gradeLevel ?? '');
-  const lowerSecondary = ['secondary_1','secondary_2','secondary_3'].includes(gradeLevel ?? '');
-  const upperSecondary = ['secondary_4','secondary_5','secondary_6'].includes(gradeLevel ?? '');
-  const isUniv = isUniversity;
+          // ── Determine grade tier ──────────────────────────────────────────────────
+          const earlyPrimary = ['kindergarten', 'primary_1', 'primary_2'].includes(gradeLevel ?? '');
+          const upperPrimary = ['primary_3', 'primary_4', 'primary_5', 'primary_6'].includes(gradeLevel ?? '');
+          const lowerSecondary = ['secondary_1', 'secondary_2', 'secondary_3'].includes(gradeLevel ?? '');
+          const upperSecondary = ['secondary_4', 'secondary_5', 'secondary_6'].includes(gradeLevel ?? '');
+          const isUniv = isUniversity;
 
-  if (earlyPrimary) return `
+          if (earlyPrimary) return `
 ## Teaching Approach: Early Primary (Ages 5–8) — Play-Based & Gentle
 ${lang === 'Swedish' ? `
 ### Pedagogisk Roll (Svensk Lågstadielärare för 7-åringar):
@@ -477,7 +490,7 @@ Research shows ALL 5 evidence-based methods work from age 3, in simple formats.
 - Maximum 2–3 minutes on one idea before switching
 `;
 
-  if (upperPrimary) return `
+          if (upperPrimary) return `
 ## Teaching Approach: Upper Primary (Ages 9–12) — Building Habits
 At this age, retrieval practice and "why" questions produce dramatically better memory than passive reading.
 
@@ -500,7 +513,7 @@ At this age, retrieval practice and "why" questions produce dramatically better 
 - Short responses: aim for 4–6 sentences max
 `;
 
-  if (lowerSecondary) return `
+          if (lowerSecondary) return `
 ## Teaching Approach: Lower Secondary (Ages 12–15) — Structured Retrieval
 ${gradeLevel === 'secondary_3' ? `${name} is in Matthayom 3 — **O-NET exam year**. Frame everything around O-NET preparation.` : `${name} is in early secondary — building strong study habits now matters enormously.`}
 
@@ -528,7 +541,7 @@ ${gradeLevel === 'secondary_3' ? `### O-NET Exam Awareness
 - O-NET tests APPLICATION not memorisation — always ask "how would you use this?"` : ''}
 `;
 
-  if (upperSecondary) return `
+          if (upperSecondary) return `
 ## Teaching Approach: Upper Secondary (Ages 15–18) — Exam Excellence
 ${gradeLevel === 'secondary_6' ? `${name} is in Matthayom 6 — **CRITICAL year for TPAT and university entrance exams**. Every session should connect to exam readiness.` : `${name} is in upper secondary — excellent time to master exam technique and deep understanding together.`}
 
@@ -557,7 +570,7 @@ ${gradeLevel === 'secondary_6' ? `- TPAT/A-Level focus: use timed practice "ล�
 - Regularly reference older topics: "เรื่องนี้เชื่อมกับที่เราเรียนเรื่อง X ไป — จำได้ไหม?" / "This connects to X we covered before — can you recall it?"
 `;
 
-  if (isUniv) return `
+          if (isUniv) return `
 ## Teaching Approach: University Researcher (Evidence-Based Socratic Method)
 ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence-based methods at research depth.
 
@@ -592,26 +605,26 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
 - Challenge assumptions: "Why is this the accepted model? Is there any debate in the literature?"
 `;
 
-  // Default fallback (grade not set)
-  return `
+          // Default fallback (grade not set)
+          return `
 ### General Teaching
 - Ask what the student knows before explaining
 - Use why/how questions after every key fact
 - Teach one concept at a time, check before moving on
 - End every topic with a recall question, not "do you understand?"
 `;
-})()}`;
+        })()}`;
 
 
     }
 
 
-    const isGemini = model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL || config.model === 'gemini-pro-latest';
+    const isGemini = model === 'gemini' || model === 'google-gemini' || model === 'gemini15' || model === 'gemini37' || model === 'gemini-3.7-flash' || (config?.model && config.model.toLowerCase().includes('gemini'));
 
     if (isGemini) {
       const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
       const geminiModel = genAI.getGenerativeModel({
-        model: GEMINI_MODEL,
+        model: config?.model || GEMINI_37_MODEL,
         systemInstruction: systemPrompt,
         tools: [{ googleSearch: {} } as any]
       });
@@ -620,7 +633,7 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content || '' }]
       }));
-      
+
       let userMsg = '';
       if (isGreeting) {
         userMsg = `Greet me and suggest what we can learn in ${subjectName}`;
@@ -686,9 +699,9 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
     const formattedMsgs = isGreeting
       ? [{ role: 'user', content: `Greet me and suggest what we can learn in ${subjectName}` }]
       : (messages ?? []).map((m: any) => ({
-          role: m?.role ?? 'user',
-          content: m?.content ?? '',
-        }));
+        role: m?.role ?? 'user',
+        content: m?.content ?? '',
+      }));
 
     const apiMessages = [
       { role: 'system', content: systemPrompt },
@@ -734,7 +747,7 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
       }
 
       let customErrMsg = `LLM API error: ${response?.status}`;
-      const isGeminiError = model === 'gemini' || model === 'google-gemini' || config.model === GEMINI_MODEL;
+      const isGeminiError = isGemini || (model && typeof model === 'string' && model.toLowerCase().includes('gemini'));
 
       if (isGeminiError && (response?.status === 400 || response?.status === 401 || errText.includes('valid API key') || errText.includes('AUTHENTICATED') || errText.includes('UNAUTHENTICATED'))) {
         customErrMsg = 'Google Gemini API Key authentication error. Please go to https://aistudio.google.com/app/apikey, click "+ Create API Key" -> "Create API Key in new project" to get a key starting with AIzaSy...';
@@ -745,7 +758,7 @@ ${name} is training to be a **medical science researcher**. Apply ALL 5 evidence
           const parsedErr = JSON.parse(errText);
           const msg = parsedErr?.error?.message || parsedErr?.[0]?.error?.message;
           if (msg) customErrMsg = `LLM Error: ${msg}`;
-        } catch {}
+        } catch { }
       }
 
       return new Response(JSON.stringify({ error: customErrMsg }), {
